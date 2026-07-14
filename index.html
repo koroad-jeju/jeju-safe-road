@@ -4440,7 +4440,8 @@ setTimeout(()=>{
     weight_factor:2,
     share_factor:0.6
   },
-  instructions:false
+  instructions:true,
+language:"ko"
 };
   try{
  let response;
@@ -4495,20 +4496,42 @@ let allCoords = [];
 let routeSummaries = [];
 
 routes.forEach((route,index)=>{
-  const coords = route.geometry.coordinates.map(c=>[c[1],c[0]]);
-  const distanceKm = (route.properties.summary.distance / 1000).toFixed(1);
-  const durationMin = Math.round(route.properties.summary.duration / 60);
-const risk = routeRisks[index];
-const accidentAnalysis =
-  routeAccidentAnalyses[index];
+  const coords =
+    route.geometry.coordinates.map(
+      coordinate => [
+        coordinate[1],
+        coordinate[0]
+      ]
+    );
 
-routeSummaries[index] = {
-  coords:coords,
-  distanceKm:distanceKm,
-  durationMin:durationMin,
-  risk:risk,
-  accidentAnalysis:accidentAnalysis
-};
+  const distanceKm =
+    (
+      route.properties.summary.distance /
+      1000
+    ).toFixed(1);
+
+  const durationMin =
+    Math.round(
+      route.properties.summary.duration /
+      60
+    );
+
+  const risk = routeRisks[index];
+
+  const accidentAnalysis =
+    routeAccidentAnalyses[index];
+
+  const roadNames =
+    getMainRouteRoadNames(route);
+
+  routeSummaries[index] = {
+    coords:coords,
+    distanceKm:distanceKm,
+    durationMin:durationMin,
+    risk:risk,
+    accidentAnalysis:accidentAnalysis,
+    roadNames:roadNames
+  };
 });
 lastRouteSummaries = routeSummaries;
 
@@ -4558,7 +4581,15 @@ console.log(
   "2코스 사고 특성:",
   route2?.accidentAnalysis
 );
+console.log(
+  "1코스 주요 도로:",
+  route1.roadNames
+);
 
+console.log(
+  "2코스 주요 도로:",
+  route2?.roadNames
+);
 const matchedTipKey = Object.keys(destinationTips).find(key =>
   endName.includes(key) || key.includes(endName)
 );
@@ -4845,7 +4876,82 @@ setTimeout(() => {
 }
 
 }
+/* ===== ORS 경로에서 주요 통과도로 추출 ===== */
 
+function extractRouteRoadNames(route){
+  const roadMap = new Map();
+
+  const segments =
+    route?.properties?.segments || [];
+
+  segments.forEach(segment => {
+    const steps = segment.steps || [];
+
+    steps.forEach(step => {
+      let roadName = String(
+        step.name || ""
+      ).trim();
+
+      /*
+        이름이 없거나 안내문 성격의 값은 제외
+      */
+      if(
+        !roadName ||
+        roadName === "-" ||
+        roadName === "unnamed road" ||
+        roadName.includes("목적지") ||
+        roadName.includes("출발")
+      ){
+        return;
+      }
+
+      /*
+        괄호 안 도로번호 등 불필요한 부분 정리
+      */
+      roadName = roadName
+        .replace(/\s*\([^)]*\)\s*/g, "")
+        .trim();
+
+      if(!roadName){
+        return;
+      }
+
+      const distance =
+        Number(step.distance) || 0;
+
+      roadMap.set(
+        roadName,
+        (roadMap.get(roadName) || 0) + distance
+      );
+    });
+  });
+
+  /*
+    오래 주행한 도로순으로 정렬
+  */
+  return [...roadMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, distance]) => ({
+      name:name,
+      distanceKm:Number(
+        (distance / 1000).toFixed(1)
+      )
+    }));
+}
+
+function getMainRouteRoadNames(route){
+  const extracted =
+    extractRouteRoadNames(route);
+
+  /*
+    너무 짧게 지나는 도로는 제외
+  */
+  const meaningfulRoads = extracted.filter(
+    road => road.distanceKm >= 0.5
+  );
+
+  return meaningfulRoads.slice(0, 3);
+}
 function analyzeRouteRisk(coords){
   const SEARCH_RADIUS_M = 250;
 
