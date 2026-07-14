@@ -5009,13 +5009,25 @@ function analyzeRouteAccidents(coords){
     (accident.severity || "").includes("사망")
   );
 
-  const pedestrianAccidents = matchedList.filter(accident =>
-    (accident.accidentType || "").includes("차대사람")
-  );
+const pedestrianAccidents = matchedList.filter(accident => {
+  const type =
+    accident.type ||
+    accident.accidentType ||
+    accident.crashType ||
+    "";
 
-  const singleVehicleAccidents = matchedList.filter(accident =>
-    (accident.accidentType || "").includes("차량단독")
-  );
+  return type.includes("차대사람");
+});
+
+const singleVehicleAccidents = matchedList.filter(accident => {
+  const type =
+    accident.type ||
+    accident.accidentType ||
+    accident.crashType ||
+    "";
+
+  return type.includes("차량단독");
+});
 
   const intersectionAccidents = matchedList.filter(accident =>
     (accident.roadType || "").includes("교차로")
@@ -5037,8 +5049,14 @@ function analyzeRouteAccidents(coords){
   const violationCounts = {};
 
   matchedList.forEach(accident => {
-    const accidentType =
-      getMainAccidentCategory(accident.accidentType);
+    const rawAccidentType =
+  accident.type ||
+  accident.accidentType ||
+  accident.crashType ||
+  "";
+
+const accidentType =
+  getMainAccidentCategory(rawAccidentType);
 
     const violation =
       accident.violation || "기타";
