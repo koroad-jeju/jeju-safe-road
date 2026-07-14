@@ -4479,7 +4479,13 @@ console.log("ORS 전체 응답:", data);
       const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
       return analyzeRouteRisk(coords);
     });
+const routeAccidentAnalyses = routes.map(route => {
+  const coords = route.geometry.coordinates.map(
+    coordinate => [coordinate[1], coordinate[0]]
+  );
 
+  return analyzeRouteAccidents(coords);
+});
     document.getElementById("info").innerHTML =
   "<span class='routePath'>"+startName+
   " <span class='arrow'>→</span> "+
@@ -4492,15 +4498,17 @@ routes.forEach((route,index)=>{
   const coords = route.geometry.coordinates.map(c=>[c[1],c[0]]);
   const distanceKm = (route.properties.summary.distance / 1000).toFixed(1);
   const durationMin = Math.round(route.properties.summary.duration / 60);
-  const risk = routeRisks[index];
+const risk = routeRisks[index];
+const accidentAnalysis =
+  routeAccidentAnalyses[index];
 
-  routeSummaries[index] = {
-    coords: coords,
-    distanceKm: distanceKm,
-    durationMin: durationMin,
-    risk: risk
-  };
-  
+routeSummaries[index] = {
+  coords:coords,
+  distanceKm:distanceKm,
+  durationMin:durationMin,
+  risk:risk,
+  accidentAnalysis:accidentAnalysis
+};
 });
 lastRouteSummaries = routeSummaries;
 
@@ -4541,6 +4549,15 @@ const route1 = routeSummaries[0];
 const route2 = routeSummaries.length > 1
   ? routeSummaries[1]
   : null;
+console.log(
+  "1코스 사고 특성:",
+  route1.accidentAnalysis
+);
+
+console.log(
+  "2코스 사고 특성:",
+  route2?.accidentAnalysis
+);
 
 const matchedTipKey = Object.keys(destinationTips).find(key =>
   endName.includes(key) || key.includes(endName)
@@ -4907,6 +4924,174 @@ accidentCount++;
     riskScoreText: Math.round(totalScore).toLocaleString() + "점",
     zoneDetailText: "경로 주변 사고 " + accidentCount + "건 / EPDO " + totalEPDO
   };
+}
+  /* ===== 코스별 사고 특성 분석 ===== */
+
+function analyzeRouteAccidents(coords){
+  const SEARCH_RADIUS_M = 250;
+  const matchedAccidents = new Set();
+  const matchedList = [];
+
+  if(
+    !Array.isArray(coords) ||
+    typeof accidentData === "undefined" ||
+    !Array.isArray(accidentData)
+  ){
+    return {
+      totalCount:0,
+      seriousCount:0,
+      deathCount:0,
+      pedestrianCount:0,
+      singleVehicleCount:0,
+      intersectionCount:0,
+      badWeatherCount:0,
+      mainAccidentType:"",
+      mainViolation:"",
+      accidents:[]
+    };
+  }
+
+  for(let i = 0; i < coords.length - 1; i++){
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+
+    const segmentKm = getDistanceKm(
+      p1[0],
+      p1[1],
+      p2[0],
+      p2[1]
+    );
+
+    const sampleCount = Math.max(
+      1,
+      Math.ceil((segmentKm * 1000) / 250)
+    );
+
+    for(let s = 0; s <= sampleCount; s++){
+      const t = s / sampleCount;
+
+      const sampleLat =
+        p1[0] + (p2[0] - p1[0]) * t;
+
+      const sampleLng =
+        p1[1] + (p2[1] - p1[1]) * t;
+
+      accidentData.forEach((accident, index) => {
+        if(matchedAccidents.has(index)){
+          return;
+        }
+
+        const distanceM = getDistanceKm(
+          sampleLat,
+          sampleLng,
+          accident.lat,
+          accident.lng
+        ) * 1000;
+
+        if(distanceM <= SEARCH_RADIUS_M){
+          matchedAccidents.add(index);
+          matchedList.push(accident);
+        }
+      });
+    }
+  }
+
+  const seriousAccidents = matchedList.filter(accident => {
+    const severity = accident.severity || "";
+
+    return (
+      severity.includes("중상") ||
+      severity.includes("사망")
+    );
+  });
+
+  const deathAccidents = matchedList.filter(accident =>
+    (accident.severity || "").includes("사망")
+  );
+
+  const pedestrianAccidents = matchedList.filter(accident =>
+    (accident.accidentType || "").includes("차대사람")
+  );
+
+  const singleVehicleAccidents = matchedList.filter(accident =>
+    (accident.accidentType || "").includes("차량단독")
+  );
+
+  const intersectionAccidents = matchedList.filter(accident =>
+    (accident.roadType || "").includes("교차로")
+  );
+
+  const badWeatherAccidents = matchedList.filter(accident => {
+    const weather = accident.weather || "";
+    const surface = accident.roadSurface || "";
+
+    return (
+      ["비", "눈", "안개"].includes(weather) ||
+      surface.includes("젖음") ||
+      surface.includes("적설") ||
+      surface.includes("결빙")
+    );
+  });
+
+  const accidentTypeCounts = {};
+  const violationCounts = {};
+
+  matchedList.forEach(accident => {
+    const accidentType =
+      getMainAccidentCategory(accident.accidentType);
+
+    const violation =
+      accident.violation || "기타";
+
+    accidentTypeCounts[accidentType] =
+      (accidentTypeCounts[accidentType] || 0) + 1;
+
+    violationCounts[violation] =
+      (violationCounts[violation] || 0) + 1;
+  });
+
+  return {
+    totalCount:matchedList.length,
+    seriousCount:seriousAccidents.length,
+    deathCount:deathAccidents.length,
+    pedestrianCount:pedestrianAccidents.length,
+    singleVehicleCount:singleVehicleAccidents.length,
+    intersectionCount:intersectionAccidents.length,
+    badWeatherCount:badWeatherAccidents.length,
+    mainAccidentType:getMostFrequentKey(accidentTypeCounts),
+    mainViolation:getMostFrequentKey(violationCounts),
+    accidents:matchedList
+  };
+}
+
+function getMainAccidentCategory(accidentType){
+  const type = accidentType || "";
+
+  if(type.includes("차대사람")){
+    return "차대사람";
+  }
+
+  if(type.includes("차량단독")){
+    return "차량단독";
+  }
+
+  if(type.includes("차대차")){
+    return "차대차";
+  }
+
+  return "기타";
+}
+
+function getMostFrequentKey(countObject){
+  const entries = Object.entries(countObject);
+
+  if(entries.length === 0){
+    return "";
+  }
+
+  entries.sort((a, b) => b[1] - a[1]);
+
+  return entries[0][0];
 }
 const AVG_AADT = 12451;
 const TRAFFIC_MATCH_RADIUS_M = 2000;
