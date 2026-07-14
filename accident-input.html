@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>사고지점 좌표 입력</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+<style>
+html, body { margin:0; width:100%; height:100%; font-family:Arial,sans-serif; }
+#map { width:100%; height:100vh; }
+
+.panel{
+  position:fixed; left:12px; top:12px; z-index:9999;
+  width:260px; background:white; padding:14px;
+  border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+.panel h2{ margin:0 0 10px; font-size:18px; }
+.panel input{
+  width:100%; box-sizing:border-box; padding:10px; margin-bottom:8px;
+  border:1px solid #ddd; border-radius:10px;
+}
+.panel button{
+  width:100%; padding:10px; margin-top:6px; border:0;
+  border-radius:10px; font-weight:bold; cursor:pointer;
+}
+.undo{ background:#e5e7eb; }
+.down{ background:#111827; color:white; }
+#status{ font-size:13px; margin-top:8px; color:#555; }
+</style>
+</head>
+
+<body>
+<div class="panel">
+  <h2>사고지점 입력</h2>
+
+  <input id="accidentId" type="number" value="1" placeholder="사고번호">
+  <input id="accidentType" type="text" placeholder="사고유형 예: 차대차">
+  <input id="epdo" type="number" placeholder="EPDO 점수">
+
+  <button class="undo" onclick="undoPoint()">마지막 지점 취소</button>
+  <button class="down" onclick="downloadJSON()">JSON 다운로드</button>
+
+  <div id="status">저장: 0건</div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+const map = L.map("map").setView([33.38, 126.55], 10);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19
+}).addTo(map);
+
+let accidentPoints = [];
+let markers = [];
+
+map.on("click", function(e) {
+  const idInput = document.getElementById("accidentId");
+  const typeInput = document.getElementById("accidentType");
+  const epdoInput = document.getElementById("epdo");
+
+  const point = {
+    id: Number(idInput.value),
+    lat: Number(e.latlng.lat.toFixed(7)),
+    lng: Number(e.latlng.lng.toFixed(7)),
+    type: typeInput.value || "",
+    epdo: Number(epdoInput.value) || 1
+  };
+
+  accidentPoints.push(point);
+
+  const marker = L.marker([point.lat, point.lng])
+    .addTo(map)
+    .bindPopup("사고번호: " + point.id + "<br>위도: " + point.lat + "<br>경도: " + point.lng);
+
+  markers.push(marker);
+
+  idInput.value = point.id + 1;
+  updateStatus();
+});
+
+function undoPoint() {
+  if (accidentPoints.length === 0) return;
+
+  accidentPoints.pop();
+  const marker = markers.pop();
+  map.removeLayer(marker);
+
+  const idInput = document.getElementById("accidentId");
+  idInput.value = Math.max(1, Number(idInput.value) - 1);
+
+  updateStatus();
+}
+
+function updateStatus() {
+  document.getElementById("status").innerText =
+    "저장: " + accidentPoints.length + "건";
+}
+
+function downloadJSON() {
+  const data = JSON.stringify(accidentPoints, null, 2);
+  const blob = new Blob([data], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "accidents.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

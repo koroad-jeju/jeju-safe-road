@@ -1,0 +1,5894 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css">
+<title>제주 렌터카 안전경로 안내</title>
+
+<meta name="description" content="사고데이터 기반으로 더 안전한 제주 여행 경로를 추천합니다.">
+
+<meta property="og:title" content="제주 렌터카 안전경로 안내">
+<meta property="og:description" content="사고데이터 기반으로 더 안전한 제주 여행 경로를 추천합니다.">
+<meta property="og:image" content="https://koroad-jeju.github.io/jeju-safe-map/thumbnail2.png">
+<meta property="og:url" content="https://koroad-jeju.github.io/jeju-safe-map/">
+<meta property="og:type" content="website">
+
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="제주 렌터카 안전경로 안내">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+/* ===== 기본 ===== */
+html, body{
+  margin:0;
+  width:100%;
+  height:100%;
+  font-family:'Pretendard','SUIT','Noto Sans KR',Arial,sans-serif;
+  background:#fff;
+  overflow-x:hidden;
+}
+
+#map{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100vh;
+  z-index:1;
+  display:none;
+}
+
+body.route-active #map{
+  display:block;
+}
+body.route-analysis-mode #map{
+  display:block;
+}
+#map::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(
+    circle at center,
+    rgba(255,255,255,0) 38%,
+    rgba(255,255,255,.22) 62%,
+    rgba(255,255,255,.70) 100%
+  );
+  pointer-events:none;
+  z-index:400;
+}
+
+.leaflet-tile-pane{
+  filter:brightness(1.12) saturate(.82) contrast(.92);
+}
+
+/* ===== 상단바 ===== */
+.app-topbar{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:64px;
+  z-index:10000;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 18px;
+  box-sizing:border-box;
+}
+ 
+.app-topbar .brand{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#0f9f91;
+  font-size:17px;
+  font-weight:900;
+}
+
+.app-topbar .brand img{
+  width:18px;
+  height:18px;
+  object-fit:contain;
+}
+
+/* ===== 메인 패널 ===== */
+.panel{
+  position:fixed;
+  top:64px;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:9999;
+  background:#fff;
+  border-radius:0;
+  padding:10px 14px 92px;
+  overflow-y:auto;
+  box-shadow:none;
+}
+
+.drag-handle,
+.header-box{
+  display:none;
+}
+
+.drag-handle{
+  width:48px;
+  height:5px;
+  border-radius:999px;
+  background:#d9dee7;
+  opacity:.75;
+  margin:0 auto 10px;
+}
+
+/* ===== 지도/경로 라벨 ===== */
+
+.tour-label-marker,
+.route-label-marker{
+  background:transparent !important;
+  border:none !important;
+}
+
+.route-label{
+  padding:6px 12px;
+  border-radius:999px;
+  color:#fff;
+  font-size:12px;
+  font-weight:900;
+  box-shadow:0 4px 10px rgba(0,0,0,.18);
+  white-space:nowrap;
+}
+
+.route-label-1{ background:#14b8a6; }
+.route-label-2{ background:#64748b; }
+
+/* ===== 경로 분석 후 화면 ===== */
+body.route-active .app-topbar,
+body.route-active .hero-banner,
+body.route-active .route-input-card,
+body.route-active .analyze-btn,
+body.route-active .small{
+  display:none;
+}
+
+body.route-active .panel{
+  top:44vh;
+  border-radius:28px 28px 0 0;
+  background:#f8fafc;
+  padding:12px 14px 135px;
+  overflow-y:auto;
+  box-shadow:0 -10px 28px rgba(15,23,42,.08);
+}
+
+body.route-active .drag-handle{
+  display:block;
+}
+
+body.route-active .bottom-nav{
+  display:grid;
+}
+
+.routePath{
+  display:block;
+  margin:4px 4px 12px;
+  font-size:15px;
+  font-weight:900;
+  color:#64748b;
+}
+
+.routePath .arrow{
+  color:#14b8a6;
+  margin:0 6px;
+}
+
+.result-hero-card,
+.compare-detail-new,
+.info-split-col{
+  background:#fff;
+  border-radius:22px;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+}
+
+.result-hero-card{
+  padding:14px;
+}
+
+.result-main-grid{
+  display:grid;
+  grid-template-columns:1.3fr .85fr .85fr;
+  align-items:center;
+  gap:10px;
+}
+
+.result-course{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.result-shield{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#e8f8f5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17px;
+}
+
+.result-title{
+  font-size:18px;
+  font-weight:700;
+  color:#0f766e;
+  letter-spacing:-0.5px;
+}
+
+.result-sub{
+  margin-top:8px;
+  font-size:12px;
+  font-weight:750;
+  color:#334155;
+  line-height:1.45;
+}
+
+.result-sub b{
+  display:block;
+  margin-top:3px;
+  font-size:15px;
+  font-weight:700;
+  color:#0f766e;
+}
+
+.result-metric{
+  text-align:center;
+  border-left:1px solid #e5e7eb;
+}
+
+.result-metric-icon{
+  width:34px;
+  height:34px;
+  margin:0 auto 7px;
+  border-radius:50%;
+  background:#e8f8f5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17px;
+}
+
+.result-metric span{
+  font-size:12px;
+  color:#64748b;
+  font-weight:800;
+}
+
+.result-metric b{
+  display:block;
+  margin-top:4px;
+  font-size:16px;
+  color:#0f172a;
+  font-weight:700;
+}
+
+/* ===== 네비 버튼 ===== */
+.navi-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  width:100%;
+  margin-top:14px;
+}
+
+.navi-grid.final-navi{
+  margin:12px 0;
+  gap:9px;
+}
+
+.navi-btn{
+  height:56px;
+  border:0;
+  border-radius:18px;
+  background:#fff;
+  color:#0f172a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0 6px;
+  box-shadow:0 8px 20px rgba(15,23,42,.08);
+}
+
+.nav-icon{
+  width:32px;
+  height:32px;
+  min-width:32px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17px;
+  font-weight:900;
+  color:#fff;
+}
+
+.naver{ background:#03c75a; }
+.tmap{ background:#2f80ff; }
+.kakao{ background:#ffd43b; color:#111; }
+
+.nav-text{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  min-width:0;
+  line-height:1.1;
+}
+
+.nav-text b{
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.nav-text small{
+  font-size:10px;
+  color:#6b7280;
+}
+
+/* ===== AI 추천 이유 / 안전팁 ===== */
+
+.info-split-col{
+  border-radius:20px;
+  padding:16px;
+}
+
+.info-split-col h3{
+  margin:0 0 10px;
+  font-size:17px;
+  font-weight:900;
+  line-height:1.35;
+}
+
+.info-split-col.ai h3{
+  color:#0f766e;
+}
+
+.info-split-col.tip h3{
+  color:#ea7800;
+}
+
+.info-split-col p{
+  margin:7px 0;
+  font-size:13.5px;
+  font-weight:700;
+  line-height:1.55;
+  color:#334155;
+}
+
+/* ===== 경로 상세 비교 ===== */
+
+
+.compare-detail-new summary{
+  cursor:pointer;
+  list-style:none;
+  font-size:16px;
+  font-weight:700;
+  color:#0f172a;
+}
+
+.compare-detail-new summary::-webkit-details-marker{
+  display:none;
+}
+
+.compare-mini.recommend{
+  border-color:#7dd3c7;
+  background:#f3fffd;
+}
+
+.compare-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+  font-weight:950;
+}
+
+.compare-head b{
+  font-size:18px;
+}
+
+.compare-tag{
+  padding:4px 9px;
+  border-radius:8px;
+  background:#14b8a6;
+  color:#fff;
+  font-size:12px;
+}
+
+.compare-mini.alt .compare-tag{
+  background:#8b8f97;
+}
+
+.compare-row2{
+  display:flex;
+  justify-content:space-between;
+  padding:7px 0;
+  border-top:1px solid #edf2f7;
+  font-size:12.5px;
+  color:#475569;
+}
+
+.compare-row2 b{
+  color:#0f172a;
+  font-size:14px;
+}
+
+.compare-mini.recommend .compare-row2 b{
+  color:#0f766e;
+}
+
+.compare-mini.alt .risk-score b{
+  color:#e04f1a;
+}
+
+/* ===== 하단 메뉴 ===== */
+.bottom-nav{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  height:68px;
+  z-index:10001;
+  background:#fff;
+  border-top:1px solid #eef2f7;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  padding:6px 8px 8px;
+  box-sizing:border-box;
+}
+
+.bottom-item{
+  border:0;
+  background:transparent;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  color:#94a3b8;
+  font-family:'Pretendard','SUIT',sans-serif;
+}
+
+.bottom-item b{
+  font-size:11px;
+  font-weight:800;
+}
+
+.bottom-item span{
+  display:none;
+}
+
+.bottom-item img{
+  width:24px;
+  height:24px;
+  object-fit:contain;
+  opacity:.45;
+}
+
+.bottom-item.active{
+  color:#13a89a;
+}
+
+.bottom-item.active img{
+  opacity:1;
+  filter:invert(51%) sepia(79%) saturate(523%) hue-rotate(131deg) brightness(88%) contrast(90%);
+}
+
+/* ===== 위험지도 페이지 ===== */
+body.risk-map-mode .app-topbar,
+body.risk-map-mode .hero-banner,
+body.risk-map-mode .route-input-card,
+body.risk-map-mode .analyze-btn,
+body.risk-map-mode .small,
+body.risk-map-mode .panel{
+  display:none;
+}
+
+.risk-map-page{
+  display:none;
+  position:fixed;
+  inset:64px 0 68px 0;
+  background:linear-gradient(180deg,#f8fffd 0%,#ffffff 55%);
+  z-index:10000;
+  overflow-y:auto;
+  padding:18px 16px 32px;
+  box-sizing:border-box;
+}
+
+body.risk-map-mode .risk-map-page{
+  display:block;
+}
+
+.risk-map-title{
+  font-size:22px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.8px;
+}
+
+.risk-map-sub{
+  margin-top:6px;
+  font-size:12.5px;
+  font-weight:700;
+  color:#64748b;
+  line-height:1.45;
+}
+
+
+/* ===== 지도 팝업 ===== */
+.region-popup{
+  min-width:190px;
+  font-family:'Pretendard','SUIT',sans-serif;
+}
+
+.region-popup-title{
+  font-size:16px;
+  font-weight:900;
+  color:#0f172a;
+  margin-bottom:7px;
+}
+
+.region-popup-level{
+  display:inline-block;
+  margin-bottom:9px;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#f1f5f9;
+  color:#0f766e;
+  font-size:12px;
+  font-weight:900;
+}
+
+.region-popup-text{
+  font-size:13px;
+  line-height:1.55;
+  color:#334155;
+}
+
+/* ===== 안내수칙 페이지 ===== */
+.safety-guide-page{
+  display:none;
+  position:fixed;
+  inset:64px 0 68px 0;
+  background:#f8fcff;
+  z-index:10000;
+  overflow-y:auto;
+  padding:18px 14px 24px;
+  box-sizing:border-box;
+}
+
+body.safety-guide-mode .safety-guide-page{
+  display:block;
+}
+
+body.safety-guide-mode .panel,
+body.safety-guide-mode .risk-map-page{
+  display:none;
+}
+
+.safety-guide-card{
+  padding:18px;
+  background:#fff;
+  border-radius:24px;
+  box-shadow:0 10px 28px rgba(15,23,42,.08);
+  border:1px solid #edf2f7;
+}
+
+.section-title,
+.rule-title{
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.5px;
+}
+
+.rule-title{
+  margin-top:28px;
+}
+
+.section-sub{
+  margin-top:6px;
+  font-size:13px;
+  font-weight:650;
+  color:#64748b;
+}
+
+.video-box{
+  margin-top:16px;
+  border-radius:18px;
+  overflow:hidden;
+  background:#e5e7eb;
+}
+
+.video-box video{
+  width:100%;
+  display:block;
+  aspect-ratio:16/9;
+  object-fit:cover;
+}
+
+/* ===== 작은 화면 보정 ===== */
+@media(max-width:420px){
+  .result-main-grid{
+    grid-template-columns:1.35fr .8fr .8fr;
+    gap:6px;
+  }
+}
+  .guide-image-card{
+  margin-top:16px;
+  border-radius:22px;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(15,23,42,.08);
+  border:1px solid #edf2f7;
+}
+
+.guide-image-card img{
+  width:100%;
+  display:block;
+}
+
+  .loading-card{
+  margin-top:12px;
+  padding:18px;
+  border-radius:20px;
+  background:#f0fbf9;
+  border:1px solid #cdeee8;
+  color:#0f766e;
+  font-size:14px;
+  font-weight:800;
+}
+
+.loading-card p{
+  margin:6px 0 0;
+  color:#64748b;
+  font-size:12px;
+  font-weight:700;
+}
+  #riskMiniMap{
+  width:100%;
+  height:330px;
+  border-radius:24px;
+  overflow:hidden;
+}
+
+.risk-map-card{
+  margin-top:18px;
+  padding:10px;
+  border-radius:28px;
+  background:#eaf7ff;
+  box-shadow:0 12px 30px rgba(15,23,42,.10);
+}
+
+.risk-map-legend{
+  margin-top:10px;
+  padding:12px;
+  border-radius:18px;
+  background:#fff;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  font-size:11px;
+  font-weight:900;
+  color:#334155;
+  text-align:center;
+}
+
+.risk-map-legend small{
+  font-size:9px;
+  color:#64748b;
+  font-weight:700;
+}
+
+.risk-dot{
+  display:block;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  margin:0 auto 4px;
+}
+
+.risk-dot.high{ background:#ef4444; }
+.risk-dot.midhigh{ background:#f97316; }
+.risk-dot.mid{ background:#facc15; }
+.risk-dot.low{ background:#10b981; }
+
+.risk-dashboard{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  padding-bottom:20px;
+}
+
+.risk-info-card{
+  background:#fff;
+  border-radius:22px;
+  padding:16px;
+  box-shadow:0 8px 22px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+}
+
+.risk-info-card h3{
+  margin:0 0 12px;
+  font-size:17px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.risk-info-card p{
+  margin:8px 0;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.45;
+  color:#334155;
+}
+
+.risk-question{
+  margin-bottom:10px;
+  font-size:13px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.type-row{
+  display:grid;
+  grid-template-columns:80px 1fr 44px;
+  align-items:center;
+  gap:8px;
+  margin:9px 0;
+  font-size:12px;
+  font-weight:800;
+}
+
+.type-row div{
+  height:8px;
+  border-radius:999px;
+  background:#edf2f7;
+  overflow:hidden;
+}
+
+.type-row i{
+  display:block;
+  height:100%;
+  border-radius:999px;
+}
+
+.type-row b{
+  font-size:12px;
+  text-align:right;
+}
+
+.stat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.stat-grid div{
+  padding:12px 4px;
+  border-radius:18px;
+  background:#f8fafc;
+  text-align:center;
+  min-width:0;
+}
+
+.stat-grid b{
+  display:block;
+  color:#0f9f91;
+  font-size:20px;
+  line-height:1.1;
+  white-space:nowrap;
+}
+
+.stat-grid span{
+  font-size:11px;
+  color:#64748b;
+  font-weight:800;
+}
+  .risk-score-guide{
+  margin-top:12px;
+  padding:24px;
+  border-radius:20px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  box-shadow:0 8px 22px rgba(15,23,42,.05);
+}
+
+  .epdo-desc{
+  margin:10px 2px 0;
+  padding:0 4px;
+  color:#64748b;
+  font-size:11.5px;
+  font-weight:750;
+  line-height:1.45;
+  text-align:left;
+  word-break:keep-all;
+}
+  .stat-grid.four{
+  grid-template-columns:repeat(4,1fr);
+}
+
+.feature-list{
+  margin-top:12px;
+}
+
+.feature-list p{
+  margin:7px 0;
+  font-size:12.5px;
+  font-weight:750;
+  color:#334155;
+}
+  .compare-detail-new.always-open{
+  margin-top:12px;
+  margin-bottom:12px;
+  padding:16px;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+}
+
+.compare-title{
+  margin-bottom:12px;
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.compare-cards{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:0;
+}
+
+.compare-mini{
+  border-radius:18px;
+  padding:14px 12px;
+}
+
+.risk-score-guide h3{
+  margin:0 0 10px;
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.risk-score-guide p{
+  font-size:15px;
+  line-height:1.8;
+  color:#475569;
+  margin:12px 0;
+  word-break:keep-all;
+}
+
+.info-split-col.ai p{
+  font-size:14px;
+  line-height:1.65;
+  font-weight:700;
+  color:#334155;
+}
+
+.info-split-col.ai b{
+  color:#0f766e;
+  font-weight:900;
+}
+  .recommend-badge{
+  display:inline-block;
+  margin-left:5px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:#e8f8f5;
+  color:#0f766e;
+  font-size:10px;
+  font-weight:900;
+  vertical-align:middle;
+}
+
+.result-reason{
+  margin-top:7px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+
+.reason-chip{
+  display:inline-block;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#f1faf8;
+  color:#0f766e;
+  font-size:10.5px;
+  font-weight:900;
+  white-space:nowrap;
+}
+ 
+  .tip-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.tip-item{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  padding:10px 11px;
+  border-radius:15px;
+  background:#fff8ef;
+  color:#334155;
+  font-size:13px;
+  font-weight:750;
+  line-height:1.45;
+}
+
+.tip-item span{
+  font-size:15px;
+}
+  .feedback-card{
+  margin-top:12px;
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+  text-align:center;
+}
+
+.feedback-card h3{
+  margin:0 0 6px;
+  font-size:16px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.feedback-card p{
+  margin:0 0 12px;
+  font-size:12.5px;
+  font-weight:700;
+  color:#64748b;
+}
+
+  .result-appear{
+  animation: resultAppear .42s ease-out both;
+}
+
+@keyframes resultAppear{
+  from{
+    opacity:0;
+    transform:translateY(14px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+  .tip-item div{
+  flex:1;
+  font-size:13px;
+  font-weight:750;
+  line-height:1.45;
+}
+ .route-analysis-page{
+  display:none;
+  position:fixed;
+  top:42vh;
+  left:0;
+  right:0;
+  bottom:68px;
+  z-index:10000;
+  overflow-y:auto;
+  padding:12px 14px 110px;
+  box-sizing:border-box;
+  border-radius:28px 28px 0 0;
+  background:#f8fafc;
+  box-shadow:0 -10px 28px rgba(15,23,42,.10);
+}
+
+body.route-analysis-mode .route-analysis-page{
+  display:block;
+}
+  body.route-analysis-mode .app-topbar{
+  display:none;
+}
+
+body.route-analysis-mode .bottom-nav{
+  display:grid;
+}
+
+body.route-analysis-mode .panel,
+body.route-analysis-mode .risk-map-page,
+body.route-analysis-mode .safety-guide-page{
+  display:none;
+}
+
+.route-analysis-empty{
+  margin-top:40px;
+  padding:22px 18px;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  text-align:center;
+}
+
+.route-analysis-empty h3{
+  margin:0 0 8px;
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.route-analysis-empty p{
+  margin:0 0 16px;
+  font-size:13px;
+  font-weight:700;
+  color:#64748b;
+  line-height:1.5;
+}
+
+.route-analysis-empty button{
+  height:42px;
+  padding:0 18px;
+  border:0;
+  border-radius:14px;
+  background:#13a89a;
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+}
+
+  .admin-floating-btn{
+  display:none;
+  position:fixed;
+  right:16px;
+  bottom:82px;
+  z-index:10002;
+  height:42px;
+  padding:0 14px;
+  border:0;
+  border-radius:999px;
+  background:#0f766e;
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+  box-shadow:0 10px 24px rgba(15,118,110,.28);
+}
+
+body.admin-mode .admin-floating-btn{
+  display:block;
+}
+  .admin-stats-page{
+  display:none;
+  position:fixed;
+  inset:64px 0 68px 0;
+  z-index:10003;
+  background:#f8fafc;
+  overflow-y:auto;
+  padding:18px 14px 28px;
+  box-sizing:border-box;
+}
+
+.admin-stats-page.active{
+  display:block;
+}
+
+.admin-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.admin-head h2{
+  margin:0;
+  font-size:22px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.admin-close{
+  border:0;
+  border-radius:999px;
+  background:#e2e8f0;
+  color:#334155;
+  height:34px;
+  padding:0 12px;
+  font-weight:900;
+}
+
+.admin-stat-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.admin-stat-card{
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+}
+
+.admin-stat-card span{
+  font-size:12px;
+  font-weight:800;
+  color:#64748b;
+}
+
+.admin-stat-card b{
+  display:block;
+  margin-top:6px;
+  font-size:24px;
+  font-weight:900;
+  color:#0f766e;
+}
+
+.admin-list-card{
+  margin-top:12px;
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+}
+
+.admin-list-card h3{
+  margin:0 0 10px;
+  font-size:17px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.admin-list-card p{
+  margin:8px 0;
+  font-size:13px;
+  font-weight:750;
+  color:#334155;
+}
+  .rating-stars{
+  display:flex;
+  justify-content:center;
+  gap:4px;
+  margin-top:12px;
+}
+
+.rating-stars button{
+  border:0;
+  background:transparent;
+  color:#facc15;
+  font-size:36px;
+  line-height:1;
+  padding:2px;
+  cursor:pointer;
+}
+
+.rating-text{
+  margin-top:8px;
+  font-size:12.5px;
+  font-weight:800;
+  color:#64748b;
+}
+
+.ai-reason-box span{
+  padding:5px 7px;
+  border-radius:999px;
+  background:#f1faf8;
+  color:#0f766e;
+  font-size:10px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+  .course-choice-box{
+  margin:12px 0;
+  padding:15px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+}
+
+.course-choice-box h3{
+  margin:0 0 5px;
+  font-size:16px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.course-choice-box p{
+  margin:0 0 12px;
+  font-size:12px;
+  font-weight:700;
+  color:#64748b;
+  line-height:1.45;
+}
+
+.course-choice-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.course-choice-btn{
+  border:1px solid #e5e7eb;
+  border-radius:17px;
+  background:#f8fafc;
+  padding:12px 10px;
+  text-align:left;
+}
+
+.course-choice-btn b{
+  display:block;
+  font-size:14px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.course-choice-btn span{
+  display:block;
+  margin-top:5px;
+  font-size:12px;
+  font-weight:800;
+  color:#475569;
+}
+
+.course-choice-btn small{
+  display:block;
+  margin-top:4px;
+  font-size:11px;
+  font-weight:800;
+  color:#64748b;
+}
+
+.course-choice-btn.active{
+  border-color:#14b8a6;
+  background:#f0fdfa;
+}
+
+.course-choice-btn.active b,
+.course-choice-btn.active small{
+  color:#0f766e;
+}
+/* ===== 홈 화면 최종 정리 CSS ===== */
+
+body{
+  background:#f8fafc;
+}
+
+/* 상단바 */
+.app-topbar{
+  height:56px;
+  background:#fff;
+  justify-content:center;
+  padding:0 16px;
+  border-bottom:1px solid #f1f5f9;
+}
+
+.app-topbar::before{
+  content:"☰";
+  position:absolute;
+  left:18px;
+  font-size:24px;
+  color:#0f172a;
+}
+
+.app-topbar::after{
+  content:"";
+}
+
+.app-topbar .brand{
+  position:static;
+  transform:none;
+  gap:7px;
+  font-size:18px;
+  font-weight:900;
+  color:#0f9f91;
+}
+
+.app-topbar .brand img{
+    width:32px;
+    height:32px;
+    object-fit:contain;
+    margin-right:8px;
+}
+
+/* 홈 패널 */
+.panel{
+  top:56px;
+  padding:10px 16px 96px;
+  background:#f8fafc;
+}
+
+/* 메인 이미지 */
+.hero-banner{
+  height:205px;
+  border-radius:16px 16px 26px 26px;
+  overflow:hidden;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,23,42,.05) 0%,
+      rgba(15,23,42,.25) 42%,
+      rgba(15,23,42,.78) 100%
+    ),
+    url("성산.png") center 62%/cover no-repeat;
+  box-shadow:0 10px 22px rgba(15,23,42,.10);
+}
+
+/* 입력 카드 */
+.route-input-card{
+   margin:8px 0 0;
+  padding:15px 14px 16px;
+  border-radius:0 0 26px 26px;
+  background:#fff;
+  box-shadow:0 12px 28px rgba(15,23,42,.10);
+}
+
+.field-label{
+  display:block;
+  margin:0 0 7px 6px;
+  font-size:13px;
+  font-weight:600;
+  color:#475569;
+}
+
+.address-row{
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:46px;
+  margin-bottom:13px;
+  padding:0 9px 0 10px;
+  box-sizing:border-box;
+  border-radius:16px;
+  border:1px solid #e8eef5;
+  background:#fff;
+  box-shadow:0 7px 16px rgba(15,23,42,.055);
+  gap:7px;
+}
+
+.field-icon{
+  width:31px;
+  height:31px;
+  min-width:31px;
+  border-radius:50%;
+  background:#e8f8f5;
+  color:#0f9f91;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  line-height:1;
+}
+
+.address-row input{
+  flex:1;
+  min-width:0;
+   height:46px;
+    line-height:46px;
+  padding:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  font-size:13.5px;
+ font-weight:600;
+    color:#64748b;
+}
+
+.address-row input::placeholder{
+  color:#9aa7b8;
+}
+
+.location-btn{
+  flex:0 0 auto;
+  height:26px;
+  padding:0 9px;
+  border:0;
+  border-radius:999px;
+  background:#e8f8f5;
+  color:#0f9f91;
+  font-size:9.5px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.clear-btn,
+.mini-btn{
+  flex:0 0 auto;
+  width:28px;
+    height:28px;
+  border:1px solid #edf2f7;
+  border-radius:50%;
+  background:#f8fafc;
+  color:#64748b;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  box-sizing:border-box;
+}
+
+.clear-btn{
+  font-size:18px;
+  font-weight:800;
+}
+
+.mini-btn{
+  font-size:0;
+  color:transparent;
+}
+
+.mini-btn::before{
+  content:"🔍";
+  font-size:17px;
+  color:#0f172a;
+}
+
+/* 추천 관광지 */
+.popular-title{
+  margin:2px 4px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:900;
+  color:#13a89a;
+}
+
+.popular-title::before,
+.popular-title::after{
+  content:"";
+  flex:1;
+  height:1px;
+  border-top:1px dashed #d8e0e8;
+}
+
+.popular-select{
+  width:100%;
+  height:44px;
+  padding:0 38px 0 14px;
+  border:1px solid #e8eef5;
+  border-radius:16px;
+  background:#fff;
+  font-size:13px;
+  font-weight:600;
+  color:#0f172a;
+  box-shadow:0 7px 16px rgba(15,23,42,.055);
+  appearance:none;
+  -webkit-appearance:none;
+}
+
+/* 분석 버튼 */
+.analyze-btn{
+  width:calc(100% - 20px);
+  height:52px;
+  margin:13px 10px 0;
+  border:0;
+  border-radius:18px;
+  background:linear-gradient(135deg,#0ea5a3,#19c6b4);
+  color:#fff;
+  box-shadow:0 12px 24px rgba(20,184,166,.26);
+}
+
+.analyze-main{
+  font-size:15px;
+  font-weight:900;
+  color:#fff;
+}
+
+.analyze-main::after{
+  content:"  ›";
+  font-size:24px;
+  vertical-align:-2px;
+}
+
+/* EPDO 카드 */
+
+.small{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  min-height:86px;
+  padding:20px;
+}
+
+.small::before,
+.small::after{
+  display:none;
+}
+
+/* 하단 메뉴 */
+.bottom-nav{
+  height:66px;
+  border-top:1px solid #e5e7eb;
+  box-shadow:0 -4px 18px rgba(15,23,42,.04);
+}
+
+.bottom-item b{
+  font-size:11px;
+}
+
+  /* 메인 이미지 문구 최종 위치 */
+.hero-banner{
+  position:relative !important;
+}
+
+.hero-text{
+  position:absolute !important;
+  left:18px !important;
+  right:18px !important;
+  bottom:20px !important;
+  z-index:2 !important;
+}
+
+.hero-title{
+  font-size:20px !important;
+  line-height:1.25 !important;
+  font-weight:900 !important;
+  color:#fff !important;
+  text-align:left !important;
+}
+
+.hero-sub{
+  margin-top:7px !important;
+  font-size:12.5px !important;
+  line-height:1.5 !important;
+  color:#fff !important;
+  text-align:left !important;
+}
+  .field-icon img{
+  width:18px;
+  height:18px;
+  display:block;
+}
+
+.clear-btn img,
+.mini-btn img{
+  width:17px;
+  height:17px;
+  display:block;
+}
+
+
+.location-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.mini-btn::before{
+  content:none !important;
+}
+  .epdo-icon{
+    width:46px;
+    height:46px;
+}
+
+.epdo-title{
+    font-size:20px;
+    font-weight:800;
+    color:#111827;
+}
+
+.epdo-desc2{
+    margin-top:6px;
+    font-size:13px;
+    line-height:1.6;
+    color:#64748b;
+}
+  .result-shield img{
+    width:20px;
+    height:20px;
+}
+  .result-metric-icon img{
+    width:18px;
+    height:18px;
+}
+  .title-svg{
+    width:18px;
+    height:18px;
+    margin-right:7px;
+    vertical-align:-3px;
+}
+
+h3 .title-svg,
+.section-title .title-svg,
+.rule-title .title-svg,
+.compare-title .title-svg{
+    display:inline-block;
+}
+ .tip-icon{
+    width:18px;
+    height:18px;
+    display:block;
+    margin-top:1px;
+    flex-shrink:0;
+}
+
+.tip-item span{
+    width:20px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+} 
+  /* ===== 결과화면 2026 스타일 ===== */
+
+.result-hero-card.new-result{
+  padding:18px;
+  border-radius:26px;
+  background:linear-gradient(180deg,#ffffff 0%,#f0fdfa 100%);
+  margin-bottom:18px;
+}
+.course-choice-btn strong{
+  display:block;
+  margin-top:6px;
+  font-size:22px;
+  font-weight:950;
+  color:#0f172a;
+}
+
+.route-analysis-page{
+  padding-top:14px;
+}
+
+.analysis-main-card{
+  background:#fff;
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+  margin-bottom:12px;
+}
+
+.analysis-main-card h3{
+  margin:0 0 8px;
+  font-size:17px;
+  font-weight:950;
+  color:#0f172a;
+}
+
+.analysis-link-btn{
+width:100%;
+height:56px;
+border:0;
+border-radius:20px;
+background:linear-gradient(135deg,#0f766e,#14b8a6);
+color:#fff;
+font-size:17px;
+font-weight:900;
+letter-spacing:-0.3px;
+box-shadow:0 10px 24px rgba(20,184,166,.18);
+}
+ 
+.ai-summary-text .force-break{
+  display:block;
+}
+
+.detail-analysis-btn{
+  width:100%;
+  height:58px;
+  border:0;
+  border-radius:22px;
+  background:linear-gradient(135deg,#0f8f80,#14b8a6);
+  color:white;
+  font-size:18px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  box-shadow:0 14px 28px rgba(20,184,166,.22);
+}
+
+.detail-analysis-btn::after{
+  content:"›";
+  font-size:30px;
+  line-height:1;
+  margin-left:6px;
+}
+ .analysis-point{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid #edf2f7;
+}
+
+.analysis-point:last-child{
+  border-bottom:none;
+}
+
+.analysis-icon{
+  width:38px;
+  height:38px;
+  min-width:38px;
+  border-radius:50%;
+  background:#eefcf9;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.analysis-icon img{
+  width:20px;
+  height:20px;
+}
+
+.analysis-text{
+  flex:1;
+}
+
+.analysis-text b{
+  display:block;
+  margin-bottom:5px;
+  font-size:16px;
+  font-weight:900;
+  color:#0f8f80;
+}
+
+.analysis-text span{
+  font-size:15px;
+  line-height:1.6;
+  font-weight:750;
+  color:#334155;
+}
+  .analysis-text strong{
+  color:#0f8f80;
+  font-weight:950;
+}
+  /* AI 안전 브리핑 위 간격 줄이기 */
+.ai-briefing-card,
+.ai-briefing{
+  margin-top:0 !important;
+  padding:18px 20px 16px !important;
+}
+
+/* AI 안전 브리핑 카드 높이 줄이기 */
+.ai-briefing-row{
+  padding:8px 0 !important;
+  gap:10px !important;
+}
+
+.ai-briefing-row .icon,
+.ai-briefing-icon{
+  width:44px !important;
+  height:44px !important;
+  font-size:20px !important;
+}
+
+.ai-briefing-label{
+  font-size:16px !important;
+  margin-bottom:4px !important;
+}
+
+.ai-briefing-text{
+  font-size:16px !important;
+  line-height:1.35 !important;
+}
+  /* 로딩 박스 세련되게 */
+.loading-steps{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:18px;
+}
+
+.step-spinner{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  border:2px solid rgba(20,184,166,.22);
+  border-top-color:#14b8a6;
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
+  .loading-step.done{
+    color:#0f766e;
+    background:#ffffff;
+    border:1px solid #d9f5ee;
+}
+
+.loading-step.done .step-spinner{
+    display:none;
+}
+
+.loading-step.done .step-dot{
+    display:block;
+}
+
+.step-dot{
+    display:none;
+}
+  /* 경로 상세 분석 버튼 - 연한 iOS 스타일 */
+.analysis-link-btn{
+  margin:10px 0 12px !important;
+  width:100% !important;
+  height:48px !important;
+  border:1px solid #cdeee8 !important;
+  border-radius:18px !important;
+  background:#ffffff !important;
+  color:#0f766e !important;
+  font-size:15px !important;
+  font-weight:900 !important;
+  letter-spacing:-0.3px !important;
+  box-shadow:0 6px 16px rgba(15,23,42,.045) !important;
+}
+
+/* 로딩 카드 전체 축소 */
+.loading-card{
+  margin-top:10px !important;
+  padding:15px 16px !important;
+  border-radius:20px !important;
+}
+
+.loading-card b{
+  font-size:15px !important;
+}
+
+.loading-card p{
+  font-size:12px !important;
+  margin-top:5px !important;
+}
+
+/* 로딩 스텝 칸 줄이기 */
+.loading-steps{
+  margin-top:12px !important;
+  gap:7px !important;
+}
+
+.loading-step{
+  height:38px !important;
+  padding:0 13px !important;
+  border-radius:14px !important;
+  gap:9px !important;
+  font-size:13.5px !important;
+  box-shadow:0 4px 12px rgba(15,23,42,.035) !important;
+}
+
+/* 스피너도 작게 */
+.step-spinner{
+  width:12px !important;
+  height:12px !important;
+  border-width:2px !important;
+}
+
+.step-dot{
+  width:9px !important;
+  height:9px !important;
+  box-shadow:0 0 0 4px rgba(20,184,166,.12) !important;
+}
+  /* ===== 깨진 부분 복구용 CSS ===== */
+
+/* 1. 로딩화면 복구 */
+.loading-card{
+  margin:12px 0 14px !important;
+  padding:18px 16px !important;
+  border-radius:22px !important;
+  background:#eefdf9 !important;
+  border:1px solid #c9f1e9 !important;
+}
+
+.loading-card b{
+  display:block;
+  font-size:15px !important;
+  font-weight:900 !important;
+  color:#00796f !important;
+}
+
+.loading-card p{
+  margin:6px 0 0 !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  color:#64748b !important;
+}
+
+.loading-step{
+  display:flex !important;
+  align-items:center !important;
+  height:42px !important;
+  padding:0 14px !important;
+  border-radius:16px !important;
+  background:#fff !important;
+  border:1px solid #d9f5ee !important;
+  color:#00796f !important;
+  font-size:13.5px !important;
+  font-weight:900 !important;
+}
+
+.step-dot{
+  display:none;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#14b8a6;
+}
+
+/* 2. AI 한줄요약 카드 복구 */
+.ai-mini-summary{
+  margin:12px 0 12px;
+  padding:16px 18px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #edf2f7;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+}
+
+.ai-mini-summary h3{
+  margin:0 0 10px;
+  font-size:16px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.ai-mini-summary p{
+  margin:0;
+  font-size:14.5px;
+  font-weight:750;
+  line-height:1.55;
+  color:#334155;
+}
+
+.ai-mini-summary b{
+  color:#0f766e;
+  font-weight:950;
+}
+
+/* 3. AI 안전브리핑 칸 축소 */
+.analysis-main-card{
+  padding:15px 17px !important;
+  border-radius:22px !important;
+}
+
+.analysis-main-card h3{
+  margin:0 0 8px !important;
+  font-size:18px !important;
+}
+
+.analysis-point{
+  padding:8px 0 !important;
+  gap:10px !important;
+}
+
+.analysis-icon{
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
+}
+
+.analysis-icon img{
+  width:18px !important;
+  height:18px !important;
+}
+
+.analysis-text b{
+  margin-bottom:3px !important;
+  font-size:15px !important;
+}
+
+.analysis-text span{
+  font-size:14px !important;
+  line-height:1.45 !important;
+}
+  /* ===== 햄버거 사이드 메뉴 ===== */
+
+.app-topbar::before{
+  content:none !important;
+}
+
+.menu-btn{
+  position:absolute;
+  left:16px;
+  top:50%;
+  transform:translateY(-50%);
+  width:38px;
+  height:38px;
+  border:0;
+  background:transparent;
+  font-size:27px;
+  font-weight:800;
+  color:#0f172a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.menu-backdrop{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:20000;
+  background:rgba(15,23,42,.35);
+}
+
+.menu-backdrop.active{
+  display:block;
+}
+
+.side-menu{
+  position:fixed;
+  top:0;
+  left:0;
+  width:82%;
+  max-width:340px;
+  height:100vh;
+  z-index:20001;
+  background:#fff;
+  transform:translateX(-105%);
+  transition:.25s ease;
+  padding:22px 18px;
+  box-sizing:border-box;
+  box-shadow:18px 0 38px rgba(15,23,42,.18);
+}
+
+.side-menu.active{
+  transform:translateX(0);
+}
+
+.side-menu-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.side-menu-title{
+  font-size:19px;
+  font-weight:950;
+  color:#0f172a;
+}
+
+.side-close{
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:#f1f5f9;
+  font-size:22px;
+  color:#0f172a;
+}
+
+.side-menu-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.side-menu-item{
+  width:100%;
+  border:1px solid #edf2f7;
+  background:#fff;
+  border-radius:20px;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  text-align:left;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.side-menu-main{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.side-menu-icon{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#e8f8f5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+}
+
+.side-menu-text b{
+  display:block;
+  font-size:16px;
+  font-weight:950;
+  color:#0f172a;
+}
+
+.side-menu-text span{
+  display:block;
+  margin-top:4px;
+  font-size:12.5px;
+  font-weight:700;
+  color:#64748b;
+}
+
+.side-arrow{
+  font-size:24px;
+  font-weight:900;
+  color:#94a3b8;
+}
+  .menu-popup{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:30000;
+  background:rgba(15,23,42,.38);
+  padding:72px 14px 86px;
+  box-sizing:border-box;
+}
+
+.menu-popup.active{
+  display:block;
+}
+
+.menu-popup-card{
+  height:100%;
+  background:#fff;
+  border-radius:26px;
+  overflow:hidden;
+  box-shadow:0 20px 50px rgba(15,23,42,.25);
+  display:flex;
+  flex-direction:column;
+}
+
+.menu-popup-head{
+  height:58px;
+  padding:0 16px;
+  border-bottom:1px solid #eef2f7;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:18px;
+  font-weight:950;
+  color:#0f172a;
+}
+
+.menu-popup-head button{
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:#f1f5f9;
+  font-size:22px;
+}
+
+.menu-popup-content{
+  flex:1;
+  overflow-y:auto;
+  padding:16px;
+  background:#f8fafc;
+}
+  #riskMiniMapPopup{
+  width:100%;
+  height:330px;
+  border-radius:24px;
+  overflow:hidden;
+}
+.side-menu-icon img{
+  width:23px;
+  height:23px;
+  object-fit:contain;
+  display:block;
+}
+  .menu-btn img{
+    width:24px;
+    height:24px;
+}
+  .side-arrow img{
+    width:18px;
+    height:18px;
+    opacity:.55;
+}
+  .route-analysis-empty button{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+}
+
+.route-analysis-empty button img{
+    width:18px;
+    height:18px;
+}
+  .empty-icon{
+    width:56px;
+    height:56px;
+    margin:0 auto 18px;
+    display:block;
+    opacity:.9;
+}
+  .bottom-item img{
+    width:22px;
+    height:22px;
+    object-fit:contain;
+    opacity:.45;
+    transition:.2s;
+}
+
+.bottom-item.active img{
+    opacity:1;
+    filter:invert(51%) sepia(79%) saturate(523%)
+           hue-rotate(131deg) brightness(88%) contrast(90%);
+}
+  /* ===== 메뉴 팝업 글자 정리 ===== */
+
+.menu-popup-content .risk-info-card,
+.menu-popup-content .risk-score-guide{
+  padding:18px 20px !important;
+  border-radius:22px !important;
+}
+
+.menu-popup-content h3{
+  margin:0 0 12px !important;
+  font-size:18px !important;
+  font-weight:900 !important;
+  color:#0f172a !important;
+  letter-spacing:-0.4px !important;
+}
+
+.menu-popup-content p{
+  margin:8px 0 !important;
+  font-size:14px !important;
+  font-weight:650 !important;
+  line-height:1.65 !important;
+  color:#475569 !important;
+  word-break:keep-all !important;
+}
+
+.menu-popup-content p b{
+  font-weight:900 !important;
+  color:#334155 !important;
+}
+
+.menu-popup-content .risk-score-guide{
+  background:#fff !important;
+  border:1px solid #edf2f7 !important;
+}
+
+.menu-popup-content .risk-score-guide p{
+  font-size:14px !important;
+}
+/* ===== 배포 전 최종 디자인 정리 ===== */
+
+/* 공통 카드 */
+.result-hero-card,
+.ai-mini-summary,
+.course-choice-box,
+.info-split-col,
+.analysis-main-card,
+.compare-detail-new.always-open,
+.risk-score-guide,
+.feedback-card,
+.risk-info-card{
+  background:#fff !important;
+  border-radius:22px !important;
+  border:1px solid #edf2f7 !important;
+  box-shadow:0 8px 22px rgba(15,23,42,.06) !important;
+}
+
+/* 경로분석 페이지 여백 */
+.route-analysis-page{
+  padding:14px 14px 110px !important;
+}
+
+/* 위험점수 안내 흰색 카드 */
+.risk-score-guide{
+  background:#fff !important;
+  padding:18px !important;
+}
+
+.risk-score-guide h3{
+  font-size:17px !important;
+  margin-bottom:12px !important;
+}
+
+.risk-score-guide p{
+  font-size:13.5px !important;
+  line-height:1.65 !important;
+  margin:10px 0 !important;
+}
+
+/* 경로 상세 비교 카드 */
+.compare-detail-new.always-open{
+  padding:16px !important;
+  margin:12px 0 !important;
+}
+
+.compare-title{
+  font-size:17px !important;
+  margin-bottom:12px !important;
+}
+
+.compare-mini{
+  padding:12px 10px !important;
+  border-radius:18px !important;
+}
+
+.compare-row2{
+  padding:6px 0 !important;
+}
+
+.compare-row2 span{
+  font-size:12.5px !important;
+}
+
+.compare-row2 b{
+  font-size:13.5px !important;
+}
+
+/* 대안경로 대비 문구 */
+.risk-compare-note{
+  margin-top:12px !important;
+  padding-top:8px !important;
+  border-top:1px solid #dcefed !important;
+  text-align:center !important;
+  font-size:12px !important;
+  line-height:1.35 !important;
+  font-weight:800 !important;
+  color:#0f766e !important;
+  word-break:keep-all !important;
+}
+
+.risk-compare-note b{
+  display:block;
+  margin-top:2px;
+  font-size:13px;
+  font-weight:950;
+}
+
+/* 위험지도 팝업 축소 */
+.menu-popup{
+  padding:78px 14px 96px !important;
+}
+
+.menu-popup-card{
+  height:78vh !important;
+  border-radius:24px !important;
+}
+
+.menu-popup-content{
+  padding:14px !important;
+}
+
+#riskMiniMapPopup{
+  height:260px !important;
+  border-radius:20px !important;
+}
+
+/* 위험지도 본페이지 */
+.risk-map-page{
+  padding:18px 14px 110px !important;
+}
+
+#riskMiniMap{
+  height:285px !important;
+  border-radius:22px !important;
+}
+
+.risk-map-card{
+  padding:8px !important;
+  border-radius:24px !important;
+}
+
+.risk-map-legend{
+  padding:10px 6px !important;
+  gap:4px !important;
+  font-size:10px !important;
+}
+
+.risk-map-legend small{
+  font-size:8.5px !important;
+}
+  /* ===== 경로 결과화면 별점 카드 ===== */
+.result-feedback-card{
+  margin:12px 0 !important;
+  padding:15px 14px !important;
+}
+
+.result-feedback-card h3{
+  margin:0 0 5px !important;
+  font-size:16px !important;
+}
+
+.result-feedback-card p{
+  margin:0 0 8px !important;
+}
+
+.result-feedback-card .rating-stars{
+  margin-top:6px !important;
+}
+
+.result-feedback-card .rating-stars button{
+  font-size:34px !important;
+}
+  /* 실제 로딩이 길어질 때만 표시 */
+.slow-loading-notice{
+  display:none;
+  margin-top:10px !important;
+  padding:10px 12px;
+  border-radius:14px;
+  background:#fff8e8;
+  color:#a16207 !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  line-height:1.5;
+}
+
+.slow-loading-notice.show{
+  display:block;
+}
+  /* ===== 별점 제출 완료 ===== */
+.rating-complete{
+  padding:12px 6px;
+  text-align:center;
+  animation:ratingComplete .35s ease-out both;
+}
+
+.rating-complete-icon{
+  width:44px;
+  height:44px;
+  margin:0 auto 10px;
+  border-radius:50%;
+  background:#e8f8f5;
+  color:#0f9f91;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:25px;
+  font-weight:900;
+}
+
+.rating-complete h3{
+  margin:0 0 7px !important;
+  color:#0f766e !important;
+  font-size:16px !important;
+  font-weight:900 !important;
+}
+
+.rating-complete p{
+  margin:0 !important;
+  color:#64748b !important;
+  font-size:12.5px !important;
+  font-weight:700 !important;
+  line-height:1.6 !important;
+}
+
+@keyframes ratingComplete{
+  from{
+    opacity:0;
+    transform:translateY(8px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+/* TMAP 안내 문구 */
+.tmap-note{
+  margin:-4px 0 12px;
+  text-align:center;
+  font-size:11px;
+  color:#94a3b8;
+  font-weight:600;
+  line-height:1.4;
+  word-break:keep-all;
+}
+  /* ===== 산간도로 주의 팝업 ===== */
+.mountain-road-popup{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:40000;
+  background:rgba(15,23,42,.48);
+  padding:0 18px;
+  box-sizing:border-box;
+  align-items:center;
+  justify-content:center;
+}
+
+.mountain-road-popup.active{
+  display:flex;
+}
+
+.mountain-road-card{
+  width:100%;
+  max-width:390px;
+  padding:22px 20px 18px;
+  border-radius:26px;
+  background:#fff;
+  box-shadow:0 24px 60px rgba(15,23,42,.28);
+  text-align:center;
+  animation:mountainPopupAppear .28s ease-out both;
+}
+
+.mountain-road-icon{
+  width:54px;
+  height:54px;
+  margin:0 auto 13px;
+  border-radius:50%;
+  background:#fff4e5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.mountain-road-icon img{
+  width:27px;
+  height:27px;
+}
+
+.mountain-road-card h3{
+  margin:0;
+  color:#0f172a;
+  font-size:19px;
+  font-weight:900;
+  letter-spacing:-.4px;
+}
+
+.mountain-road-name{
+  display:inline-block;
+  margin-top:10px;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#fff4e5;
+  color:#c2410c;
+  font-size:12px;
+  font-weight:900;
+}
+
+.mountain-road-card p{
+  margin:13px 0 0;
+  color:#475569;
+  font-size:13.5px;
+  font-weight:700;
+  line-height:1.65;
+  word-break:keep-all;
+}
+
+.mountain-road-list{
+  margin:14px 0 0;
+  padding:13px 14px;
+  border-radius:17px;
+  background:#f8fafc;
+  text-align:left;
+}
+
+.mountain-road-list div{
+  margin:6px 0;
+  color:#334155;
+  font-size:12.5px;
+  font-weight:750;
+  line-height:1.45;
+}
+
+.mountain-road-confirm{
+  width:100%;
+  height:48px;
+  margin-top:17px;
+  border:0;
+  border-radius:17px;
+  background:linear-gradient(135deg,#0f8f80,#14b8a6);
+  color:#fff;
+  font-size:15px;
+  font-weight:900;
+}
+
+@keyframes mountainPopupAppear{
+  from{
+    opacity:0;
+    transform:translateY(12px) scale(.98);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+  /* ===== 기능 다이어트 후 경로분석 화면 ===== */
+
+.route-data-note{
+  margin-top:13px;
+  padding-top:11px;
+  border-top:1px solid #edf2f7;
+  color:#64748b;
+  font-size:11.5px;
+  font-weight:700;
+  line-height:1.55;
+  word-break:keep-all;
+}
+
+.navi-section{
+  margin:12px 0;
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #edf2f7;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.navi-section h3{
+  margin:0 0 10px;
+  color:#0f172a;
+  font-size:16px;
+  font-weight:900;
+}
+
+.navi-section .navi-grid{
+  margin-top:0;
+}
+
+body.route-analysis-mode .compare-mini.recommend{
+  border:1px solid #99e2d8;
+  background:#f3fffd;
+}
+
+body.route-analysis-mode .compare-mini.alt{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+}
+
+body.route-analysis-mode .compare-head{
+  justify-content:flex-start;
+}
+
+body.route-analysis-mode .compare-head b{
+  font-size:17px;
+}
+
+body.route-analysis-mode .info-split-col.tip{
+  margin-top:12px;
+}
+  /* ===== ORS 실패 시 지도 없는 비상 안내 화면 ===== */
+
+body.route-fallback-mode #map{
+  display:none !important;
+}
+
+body.route-fallback-mode .route-analysis-page{
+  top:0 !important;
+  bottom:68px !important;
+  border-radius:0 !important;
+  padding:18px 14px 105px !important;
+  background:#f8fafc;
+}
+
+body.route-fallback-mode .app-topbar{
+  display:none !important;
+}
+
+.fallback-notice-card{
+  padding:18px;
+  margin-bottom:12px;
+  border-radius:22px;
+  background:#fff8e8;
+  border:1px solid #fde7b0;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.fallback-notice-card h3{
+  margin:0 0 8px;
+  color:#92400e;
+  font-size:18px;
+  font-weight:900;
+}
+
+.fallback-notice-card p{
+  margin:0;
+  color:#78613b;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.6;
+  word-break:keep-all;
+}
+
+.fallback-route-card{
+  padding:17px;
+  margin-bottom:12px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #edf2f7;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.fallback-route-title{
+  margin-bottom:13px;
+  font-size:15px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.fallback-region-grid{
+  display:grid;
+  grid-template-columns:1fr 32px 1fr;
+  align-items:center;
+  gap:7px;
+}
+
+.fallback-region-box{
+  min-width:0;
+  padding:13px 9px;
+  border-radius:17px;
+  background:#f8fafc;
+  text-align:center;
+}
+
+.fallback-region-box span{
+  display:block;
+  margin-bottom:5px;
+  color:#64748b;
+  font-size:11px;
+  font-weight:800;
+}
+
+.fallback-region-box b{
+  display:block;
+  color:#0f766e;
+  font-size:14px;
+  font-weight:900;
+  word-break:keep-all;
+}
+
+.fallback-region-arrow{
+  color:#14b8a6;
+  font-size:21px;
+  font-weight:900;
+  text-align:center;
+}
+
+.fallback-info-card{
+  margin-bottom:12px;
+  padding:17px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #edf2f7;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.fallback-info-card h3{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:0 0 12px;
+  color:#0f172a;
+  font-size:16px;
+  font-weight:900;
+}
+
+.fallback-info-item{
+  margin-top:9px;
+  padding:11px 12px;
+  border-radius:15px;
+  background:#f8fafc;
+  color:#334155;
+  font-size:13px;
+  font-weight:750;
+  line-height:1.55;
+  word-break:keep-all;
+}
+
+.fallback-cache-badge{
+  display:inline-block;
+  margin-bottom:10px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#e8f8f5;
+  color:#0f766e;
+  font-size:11px;
+  font-weight:900;
+}
+
+.fallback-cache-time{
+  margin-top:10px;
+  color:#94a3b8;
+  font-size:11px;
+  font-weight:700;
+  text-align:right;
+}
+
+.fallback-retry-btn{
+  width:100%;
+  height:48px;
+  margin:0 0 12px;
+  border:1px solid #cdeee8;
+  border-radius:17px;
+  background:#fff;
+  color:#0f766e;
+  font-size:14px;
+  font-weight:900;
+}
+</style>
+</head>
+
+<body>
+<div id="map"></div>
+<div class="app-topbar">
+  <button class="menu-btn" type="button" onclick="openSideMenu()">
+    <img src="menu-2.svg">
+</button>
+  <div class="brand">
+    <img src="pin.png">
+    <b>Jeju Safe Map</b>
+  </div>
+</div>
+
+<div id="menuBackdrop" class="menu-backdrop" onclick="closeSideMenu()"></div>
+
+<div id="sideMenu" class="side-menu">
+  <div class="side-menu-head">
+    <div class="side-menu-title">Jeju Safe Map</div>
+    <button class="side-close" type="button" onclick="closeSideMenu()">×</button>
+  </div>
+
+  <div class="side-menu-list">
+
+    <button class="side-menu-item" type="button" onclick="openRiskMapFromMenu()">
+      <div class="side-menu-main">
+        <div class="side-menu-icon">
+  <img src="map-2.png" alt="">
+</div>
+        <div class="side-menu-text">
+          <b>위험지도</b>
+          <span>사고 많은 지역 확인하기</span>
+        </div>
+      </div>
+      <div class="side-arrow">
+    <img src="chevron-right.svg">
+</div>
+    </button>
+
+    <button class="side-menu-item" type="button" onclick="openEpdoFromMenu()">
+      <div class="side-menu-main">
+ <div class="side-menu-icon">
+  <img src="chart-bar.svg" alt="">
+</div>
+        <div class="side-menu-text">
+          <b>EPDO 위험도</b>
+          <span>위험점수 계산 방식</span>
+        </div>
+      </div>
+     <div class="side-arrow">
+  <img src="chevron-right.svg">
+</div>
+    </button>
+
+    <button class="side-menu-item" type="button" onclick="openNoticeFromMenu()">
+      <div class="side-menu-main">
+        <div class="side-menu-icon">
+ <img src="bell.svg">
+</div>
+        <div class="side-menu-text">
+          <b>공지사항</b>
+          <span>업데이트 내역</span>
+        </div>
+      </div>
+     <div class="side-arrow">
+  <img src="chevron-right.svg">
+</div>
+    </button>
+
+  </div>
+</div>
+      <div id="mountainRoadPopup" class="mountain-road-popup">
+  <div class="mountain-road-card">
+
+    <div class="mountain-road-icon">
+      <img src="alert-triangle.svg" alt="">
+    </div>
+
+    <h3>산간도로 운전 주의</h3>
+
+    <div id="mountainRoadName" class="mountain-road-name">
+      산간도로 포함
+    </div>
+
+   <p>
+  표시된 경로 중 운전 난이도가 높은 산간도로를 지나는 코스가 있습니다.
+  사고이력은 상대적으로 적더라도 실제 주행 시 각별한 주의가 필요합니다.
+</p>
+
+    <div class="mountain-road-list">
+      <div>• 급커브와 급경사 구간에서 충분히 감속하세요.</div>
+      <div>• 안개·비·결빙 등 갑작스러운 기상변화에 주의하세요.</div>
+      <div>• 내리막에서는 풋브레이크와 엔진브레이크를 함께 사용하세요.</div>
+    </div>
+
+    <button
+      type="button"
+      class="mountain-road-confirm"
+      onclick="closeMountainRoadPopup()">
+      확인했습니다
+    </button>
+
+  </div>
+</div>
+<div id="menuPopup" class="menu-popup">
+  <div class="menu-popup-card">
+    <div class="menu-popup-head">
+      <div id="menuPopupTitle">제목</div>
+      <button type="button" onclick="closeMenuPopup()">×</button>
+    </div>
+
+    <div id="menuPopupContent" class="menu-popup-content"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="hero-banner">
+    <div class="hero-text">
+      <div class="hero-title">안전한 제주 여행의 시작</div>
+      <div class="hero-sub">
+  출발지에서 목적지까지의 경로와<br>
+  주변 사고정보를 미리 확인하세요
+</div>
+    </div>
+  </div>
+
+  <div class="input-card route-input-card">
+
+  <div class="field-label">출발지</div>
+<div class="address-row start-row">
+  <span class="field-icon">
+  <img src="plane.svg" alt="">
+</span>
+  <input id="startInput" type="text" placeholder="예)제주국제공항">
+  <button class="location-btn" onclick="useCurrentLocation()">
+  현재 위치 사용
+</button>
+
+<button class="clear-btn" type="button" onclick="document.getElementById('startInput').value=''">
+  <img src="x.svg" alt="">
+</button>
+
+<button class="mini-btn" onclick="searchStartPlace()">
+  <img src="search.svg" alt="">
+</button>
+</div>
+
+  <div id="startResults"></div>
+
+
+
+  <div class="field-label">목적지</div>
+<div class="address-row end-row">
+  <span class="field-icon">
+  <img src="map-pin.svg" alt="">
+</span>
+  <input id="endInput" type="text" placeholder="예)성산일출봉">
+  <button class="clear-btn" type="button" onclick="document.getElementById('endInput').value=''">
+ <img src="x.svg" alt="">
+</button>
+
+<button class="mini-btn" onclick="searchDestination()">
+  <img src="search.svg" alt="">
+</button>
+</div>
+
+ <div id="endResults"></div>
+
+<div class="popular-title">
+  추천 관광지 바로 보기
+</div>
+    
+<select
+  id="popularSelect"
+  class="popular-select"
+  onchange="selectPopularTour()">
+
+ <option value="">선택하세요</option>
+<option value="성산일출봉|126.9347|33.4589">성산일출봉</option>
+<option value="협재해수욕장|126.2412|33.3938">협재해수욕장</option>
+<option value="중문관광단지|126.4128|33.2498">중문관광단지</option>
+<option value="1100고지|126.4625|33.3580">1100고지</option>
+<option value="함덕해수욕장|126.6695|33.5435">함덕해수욕장</option>
+<option value="월정리해변|126.7958|33.5565">월정리해변</option>
+<option value="카멜리아힐|126.3703|33.2891">카멜리아힐</option>
+<option value="오설록|126.2895|33.3059">오설록</option>
+<option value="비자림|126.8106|33.4913">비자림</option>
+<option value="사려니숲길|126.6265|33.4220">사려니숲길</option>
+
+</select>
+</div>
+<button class="analyze-btn" onclick="drawRoutes()">
+  <div class="analyze-main">사고이력 기반 경로 비교</div>
+</button>
+
+<div id="info"></div>
+
+  <div class="small">
+
+    <img src="chart-covariate.svg" class="epdo-icon">
+
+    <div>
+
+        <div class="epdo-title">
+            EPDO 위험도 분석
+        </div>
+
+        <div class="epdo-desc2">
+  사고데이터와 사고 심각도를 활용해
+  이동 경로 주변의 위험정보를 제공합니다.
+</div>
+
+    </div>
+
+</div>
+</div>
+
+<div id="riskMapPage" class="risk-map-page">
+
+  <div class="risk-map-title">사고 위험 지도</div>
+  <div class="risk-map-sub">
+    2025년 렌터카 사고 데이터 기반으로 사고 위치와 사고 심각도 표시
+    <br>빨간색일수록 사고 심각도가 높은 구간
+  </div>
+
+  <div class="risk-map-card">
+    <div id="riskMiniMap"></div>
+
+    <div class="risk-map-legend">
+      <span><b class="risk-dot high"></b>주의<br><small>EPDO 12점~</small></span>
+<span><b class="risk-dot midhigh"></b>다소 주의<br><small>EPDO 6~11점</small></span>
+<span><b class="risk-dot mid"></b>보통<br><small>EPDO 3~5점</small></span>
+<span><b class="risk-dot low"></b>낮음<br><small>EPDO 0~2점</small></span>
+    </div>
+  </div>
+ <div class="epdo-desc">
+   ※ EPDO: 사고 심각도 지수. 사망·중상사고일수록 점수가 높습니다.
+  </div>
+
+  <div class="risk-dashboard">
+
+    <div class="risk-info-card">
+      <h3>
+<img src="chart-dots.svg" class="title-svg">
+사고 정보 요약
+</h3>
+      <div class="risk-question">어떤 사고 유형이 주로 확인되었나요?</div>
+
+      <div class="type-row">
+        <span>🚗 차대차</span>
+        <div><i style="width:62%; background:#ef4444;"></i></div>
+        <b>62.2%</b>
+      </div>
+
+      <div class="type-row">
+        <span>🚙 차량 단독</span>
+        <div><i style="width:18%; background:#f97316;"></i></div>
+        <b>18.1%</b>
+      </div>
+
+      <div class="type-row">
+        <span>🚶 차대사람</span>
+        <div><i style="width:13%; background:#facc15;"></i></div>
+        <b>13.4%</b>
+      </div>
+
+      <div class="type-row">
+        <span>기타</span>
+        <div><i style="width:6%; background:#10b981;"></i></div>
+        <b>6.3%</b>
+      </div>
+    </div>
+
+    <div class="risk-info-card">
+     <h3>
+<img src="alert-triangle.svg" class="title-svg">
+특이한 점은?
+</h3>
+      <p>✔ 제주시 도심·공항·연동·노형동 일대 사고 밀집</p>
+      <p>✔ 해안도로 관광지 주변 사고 다발</p>
+      <p>✔ 교차로 및 관광지 진출입 구간 사고 비율 높음</p>
+      <p>✔ 야간·주말 운전 시 주의 필요</p>
+    </div>
+
+<div class="risk-info-card">
+ <h3>
+<img src="chart-bar.svg" class="title-svg">
+2025년 렌터카 사고 특성
+</h3>
+
+  <div class="stat-grid four">
+    <div><b>447건</b><span>총 사고</span></div>
+    <div><b id="deathCount">-</b><span>사망</span></div>
+    <div><b id="seriousCount">-</b><span>중상</span></div>
+    <div><b id="minorCount">-</b><span>경상</span></div>
+  </div>
+
+  <div class="feature-list">
+    <p>✔ 차대차 사고 비중이 가장 높음</p>
+    <p>✔ 안전운전의무위반·기타 법규위반 사고 다수</p>
+    <p>✔ 공항·제주시 도심·관광지 진출입 구간 사고 집중</p>
+  </div>
+</div>
+</div>
+  </div>
+<div id="safetyGuidePage" class="safety-guide-page">
+  <div class="safety-guide-card">
+
+   <div class="section-title">
+<img src="video.svg" class="title-svg">
+렌터카 안전운전 영상
+</div>
+    <div class="section-sub">제주 도로 특성을 반영한 안전운전 가이드</div>
+
+    <div class="video-box">
+      <video controls playsinline preload="metadata" poster="video-thumb.png">
+        <source src="rentcar-safe.mp4" type="video/mp4">
+      </video>
+    </div>
+
+  <div class="rule-title">
+<img src="info-circle.svg" class="title-svg">
+제주 렌터카 안전운전 가이드
+</div>
+<div class="section-sub">회전교차로와 엔진브레이크 사용법을 한눈에 확인하세요</div>
+
+<div class="guide-image-card">
+  <img src="safe-driving-guide.png" alt="제주 렌터카 안전운전 가이드">
+</div>
+
+  </div>
+</div>
+<div id="routeAnalysisPage" class="route-analysis-page">
+  <div id="routeAnalysisContent"></div>
+</div>
+  <div id="adminStatsPage" class="admin-stats-page">
+  <div class="admin-head">
+    <h2>
+<img src="chart-bar.svg" class="title-svg">
+이용 통계
+</h2>
+    <button class="admin-close" onclick="closeAdminStats()">닫기</button>
+  </div>
+
+  <div class="admin-stat-grid">
+    <div class="admin-stat-card">
+      <span>총 경로분석</span>
+      <b id="statTotal">-</b>
+    </div>
+
+    <div class="admin-stat-card">
+      <span>평균 별</span>
+      <b id="statGoodRate">-</b>
+    </div>
+
+    <div class="admin-stat-card">
+      <span>평가 건 </span>
+      <b id="statGood">-</b>
+    </div>
+
+    <div class="admin-stat-card">
+      <span>5점 비율</span>
+      <b id="statBad">-</b>
+    </div>
+  </div>
+
+  <div class="admin-list-card">
+    <h3>인기 목적지 TOP</h3>
+    <p>Google Sheets 통계 연결 후 자동 표시됩니다.</p>
+  </div>
+
+  <div class="admin-list-card">
+    <h3>최근 이용 기록</h3>
+    <p>Google Sheets 통계 연결 후 자동 표시됩니다.</p>
+  </div>
+</div>
+  <button class="admin-floating-btn" onclick="openAdminStats()">
+ <img src="chart-bar.svg">
+이용통계
+</button>
+<div class="bottom-nav">
+  <button class="bottom-item active" onclick="goHome()">
+    <img src="home.svg">
+    <b>홈</b>
+  </button>
+
+  <button class="bottom-item" onclick="showRouteAnalysis()">
+    <img src="navigation-pin.png">
+    <b>경로분석</b>
+  </button>
+
+  <button class="bottom-item" onclick="showRiskMap()">
+    <img src="heart-plus.png">
+    <b>위험지도</b>
+  </button>
+
+  <button class="bottom-item" onclick="showSafetyGuide()">
+    <img src="map-2.png">
+    <b>안내수칙</b>
+  </button>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+<script src="accidents.js"></script>
+  <script src="traffic_points.js"></script>
+
+<script>
+  const orsApiKeys = [
+  "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImVkN2QwYzg1M2JlNjRhMjliZWY0ZGUxYTBhMGMzM2Q0IiwiaCI6Im11cm11cjY0In0=",
+  "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRiMzFkNmI2YzExODQxNWQ4MmI2YmQwNTdhYTIyYjY4IiwiaCI6Im11cm11cjY0In0="
+];
+  const feedbackApiUrl = "https://script.google.com/macros/s/AKfycbyV547EPHHqmzJXWAYaaLf6EDwUGG9Hr-VlM5RV_zQpoyvHxhRQv6HvxMmgisRkdfTO/exec";
+  const adminPassword = "JSM2026";
+
+const isAdmin =
+  new URLSearchParams(location.search).get("admin") === "1";
+
+if(isAdmin){
+  document.body.classList.add("admin-mode");
+}
+  const kakaoKey = "0afebb6a8bf4c82114b49b25efea0399";
+  const kakaoJsKey = "c244e1e25b12c9b2a6c68f6af9116b5b";
+if(window.Kakao){
+  Kakao.init(kakaoJsKey);
+}
+
+const map = L.map('map').setView([33.06,126.54],9.4);
+
+function resetHomeMap(){
+ setTimeout(() => {
+  map.invalidateSize();
+ map.setView([33.06,126.54],9.4);
+ },300);
+}
+
+resetHomeMap();
+L.tileLayer(
+'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+{
+ attribution:'© OpenStreetMap © CARTO',
+ subdomains:'abcd',
+ maxZoom:20
+}
+).addTo(map);
+  
+const regionRisk = {
+  "공항권": { color:"#dc2626", level:"매우높음", count:53, epdo:261 },
+  "제주시도심권": { color:"#dc2626", level:"매우높음", count:132, epdo:581 },
+  "서귀포도심권": { color:"#dc2626", level:"매우높음", count:57, epdo:259 },
+
+  "애월권": { color:"#f97316", level:"높음", count:38, epdo:215 },
+  "서부중산간권": { color:"#f97316", level:"높음", count:35, epdo:223 },
+
+  "동부중산간권": { color:"#facc15", level:"보통", count:30, epdo:162 },
+  "협재·한림권": { color:"#facc15", level:"보통", count:24, epdo:107 },
+  "함덕·조천권": { color:"#facc15", level:"보통", count:17, epdo:93 },
+  "김녕·월정권": { color:"#facc15", level:"보통", count:16, epdo:80 },
+  "성산권": { color:"#facc15", level:"보통", count:15, epdo:100 },
+  "한라산권": { color:"#facc15", level:"보통", count:16, epdo:85 },
+
+  "중문권": { color:"#22c55e", level:"낮음", count:14, epdo:79 }
+};
+
+function getJejuRegion(name){
+
+  if(!name) return "기타";
+
+  // ① 공항권
+  if(
+  name.includes("용담1동") ||
+  name.includes("용담2동") ||
+  name.includes("용담일동") ||
+  name.includes("용담이동") ||
+  name.includes("도두동") ||
+  name.includes("이호동")
+) return "공항권";
+
+  // ② 제주시도심권
+if(
+  name.includes("연동") ||
+  name.includes("노형동") ||
+  name.includes("건입동") ||
+
+  name.includes("일도1동") ||
+  name.includes("일도2동") ||
+  name.includes("일도일동") ||
+  name.includes("일도이동") ||
+
+  name.includes("이도1동") ||
+  name.includes("이도2동") ||
+  name.includes("이도일동") ||
+  name.includes("이도이동") ||
+
+  name.includes("삼도1동") ||
+  name.includes("삼도2동") ||
+  name.includes("삼도일동") ||
+  name.includes("삼도이동")
+) return "제주시도심권";
+  // ③ 함덕·조천권
+  if(
+    name.includes("조천읍") ||
+    name.includes("삼양동") ||
+    name.includes("화북동")
+  ) return "함덕·조천권";
+
+  // ④ 김녕·월정권
+  if(
+    name.includes("구좌읍")
+  ) return "김녕·월정권";
+
+  // ⑤ 성산권
+  if(
+    name.includes("성산읍") ||
+    name.includes("우도면")
+  ) return "성산권";
+
+  // ⑥ 애월권
+  if(
+    name.includes("애월읍") ||
+    name.includes("외도동")
+  ) return "애월권";
+
+  // ⑦ 협재·한림권
+  if(
+    name.includes("한림읍")
+  ) return "협재·한림권";
+
+  // ⑧ 중문권
+  if(
+    name.includes("중문동") ||
+    name.includes("대천동") ||
+    name.includes("예래동")
+  ) return "중문권";
+
+ // ⑨ 서귀포도심권
+if(
+  name.includes("동홍동") ||
+  name.includes("서홍동") ||
+  name.includes("송산동") ||
+  name.includes("정방동") ||
+  name.includes("중앙동") ||
+  name.includes("천지동") ||
+  name.includes("대륜동") ||
+  name.includes("영천동") ||
+  name.includes("효돈동")
+) return "서귀포도심권";
+
+// ⑩ 서부중산간권
+if(
+  name.includes("안덕면") ||
+  name.includes("대정읍") ||
+  name.includes("한경면")
+) return "서부중산간권";
+
+// ⑪ 동부중산간권
+if(
+  name.includes("표선면") ||
+  name.includes("남원읍")
+) return "동부중산간권";
+
+  // ⑫ 한라산권
+  if(
+    name.includes("아라동") ||
+    name.includes("오라동") ||
+    name.includes("봉개동")
+  ) return "한라산권";
+
+  return "기타";
+}
+
+let regionLayer;
+
+const regionGuide = {
+  "공항권": {
+    title:"공항권",
+    level:"주의 필요",
+    caution:"렌터카 인수 직후 초행운전이 많아 급차로 변경과 진출입 차량에 주의하세요."
+  },
+  "제주시도심권": {
+    title:"제주시 도심권",
+    level:"주의 필요",
+    caution:"교차로와 보행자 통행이 많아 우회전·차로변경 시 주변 확인이 필요합니다."
+  },
+  "서귀포도심권": {
+    title:"서귀포 도심권",
+    level:"주의 필요",
+    caution:"시내 교차로와 보행자 이동이 많아 신호 변경 구간에서 감속 운전하세요."
+  },
+  "애월권": {
+    title:"애월권",
+    level:"다소 주의",
+    caution:"해안도로와 카페·관광지 진출입 차량이 많아 급정지와 끼어들기에 주의하세요."
+  },
+  "서부중산간권": {
+    title:"서부 중산간권",
+   level:"다소 주의",
+    caution:"곡선도로와 경사구간이 많아 속도를 낮추고 내리막에서는 엔진브레이크를 활용하세요."
+  },
+  "동부중산간권": {
+    title:"동부 중산간권",
+    level:"일반",
+    caution:"중산간 도로 특성상 시야가 제한될 수 있어 교차로 진입 전 충분히 감속하세요."
+  },
+  "협재·한림권": {
+    title:"협재·한림권",
+    level:"일반",
+    caution:"해수욕장 주변 보행자와 주정차 차량이 많아 주차장 진출입부에서 서행하세요."
+  },
+  "함덕·조천권": {
+    title:"함덕·조천권",
+    level:"일반",
+    caution:"해수욕장과 마을도로가 연결되어 보행자·자전거·주정차 차량에 주의하세요."
+  },
+  "김녕·월정권": {
+    title:"김녕·월정권",
+    level:"일반",
+    caution:"해안도로 주행 중 경치에 시선이 분산되기 쉬우므로 전방주시를 유지하세요."
+  },
+  "성산권": {
+    title:"성산권",
+    level:"일반",
+    caution:"관광버스와 렌터카가 혼재되어 목적지를 놓쳐도 급차로 변경하지 마세요."
+  },
+  "한라산권": {
+    title:"한라산권",
+    level:"일반",
+    caution:"급커브·안개·기상변화가 잦아 전조등을 켜고 충분히 감속 운전하세요."
+  },
+  "중문권": {
+    title:"중문권",
+    level:"안전",
+    caution:"관광단지 진출입 차량과 보행자가 많으니 주차장 주변에서는 서행하세요."
+  },
+  "기타": {
+    title:"기타 권역",
+    level:"정보없음",
+    caution:"초행길에서는 내비 안내를 미리 확인하고 교차로에서 충분히 감속하세요."
+  }
+};
+
+fetch("jeju_regions.geojson")
+  .then(res => res.json())
+  .then(data => {
+    regionLayer = L.geoJSON(data, {
+      style: function(feature){
+        const name =
+          feature.properties.adm_nm ||
+          feature.properties.name ||
+          feature.properties.EMD_NM ||
+          feature.properties.SIG_KOR_NM ||
+          "";
+
+        const region = getJejuRegion(name);
+        const risk = regionRisk[region];
+return {
+  color:"#ffffff",
+  weight:2.4,
+  opacity:1,
+  fillColor: risk ? risk.color : "#e5e7eb",
+  fillOpacity: risk ? 0.52 : 0.12,
+  interactive:false
+};
+      },
+    }).addTo(map);
+  });
+
+let routeLayer;
+customStart = null;
+customEnd = null;
+customStartName = null;
+customEndName = null;
+customStartArea = "기타";
+  customEndArea = "기타";
+lastNavigation = "";
+
+lastStart = null;
+lastEnd = null;
+lastRouteAnalysisHtml = "";
+lastRouteSummaries = [];
+lastFeedbackData = {};
+selectedRouteIndex = 0;
+lastRecommendedIndex = 0;
+ratingSubmitted = false;
+  
+
+  const destinationTips = {
+  "1100고지": [
+    "산악도로 특성상 급커브와 경사구간이 많습니다.",
+    "내리막길에서는 엔진브레이크를 활용하세요.",
+    "안개·결빙 가능성이 있어 속도를 충분히 줄이세요."
+  ],
+  "성산일출봉": [
+    "관광버스와 렌터카 통행이 많은 구간입니다.",
+    "목적지를 놓쳐도 급차로 변경하지 마세요.",
+    "교차로와 관광지 진출입 차량을 주의하세요."
+  ],
+  "중문관광단지": [
+    "관광단지와 숙박시설 진출입 차량이 많습니다.",
+    "목적지 접근 전 미리 차선을 확인하세요.",
+    "보행자와 횡단보도 주변을 특히 주의하세요."
+  ],
+  "함덕해수욕장": [
+    "해수욕장 주변 보행자와 주정차 차량이 많습니다.",
+    "관광지 진입 전 충분히 감속하세요.",
+    "주차장 진출입 차량을 주의하세요."
+  ],
+  "협재해수욕장": [
+    "해수욕장 주변 보행자와 주정차 차량이 많습니다.",
+    "해안도로 주행 중 전방주시를 유지하세요.",
+    "목적지 진입 전 급차로 변경을 피하세요."
+  ],
+  "오설록": [
+    "관광지 진입부에서 급감속 차량이 발생할 수 있습니다.",
+    "주차장 입구 주변 보행자를 주의하세요.",
+    "중산간 도로에서는 속도를 낮춰 운전하세요."
+  ],
+  "카멜리아힐": [
+    "관광지 진출입 차량과 보행자가 많습니다.",
+    "주차장 주변에서는 서행하세요.",
+    "초행길에서는 내비 안내를 미리 확인하세요."
+  ],
+  "한라산 성판악 탐방안내소": [
+    "산악도로 특성상 급커브와 경사구간이 많습니다.",
+    "안개·기상변화에 대비해 전조등을 켜세요.",
+    "내리막길에서는 엔진브레이크를 활용하세요."
+  ],
+  "비자림": [
+    "중산간 도로 특성상 시야가 제한될 수 있습니다.",
+    "관광지 진입 전 충분히 감속하세요.",
+    "보행자와 주차 차량을 주의하세요."
+  ],
+  "사려니숲길": [
+    "숲길 주변 주정차 차량과 보행자가 많습니다.",
+    "안개가 낄 경우 전조등을 켜고 감속하세요.",
+    "급정거 차량에 대비해 안전거리를 확보하세요."
+  ]
+};
+
+  /* ===== ORS 실패 시 목적지 권역 안내 정보 ===== */
+
+const fallbackRegionInfo = {
+  "공항권": {
+    risks:[
+      "렌터카 인수 직후 초행운전 차량과 공항 진출입 차량이 많습니다.",
+      "교차로에서 급차로 변경하거나 진출로를 놓치는 차량에 주의하세요."
+    ],
+    roads:"공항로·용문로·도령로 등 공항 진출입 구간",
+    tips:[
+      "출발 전 내비게이션 경로를 미리 확인하세요.",
+      "교차로와 진출입부에서는 충분히 감속하세요.",
+      "항공기 도착 시간대에는 렌터카 차량이 집중될 수 있습니다."
+    ]
+  },
+
+  "제주시도심권": {
+    risks:[
+      "교차로와 차로 변경 구간이 많고 보행자 통행이 잦습니다.",
+      "출퇴근 시간에는 정체와 급정지가 발생할 수 있습니다."
+    ],
+    roads:"연삼로·연북로·노형로·도령로 등 도심 간선도로",
+    tips:[
+      "우회전 전 보행자와 자전거를 다시 확인하세요.",
+      "버스와 택시의 정차·출발에 대비해 안전거리를 확보하세요.",
+      "차선을 놓쳤을 때 무리하게 끼어들지 마세요."
+    ]
+  },
+
+  "서귀포도심권": {
+    risks:[
+      "경사구간과 교차로가 이어지고 보행자 이동이 많습니다.",
+      "관광지와 전통시장 주변에서 갑작스러운 정차가 발생할 수 있습니다."
+    ],
+    roads:"중앙로·일주동로·516로 서귀포 도심 구간",
+    tips:[
+      "내리막길에서는 앞차와 충분한 거리를 유지하세요.",
+      "시장과 상가 주변에서는 보행자를 주의하세요.",
+      "교차로 진입 전에 미리 차로를 확인하세요."
+    ]
+  },
+
+  "애월권": {
+    risks:[
+      "해안도로와 카페·관광지 진출입 차량이 많습니다.",
+      "주정차 차량 사이에서 보행자가 나올 수 있습니다."
+    ],
+    roads:"애월해안도로·일주서로·평화로 연결 구간",
+    tips:[
+      "경치에 시선이 분산되지 않도록 전방주시를 유지하세요.",
+      "주차장 입구와 갓길 주변에서 충분히 감속하세요.",
+      "해안도로에서는 갑작스러운 정차 차량에 대비하세요."
+    ]
+  },
+
+  "협재·한림권": {
+    risks:[
+      "해수욕장 주변 보행자와 주정차 차량이 많습니다.",
+      "관광지 입구에서 급감속하거나 차로를 변경하는 차량이 있습니다."
+    ],
+    roads:"일주서로·한림해안로·협재해수욕장 진입도로",
+    tips:[
+      "관광지 진입 전 속도를 충분히 줄이세요.",
+      "주차 차량 사이의 보행자와 어린이를 주의하세요.",
+      "해안도로에서는 전방주시를 유지하세요."
+    ]
+  },
+
+  "서부중산간권": {
+    risks:[
+      "곡선도로와 경사구간이 많고 야간에는 시야 확보가 어렵습니다.",
+      "농로와 마을도로에서 저속 차량이 갑자기 진입할 수 있습니다."
+    ],
+    roads:"평화로·산록남로·서부 중산간 연결도로",
+    tips:[
+      "내리막에서는 풋브레이크와 엔진브레이크를 함께 사용하세요.",
+      "안개나 비가 내리면 전조등을 켜고 감속하세요.",
+      "급커브 진입 전 충분히 속도를 낮추세요."
+    ]
+  },
+
+  "함덕·조천권": {
+    risks:[
+      "해수욕장과 마을도로가 연결되어 보행자 통행이 많습니다.",
+      "관광지 주차장 주변에서 급정지 차량이 발생할 수 있습니다."
+    ],
+    roads:"일주동로·조함해안로·함덕해수욕장 진입도로",
+    tips:[
+      "해수욕장과 마을 구간에서는 서행하세요.",
+      "횡단보도와 주차장 출입구를 주의하세요.",
+      "자전거와 개인형 이동장치를 충분한 간격으로 추월하세요."
+    ]
+  },
+
+  "김녕·월정권": {
+    risks:[
+      "해안도로를 이용하는 관광차량과 주정차 차량이 많습니다.",
+      "좁은 마을도로에서 맞은편 차량과 마주칠 수 있습니다."
+    ],
+    roads:"월정·김녕해안도로·일주동로 연결 구간",
+    tips:[
+      "해안도로 주행 중 전방주시를 유지하세요.",
+      "좁은 도로에서는 속도를 줄이고 양보 운전하세요.",
+      "주정차 차량 사이의 보행자를 주의하세요."
+    ]
+  },
+
+  "성산권": {
+    risks:[
+      "관광버스와 렌터카 통행이 많아 갑작스러운 차로 변경이 발생할 수 있습니다.",
+      "관광지 입구와 주차장 주변에 보행자가 많습니다."
+    ],
+    roads:"일주동로·성산중앙로·성산일출봉 진입도로",
+    tips:[
+      "목적지를 놓쳐도 급하게 차선을 바꾸지 마세요.",
+      "관광버스 주변에서는 충분한 안전거리를 유지하세요.",
+      "관광지 진입 전 미리 차로를 확인하세요."
+    ]
+  },
+
+  "동부중산간권": {
+    risks:[
+      "중산간 도로는 교차로 시야가 제한되고 농기계가 진입할 수 있습니다.",
+      "비와 안개가 발생하면 노면과 시야 상태가 빠르게 변할 수 있습니다."
+    ],
+    roads:"번영로·남조로·동부 중산간 연결도로",
+    tips:[
+      "교차로와 곡선구간 진입 전 충분히 감속하세요.",
+      "농기계와 저속 차량을 무리하게 추월하지 마세요.",
+      "안개가 발생하면 전조등을 켜고 차간거리를 늘리세요."
+    ]
+  },
+
+  "중문권": {
+    risks:[
+      "호텔과 관광시설 진출입 차량이 많습니다.",
+      "주차장과 횡단보도 주변에서 보행자 이동이 잦습니다."
+    ],
+    roads:"중문관광로·색달로·일주서로 연결 구간",
+    tips:[
+      "관광단지 진입 전 미리 차선을 확인하세요.",
+      "호텔과 주차장 출입구 주변에서 서행하세요.",
+      "횡단보도와 대형버스 주변을 주의하세요."
+    ]
+  },
+
+  "한라산권": {
+    risks:[
+      "급커브와 급경사 구간이 많고 기상변화가 빠릅니다.",
+      "안개·비·결빙으로 노면 상태가 갑자기 나빠질 수 있습니다."
+    ],
+    roads:"1100도로·5·16도로·산록도로 등 산간도로",
+    tips:[
+      "급커브 진입 전에 충분히 감속하세요.",
+      "내리막에서는 엔진브레이크를 함께 사용하세요.",
+      "안개·비·결빙 시 전조등을 켜고 안전거리를 늘리세요."
+    ]
+  },
+
+  "기타": {
+    risks:[
+      "초행길에서는 교차로와 관광지 진출입 구간을 주의해야 합니다.",
+      "제주 도로는 지역에 따라 좁은 마을길과 곡선도로가 이어질 수 있습니다."
+    ],
+    roads:"목적지 주변 교차로·관광지 진입도로",
+    tips:[
+      "내비게이션 안내를 미리 확인하세요.",
+      "목적지를 놓쳐도 급차로 변경하지 마세요.",
+      "비·안개·야간에는 속도를 줄이고 안전거리를 확보하세요."
+    ]
+  }
+};
+
+function getDestinationRegion(name, currentRegion = "기타"){
+  if(currentRegion && currentRegion !== "기타"){
+    return currentRegion;
+  }
+
+  const destinationName = name || "";
+
+  if(
+    destinationName.includes("성산") ||
+    destinationName.includes("우도")
+  ){
+    return "성산권";
+  }
+
+  if(
+    destinationName.includes("함덕") ||
+    destinationName.includes("조천")
+  ){
+    return "함덕·조천권";
+  }
+
+  if(
+    destinationName.includes("월정") ||
+    destinationName.includes("김녕") ||
+    destinationName.includes("비자림")
+  ){
+    return "김녕·월정권";
+  }
+
+  if(
+    destinationName.includes("협재") ||
+    destinationName.includes("한림")
+  ){
+    return "협재·한림권";
+  }
+
+  if(
+    destinationName.includes("애월")
+  ){
+    return "애월권";
+  }
+
+  if(
+    destinationName.includes("중문")
+  ){
+    return "중문권";
+  }
+
+  if(
+    destinationName.includes("1100") ||
+    destinationName.includes("한라산") ||
+    destinationName.includes("성판악") ||
+    destinationName.includes("사려니")
+  ){
+    return "한라산권";
+  }
+
+  if(
+    destinationName.includes("오설록") ||
+    destinationName.includes("카멜리아힐")
+  ){
+    return "서부중산간권";
+  }
+
+  if(
+    destinationName.includes("공항")
+  ){
+    return "공항권";
+  }
+
+  return currentRegion || "기타";
+}
+
+/* ===== 최근 성공 경로 저장 ===== */
+
+function makeRouteCacheKey(){
+  if(!lastStart || !lastEnd){
+    return "";
+  }
+
+  const startLat = Number(lastStart.lat).toFixed(3);
+  const startLng = Number(lastStart.lng).toFixed(3);
+  const endLat = Number(lastEnd.lat).toFixed(3);
+  const endLng = Number(lastEnd.lng).toFixed(3);
+
+  return [
+    "jejuSafeRoute",
+    startLat,
+    startLng,
+    endLat,
+    endLng
+  ].join("_");
+}
+
+function saveSuccessfulRouteCache(routeSummaries, tips){
+  try{
+    const key = makeRouteCacheKey();
+
+    if(!key || !routeSummaries || routeSummaries.length === 0){
+      return;
+    }
+
+    const cacheData = {
+      savedAt:Date.now(),
+      startName:lastStart?.name || "",
+      endName:lastEnd?.name || "",
+      startArea:customStartArea || "기타",
+      endArea:customEndArea || "기타",
+      routes:routeSummaries.slice(0, 2).map((route, index) => ({
+        course:index + 1,
+        distanceKm:route.distanceKm,
+        durationMin:route.durationMin,
+        totalCount:route.risk.totalCount,
+        totalEpdo:route.risk.totalEpdo
+      })),
+      tips:Array.isArray(tips) ? tips.slice(0, 3) : []
+    };
+
+    localStorage.setItem(
+      key,
+      JSON.stringify(cacheData)
+    );
+
+  }catch(error){
+    console.warn("최근 경로 저장 실패:", error);
+  }
+}
+
+function loadSuccessfulRouteCache(){
+  try{
+    const key = makeRouteCacheKey();
+
+    if(!key){
+      return null;
+    }
+
+    const raw = localStorage.getItem(key);
+
+    if(!raw){
+      return null;
+    }
+
+    const cache = JSON.parse(raw);
+
+    /*
+      7일 이내 성공한 동일 출발지·목적지 결과만 사용
+    */
+    const maxAge = 7 * 24 * 60 * 60 * 1000;
+
+    if(
+      !cache.savedAt ||
+      Date.now() - cache.savedAt > maxAge
+    ){
+      localStorage.removeItem(key);
+      return null;
+    }
+
+    return cache;
+
+  }catch(error){
+    console.warn("최근 경로 불러오기 실패:", error);
+    return null;
+  }
+}
+
+function makeNavigationButtonsHtml(){
+  return `
+    <div class="navi-section">
+      <h3>내비게이션으로 길안내</h3>
+
+      <div class="navi-grid final-navi">
+
+        <button type="button" class="navi-btn" onclick="openNaverMap()">
+          <span class="nav-icon naver">N</span>
+          <span class="nav-text">
+            <b>네이버지도</b>
+            <small>길안내</small>
+          </span>
+        </button>
+
+        <button type="button" class="navi-btn" onclick="openTmap()">
+          <span class="nav-icon tmap">T</span>
+          <span class="nav-text">
+            <b>TMAP</b>
+            <small>길안내</small>
+          </span>
+        </button>
+
+        <button type="button" class="navi-btn" onclick="openKakaoNavi()">
+          <span class="nav-icon kakao">K</span>
+          <span class="nav-text">
+            <b>카카오맵</b>
+            <small>길안내</small>
+          </span>
+        </button>
+
+      </div>
+
+      <div class="tmap-note">
+        ※ 길안내 경로는 각 내비게이션 앱의 설정과 교통상황에 따라 달라질 수 있습니다.
+      </div>
+    </div>
+  `;
+}
+
+function buildCachedFallbackHtml(cache){
+  const routeCards = cache.routes.map(route => `
+    <div class="compare-mini ${route.course === 1 ? "recommend" : "alt"}">
+      <div class="compare-head">
+        <b>${route.course}코스</b>
+      </div>
+
+      <div class="compare-row2">
+        <span>거리</span>
+        <b>${route.distanceKm}km</b>
+      </div>
+
+      <div class="compare-row2">
+        <span>예상시간</span>
+        <b>${route.durationMin}분</b>
+      </div>
+
+      <div class="compare-row2">
+        <span>경로 주변 사고이력</span>
+        <b>${route.totalCount}건</b>
+      </div>
+
+      <div class="compare-row2">
+        <span>사고 심각도 합계</span>
+        <b>${route.totalEpdo}점</b>
+      </div>
+    </div>
+  `).join("");
+
+  const savedTime = new Date(cache.savedAt).toLocaleString("ko-KR");
+
+  return `
+    <div class="routePath">
+      ${lastStart.name}
+      <span class="arrow">→</span>
+      ${lastEnd.name}
+    </div>
+
+    <div class="fallback-notice-card">
+      <div class="fallback-cache-badge">최근 분석결과 제공</div>
+
+      <h3>실시간 경로 지도를 불러오지 못했습니다</h3>
+
+      <p>
+        같은 출발지와 목적지에서 최근 성공한 분석결과를 불러왔습니다.
+        실제 교통상황과 내비게이션 안내 경로는 달라질 수 있습니다.
+      </p>
+
+      <div class="fallback-cache-time">
+        저장 시각: ${savedTime}
+      </div>
+    </div>
+
+    <div class="compare-detail-new always-open">
+      <div class="compare-title">
+        <img src="chart-bar.svg" class="title-svg">
+        최근 경로 분석결과
+      </div>
+
+      <div class="compare-cards">
+        ${routeCards}
+      </div>
+
+      <div class="route-data-note">
+        ※ 최근 성공한 동일 출발지·목적지 분석결과이며 실시간 경로정보가 아닙니다.
+      </div>
+    </div>
+
+    ${makeNavigationButtonsHtml()}
+
+    <button
+      type="button"
+      class="fallback-retry-btn"
+      onclick="drawRoutes()">
+      실시간 경로 다시 분석하기
+    </button>
+
+    <div class="info-split-col tip">
+      <h3>
+        <img src="map-pin-check.svg" class="title-svg">
+        ${lastEnd.name} 이동 시 안전운전 팁
+      </h3>
+
+      <div class="tip-list">
+        ${cache.tips.map((tip, index) => `
+          <div class="tip-item">
+            <span>
+              <img
+                src="${index === 0 ? "car.svg" : index === 1 ? "alert-triangle.svg" : "eye.svg"}"
+                class="tip-icon">
+            </span>
+            <div>${tip}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function buildRegionFallbackHtml(){
+  const startArea =
+    customStartArea && customStartArea !== "기타"
+      ? customStartArea
+      : "출발지 주변";
+
+  const endArea =
+    customEndArea && customEndArea !== "기타"
+      ? customEndArea
+      : getDestinationRegion(lastEnd?.name, "기타");
+
+  const guide =
+    fallbackRegionInfo[endArea] ||
+    fallbackRegionInfo["기타"];
+
+  return `
+    <div class="routePath">
+      ${lastStart.name}
+      <span class="arrow">→</span>
+      ${lastEnd.name}
+    </div>
+
+    <div class="fallback-notice-card">
+      <h3>실시간 경로 연결이 원활하지 않습니다</h3>
+
+      <p>
+        현재 실시간 경로를 불러오지 못해
+        목적지 권역을 기준으로 안전정보를 안내합니다.
+      </p>
+    </div>
+
+    <div class="fallback-route-card">
+      <div class="fallback-route-title">
+        출발지·목적지 권역
+      </div>
+
+      <div class="fallback-region-grid">
+        <div class="fallback-region-box">
+          <span>출발 권역</span>
+          <b>${startArea}</b>
+        </div>
+
+        <div class="fallback-region-arrow">→</div>
+
+        <div class="fallback-region-box">
+          <span>목적지 권역</span>
+          <b>${endArea}</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="fallback-info-card">
+      <h3>
+        <img src="alert-triangle.svg" class="title-svg">
+        목적지 주변 주요 위험 요소
+      </h3>
+
+      <div class="fallback-info-item">
+        ${guide.risks[0]}
+      </div>
+
+      <div class="fallback-info-item">
+        ${guide.risks[1]}
+      </div>
+    </div>
+
+    <div class="fallback-info-card">
+      <h3>
+        <img src="map-2.png" class="title-svg">
+        해당 지역에서 주의할 도로
+      </h3>
+
+      <div class="fallback-info-item">
+        ${guide.roads}
+      </div>
+    </div>
+
+    <div class="fallback-info-card">
+      <h3>
+        <img src="map-pin-check.svg" class="title-svg">
+        맞춤 안전운전 팁
+      </h3>
+
+      ${guide.tips.map(tip => `
+        <div class="fallback-info-item">
+          ${tip}
+        </div>
+      `).join("")}
+    </div>
+
+    ${makeNavigationButtonsHtml()}
+
+    <button
+      type="button"
+      class="fallback-retry-btn"
+      onclick="drawRoutes()">
+      실시간 경로 다시 분석하기
+    </button>
+
+    <div class="route-data-note">
+      ※ 위 내용은 실시간 이동 경로 분석결과가 아닌 목적지 권역 기반 참고정보입니다.
+    </div>
+  `;
+}
+
+function showRouteFallback(){
+  if(routeLayer){
+    map.removeLayer(routeLayer);
+    routeLayer = null;
+  }
+
+  const cachedRoute = loadSuccessfulRouteCache();
+
+  if(cachedRoute){
+    lastRouteAnalysisHtml =
+      buildCachedFallbackHtml(cachedRoute);
+  }else{
+    lastRouteAnalysisHtml =
+      buildRegionFallbackHtml();
+  }
+
+  lastRouteSummaries = [];
+  ratingSubmitted = false;
+
+  document.body.classList.add(
+    "route-fallback-mode"
+  );
+
+  showRouteAnalysis();
+}
+  const fixedDestinationCoords = {
+  "성산일출봉": { lat:33.4589, lng:126.9347 },
+  "중문관광단지": { lat:33.2498, lng:126.4128 },
+  "협재해수욕장": { lat:33.3938, lng:126.2412 },
+  "함덕해수욕장": { lat:33.5435, lng:126.6695 },
+  "1100고지": { lat:33.3580, lng:126.4625 },
+  "오설록": { lat:33.3059, lng:126.2895 }
+};
+  
+function useCurrentLocation(){
+  if(!navigator.geolocation){
+    alert("현재 위치 기능을 지원하지 않는 브라우저입니다.");
+    return;
+  }
+
+  document.getElementById("info").innerHTML = "현재 위치를 확인하는 중입니다...";
+
+  navigator.geolocation.getCurrentPosition(
+    async function(position){
+      const lng = position.coords.longitude;
+      const lat = position.coords.latitude;
+
+      customStart = {
+        lng: lng,
+        lat: lat
+      };
+
+      customStartName = "현재 위치";
+
+      try{
+        const response = await fetch(
+          "https://dapi.kakao.com/v2/local/geo/coord2address.json?x=" +
+          lng + "&y=" + lat,
+          {
+            headers:{
+              Authorization:"KakaoAK " + kakaoKey
+            }
+          }
+        );
+
+        const data = await response.json();
+
+        if(data.documents && data.documents.length > 0){
+const address =
+  data.documents[0].road_address?.address_name ||
+  data.documents[0].address?.address_name;
+
+const areaAddress =
+  data.documents[0].address?.address_name ||
+  data.documents[0].road_address?.address_name ||
+  "";
+
+if(address){
+  customStartName = address;
+  customStartArea = getJejuRegion(areaAddress);
+}
+        }
+     }catch(error){
+  customStartName = "현재 위치(" + lat.toFixed(5) + "," + lng.toFixed(5) + ")";
+  customStartArea = "기타";
+}
+      document.getElementById("startInput").value = customStartName;
+      document.getElementById("startInput").placeholder = "현재 위치로 설정됨";
+      document.getElementById("startResults").innerHTML = "";
+      document.getElementById("startResults").style.display = "none";
+
+      document.getElementById("info").innerHTML =
+        "출발지가 '" + customStartName + "'(으)로 설정되었습니다.";
+    },
+    function(){
+      alert("현재 위치를 가져오지 못했어요. 위치 권한을 허용해주세요.");
+      document.getElementById("info").innerHTML = "";
+    }
+  );
+}
+
+   function fetchWithTimeout(url, options, timeout = 8000){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+
+  return fetch(url, {
+    ...options,
+    signal: controller.signal
+  }).finally(() => clearTimeout(timer));
+}
+
+async function requestOrsRoute(body){
+  let lastStatus = "";
+  let lastErrorText = "";
+
+  const orsUrls = [
+    "https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson",
+    "https://api.openrouteservice.org/v2/directions/driving-car/geojson"
+  ];
+
+  for(const url of orsUrls){
+    for(const key of orsApiKeys){
+      try{
+        const response = await fetchWithTimeout(
+          url,
+          {
+            method:"POST",
+            headers:{
+              "Authorization":key,
+              "Content-Type":"application/json"
+            },
+            body:JSON.stringify(body)
+          },
+          8000
+        );
+
+        if(response.ok){
+          console.log("ORS 성공:", url);
+          return response;
+        }
+
+        lastStatus = response.status;
+        lastErrorText = await response.text();
+        console.error("ORS 실패:", url, response.status, lastErrorText);
+
+      }catch(err){
+        lastErrorText = err.name === "AbortError"
+          ? "요청 시간 초과"
+          : err.message;
+
+        console.error("ORS 요청 오류:", url, lastErrorText);
+      }
+    }
+  }
+
+  throw new Error("ORS 전체 실패 / 상태:" + (lastStatus || "-") + " / " + lastErrorText);
+}
+  async function drawRoutes(){
+    if(!customEnd){
+  alert("목적지를 검색하거나 인기 관광지를 선택해주세요.");
+  return;
+}
+  if(routeLayer){
+    map.removeLayer(routeLayer);
+  }
+
+  routeLayer = L.layerGroup().addTo(map);
+
+  let startLng, startLat, startName;
+
+  if(!customStart){
+    alert("출발지를 검색하거나 현재 위치를 선택해주세요.");
+    return;
+}
+
+startLng = customStart.lng;
+startLat = customStart.lat;
+startName = customStartName;
+
+ let endLng, endLat, endName;
+
+if(customEnd){
+  endLng = customEnd.lng;
+  endLat = customEnd.lat;
+  endName = customEndName;
+}else{
+  const endSelect = document.getElementById("endSelect");
+  const endValue = endSelect.value.split(",");
+  endLng = parseFloat(endValue[0]);
+  endLat = parseFloat(endValue[1]);
+  endName = endSelect.options[endSelect.selectedIndex].text;
+}
+  lastStart = {
+  lat: startLat,
+  lng: startLng,
+  name: startName
+};
+
+lastEnd = {
+  lat: endLat,
+  lng: endLng,
+  name: endName
+};
+
+  if(startLng === endLng && startLat === endLat){
+    alert("출발지와 목적지가 같습니다.");
+    return;
+}
+  document.getElementById("info").innerHTML = `
+<div class="loading-card">
+<b>사고데이터 기반으로 경로를 분석하고 있습니다</b>
+  <p>사고데이터와 교통량을 단계별로 비교 중입니다.</p>
+  <p id="slowLoadingNotice" class="slow-loading-notice">
+  분석에 시간이 조금 더 걸리고 있습니다.<br>
+  약 5~10초 정도 소요될 수 있습니다.
+</p>
+
+<div class="loading-steps">
+
+  <div class="loading-step" id="step1">
+    <span class="step-spinner"></span>
+    <span>사고데이터 분석 중</span>
+  </div>
+
+  <div class="loading-step" id="step2">
+    <span class="step-spinner"></span>
+    <span>EPDO 계산 중</span>
+  </div>
+
+  <div class="loading-step" id="step3">
+    <span class="step-spinner"></span>
+    <span>교통량 보정 반영 중</span>
+  </div>
+
+  <div class="loading-step" id="step4">
+    <span class="step-spinner"></span>
+    <span>비교 경로 생성 중</span>
+  </div>
+
+</div>
+</div>
+`;
+    const slowLoadingTimer = setTimeout(() => {
+  const notice = document.getElementById("slowLoadingNotice");
+
+  if(notice){
+    notice.classList.add("show");
+  }
+}, 3000);
+
+    document.querySelector(".panel").classList.add("route-mode");
+    document.body.classList.add("route-active");
+   setTimeout(()=>{
+  const s=document.getElementById("step1");
+  if(s){
+    s.className="loading-step done";
+    s.innerHTML=`
+      <span class="step-dot"></span>
+      <span>사고데이터 분석 완료</span>
+    `;
+  }
+},350);
+
+setTimeout(()=>{
+  const s=document.getElementById("step2");
+  if(s){
+    s.className="loading-step done";
+    s.innerHTML=`
+      <span class="step-dot"></span>
+      <span>EPDO 계산 완료</span>
+    `;
+  }
+},700);
+
+setTimeout(()=>{
+  const s=document.getElementById("step3");
+  if(s){
+    s.className="loading-step done";
+    s.innerHTML=`
+      <span class="step-dot"></span>
+      <span>교통량 보정 완료</span>
+    `;
+  }
+},1050);
+
+setTimeout(()=>{
+  const s=document.getElementById("step4");
+  if(s){
+    s.className="loading-step done";
+    s.innerHTML=`
+      <span class="step-dot"></span>
+      <span>비교 경로 생성 완료</span>
+    `;
+  }
+},1400);
+
+  const body = {
+  coordinates:[
+    [startLng,startLat],
+    [endLng,endLat]
+  ],
+  radiuses:[1500,1500],
+  alternative_routes:{
+    target_count:2,
+    weight_factor:2,
+    share_factor:0.6
+  },
+  instructions:false
+};
+  try{
+ let response;
+
+try{
+  response = await requestOrsRoute(body);
+
+}catch(err){
+  clearTimeout(slowLoadingTimer);
+
+  console.error(
+    "경로 분석 서버 전체 실패:",
+    err
+  );
+
+  showRouteFallback();
+
+  return;
+}
+    clearTimeout(slowLoadingTimer);
+    const data = await response.json();
+    document.body.classList.remove("route-fallback-mode");
+
+    if(!data.features || data.features.length===0){
+      alert("경로 데이터를 찾지 못했어요.");
+      return;
+    }
+
+    const routes = data.features;
+    console.log("경로 개수:", routes.length);
+console.log("ORS 전체 응답:", data);
+    if(routes.length < 2){
+  console.warn("대안경로가 2개 생성되지 않았습니다.", routes.length);
+}
+    const routeRisks = routes.map(route => {
+      const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
+      return analyzeRouteRisk(coords);
+    });
+
+    document.getElementById("info").innerHTML =
+  "<span class='routePath'>"+startName+
+  " <span class='arrow'>→</span> "+
+  endName+"</span>";
+
+let allCoords = [];
+let routeSummaries = [];
+
+routes.forEach((route,index)=>{
+  const coords = route.geometry.coordinates.map(c=>[c[1],c[0]]);
+  const distanceKm = (route.properties.summary.distance / 1000).toFixed(1);
+  const durationMin = Math.round(route.properties.summary.duration / 60);
+  const risk = routeRisks[index];
+
+  routeSummaries[index] = {
+    coords: coords,
+    distanceKm: distanceKm,
+    durationMin: durationMin,
+    risk: risk
+  };
+  
+});
+lastRouteSummaries = routeSummaries;
+
+/*
+  추천·대안 개념은 사용하지 않고
+  ORS에서 받은 순서대로 1코스, 2코스로 표시
+*/
+selectedRouteIndex = 0;
+lastRecommendedIndex = 0;
+routeSummaries.forEach((summary,index)=>{
+  const coords = summary.coords;
+  allCoords = allCoords.concat(coords);
+
+const lineColor = index === 0 ? "#14b8a6" : "#64748b";
+const labelClass = index === 0 ? "route-label-1" : "route-label-2";
+L.polyline(coords,{
+  color: lineColor,
+  weight:8,
+  opacity:0.92,
+  lineCap:"round",
+  lineJoin:"round",
+  interactive:false
+}).addTo(routeLayer);
+ const middleIndex = Math.floor(coords.length / 2);
+const labelPoint = coords[middleIndex];
+
+  L.marker(labelPoint, {
+    icon: L.divIcon({
+      className: "route-label-marker",
+      html: "<div class='route-label " + labelClass + "'>" + (index + 1) + "코스</div>",
+      iconSize: [60, 28],
+      iconAnchor: [30, 14]
+    })
+  }).addTo(routeLayer);
+});
+
+const route1 = routeSummaries[0];
+const route2 = routeSummaries.length > 1
+  ? routeSummaries[1]
+  : null;
+
+const matchedTipKey = Object.keys(destinationTips).find(key =>
+  endName.includes(key) || key.includes(endName)
+);
+
+const tips = matchedTipKey
+  ? destinationTips[matchedTipKey]
+  : [
+      "관광지 주변에서는 보행자와 주정차 차량에 주의하세요.",
+      "목적지를 놓쳤더라도 급차로 변경하지 마세요.",
+      "교차로와 관광지 진출입 구간에서는 충분히 감속하세요."
+    ];
+    saveSuccessfulRouteCache(
+  routeSummaries,
+  tips
+);
+
+/*
+  코스 비교 결과 화면
+  추천·대안·AI 설명·위험점수는 표시하지 않음
+*/
+lastRouteAnalysisHtml = `
+  <div class="routePath">
+    ${startName}
+    <span class="arrow">→</span>
+    ${endName}
+  </div>
+
+  <div class="compare-detail-new always-open">
+    <div class="compare-title">
+      <img src="chart-bar.svg" class="title-svg">
+      코스 상세 비교
+    </div>
+
+    <div class="compare-cards">
+
+      <div class="compare-mini recommend">
+        <div class="compare-head">
+          <b>1코스</b>
+        </div>
+
+        <div class="compare-row2">
+          <span>거리</span>
+          <b>${route1.distanceKm}km</b>
+        </div>
+
+        <div class="compare-row2">
+          <span>예상시간</span>
+          <b>${route1.durationMin}분</b>
+        </div>
+
+        <div class="compare-row2">
+          <span>경로 주변 사고이력</span>
+          <b>${route1.risk.totalCount}건</b>
+        </div>
+
+        <div class="compare-row2">
+          <span>사고 심각도 합계</span>
+          <b>${route1.risk.totalEpdo}점</b>
+        </div>
+      </div>
+
+      ${
+        route2
+          ? `
+      <div class="compare-mini alt">
+        <div class="compare-head">
+          <b>2코스</b>
+        </div>
+
+        <div class="compare-row2">
+          <span>거리</span>
+          <b>${route2.distanceKm}km</b>
+        </div>
+
+        <div class="compare-row2">
+          <span>예상시간</span>
+          <b>${route2.durationMin}분</b>
+        </div>
+
+        <div class="compare-row2">
+          <span>경로 주변 사고이력</span>
+          <b>${route2.risk.totalCount}건</b>
+        </div>
+
+        <div class="compare-row2">
+          <span>사고 심각도 합계</span>
+          <b>${route2.risk.totalEpdo}점</b>
+        </div>
+      </div>
+          `
+          : `
+      <div class="compare-mini alt">
+        <div class="compare-head">
+          <b>2코스</b>
+        </div>
+
+        <div class="compare-row2">
+          <span>경로 정보</span>
+          <b>대안 경로 없음</b>
+        </div>
+      </div>
+          `
+      }
+
+    </div>
+
+    <div class="route-data-note">
+      ※ 사고이력은 경로 주변의 과거 사고자료를 기준으로 제공되는 참고정보입니다.
+    </div>
+  </div>
+
+  <div class="navi-section">
+    <h3>내비게이션으로 길안내</h3>
+
+    <div class="navi-grid final-navi">
+
+      <button type="button" class="navi-btn" onclick="openNaverMap()">
+        <span class="nav-icon naver">N</span>
+        <span class="nav-text">
+          <b>네이버지도</b>
+          <small>길안내</small>
+        </span>
+      </button>
+
+      <button type="button" class="navi-btn" onclick="openTmap()">
+        <span class="nav-icon tmap">T</span>
+        <span class="nav-text">
+          <b>TMAP</b>
+          <small>길안내</small>
+        </span>
+      </button>
+
+      <button type="button" class="navi-btn" onclick="openKakaoNavi()">
+        <span class="nav-icon kakao">K</span>
+        <span class="nav-text">
+          <b>카카오맵</b>
+          <small>길안내</small>
+        </span>
+      </button>
+
+    </div>
+
+    <div class="tmap-note">
+      ※ 길안내 경로는 각 내비게이션 앱의 설정과 교통상황에 따라 달라질 수 있습니다.
+    </div>
+  </div>
+
+  <div class="feedback-card result-feedback-card">
+    <h3>이번 경로정보는 도움이 되었나요?</h3>
+    <p>별점을 선택하면 평가가 저장됩니다.</p>
+
+    <div class="rating-stars" id="ratingStars">
+      <button type="button" onclick="setRating(1)">☆</button>
+      <button type="button" onclick="setRating(2)">☆</button>
+      <button type="button" onclick="setRating(3)">☆</button>
+      <button type="button" onclick="setRating(4)">☆</button>
+      <button type="button" onclick="setRating(5)">☆</button>
+    </div>
+
+    <div id="ratingText" class="rating-text">
+      별점을 눌러주세요
+    </div>
+  </div>
+
+  <div class="info-split-col tip">
+    <h3>
+      <img src="map-pin-check.svg" class="title-svg">
+      ${endName} 이동 시 안전운전 팁
+    </h3>
+
+    <div class="tip-list">
+      <div class="tip-item">
+        <span>
+          <img src="car.svg" class="tip-icon">
+        </span>
+        <div>${tips[0]}</div>
+      </div>
+
+      <div class="tip-item">
+        <span>
+          <img src="alert-triangle.svg" class="tip-icon">
+        </span>
+        <div>${tips[1]}</div>
+      </div>
+
+      <div class="tip-item">
+        <span>
+          <img src="eye.svg" class="tip-icon">
+        </span>
+        <div>${tips[2]}</div>
+      </div>
+    </div>
+  </div>
+`;
+
+ratingSubmitted = false;
+lastNavigation = "";
+
+/*
+  별점과 이용 기록 저장용 기본값은 1코스를 사용
+*/
+updateLastFeedbackData(0);
+sendRouteAnalysisLog();
+
+/*
+  1코스와 2코스 모두 산간도로 포함 여부 확인
+*/
+const detectedMountainRoads = [];
+
+routeSummaries.forEach((route, index) => {
+  const roads = detectMountainRoad(route);
+
+  roads.forEach(roadName => {
+    detectedMountainRoads.push(
+      (index + 1) + "코스: " + roadName
+    );
+  });
+});
+
+if(detectedMountainRoads.length > 0){
+  setTimeout(() => {
+    showMountainRoadPopup(detectedMountainRoads);
+  }, 450);
+}
+
+/*
+  분석 완료 후 경로분석 탭으로 자동 이동
+*/
+showRouteAnalysis();
+    
+    L.marker([startLat,startLng])
+      .addTo(routeLayer)
+      .bindPopup("출발지: "+startName);
+
+    L.marker([endLat,endLng])
+      .addTo(routeLayer)
+      .bindPopup("목적지: "+endName);
+
+setTimeout(() => {
+
+  /*
+    ORS 실패 화면에서는 지도를 사용하지 않음
+  */
+  if(
+    document.body.classList.contains(
+      "route-fallback-mode"
+    )
+  ){
+    return;
+  }
+
+  map.invalidateSize();
+
+  if(lastRouteSummaries.length > 0){
+    const allRouteCoords =
+      lastRouteSummaries.flatMap(
+        route => route.coords
+      );
+
+    map.fitBounds(
+      L.latLngBounds(allRouteCoords),
+      {
+        paddingTopLeft:[25,25],
+        paddingBottomRight:[25,360]
+      }
+    );
+  }
+
+}, 250);
+    }catch(error){
+  clearTimeout(slowLoadingTimer);
+
+  console.error(
+    "경로 분석 중 오류가 발생했습니다:",
+    error
+  );
+
+  if(routeLayer){
+    map.removeLayer(routeLayer);
+    routeLayer = null;
+  }
+
+  showRouteFallback();
+}
+
+}
+
+function analyzeRouteRisk(coords){
+  const SEARCH_RADIUS_M = 250;
+
+  let totalScore = 0;
+  let accidentCount = 0;
+  let totalEPDO = 0;
+  let totalDistanceKm = 0;
+
+  const matchedAccidents = new Set();
+
+  for(let i = 0; i < coords.length - 1; i++){
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+
+    const segmentKm = getDistanceKm(p1[0], p1[1], p2[0], p2[1]);
+    totalDistanceKm += segmentKm;
+
+    const sampleCount = Math.max(1, Math.ceil((segmentKm * 1000) / 250));
+
+    for(let s = 0; s <= sampleCount; s++){
+      const t = s / sampleCount;
+
+      const sampleLat = p1[0] + (p2[0] - p1[0]) * t;
+      const sampleLng = p1[1] + (p2[1] - p1[1]) * t;
+
+      accidentData.forEach((accident, index) => {
+        const distanceM = getDistanceKm(
+          sampleLat,
+          sampleLng,
+          accident.lat,
+          accident.lng
+        ) * 1000;
+
+        if(distanceM <= SEARCH_RADIUS_M && !matchedAccidents.has(index)){
+          matchedAccidents.add(index);
+
+          const epdo = accident.epdo || 1;
+
+         const trafficFactor = getTrafficFactorByRoutePoint(sampleLat, sampleLng);
+
+totalEPDO += epdo;
+totalScore += epdo * trafficFactor;
+accidentCount++;
+        }
+      });
+    }
+  }
+
+  let level = "낮음";
+  let icon = "🟢";
+
+  if(totalScore >= 80){
+    level = "매우높음";
+    icon = "🔴";
+  }else if(totalScore >= 40){
+    level = "높음";
+    icon = "🟠";
+  }else if(totalScore >= 15){
+    level = "보통";
+    icon = "🟡";
+  }
+
+  return {
+    score: totalScore,
+    level: level,
+    icon: icon,
+    zoneNames: accidentCount > 0
+      ? "경로 주변 사고 " + accidentCount + "건"
+      : "경로 주변 사고 적음",
+    reasons: accidentCount > 0
+      ? "경로 반경 " + SEARCH_RADIUS_M + "m 이내 사고 데이터를 반영했습니다."
+      : "경로 주변 사고 데이터가 적은 구간입니다.",
+    totalCount: accidentCount,
+    totalEpdo: totalEPDO,
+    totalDistanceKm: totalDistanceKm,
+    riskScoreText: Math.round(totalScore).toLocaleString() + "점",
+    zoneDetailText: "경로 주변 사고 " + accidentCount + "건 / EPDO " + totalEPDO
+  };
+}
+const AVG_AADT = 12451;
+const TRAFFIC_MATCH_RADIUS_M = 2000;
+
+function clamp(value, min, max){
+  return Math.max(min, Math.min(max, value));
+}
+
+function getTrafficFactorByRoutePoint(lat, lng){
+  if(typeof TRAFFIC_POINTS === "undefined" || !Array.isArray(TRAFFIC_POINTS)){
+    return 1;
+  }
+
+  let nearest = null;
+  let nearestDist = Infinity;
+
+  TRAFFIC_POINTS.forEach(p => {
+    const d = getDistanceKm(lat, lng, p.lat, p.lng) * 1000;
+
+    if(d < nearestDist){
+      nearestDist = d;
+      nearest = p;
+    }
+  });
+
+  if(!nearest || nearestDist > TRAFFIC_MATCH_RADIUS_M){
+    return 1;
+  }
+
+  const rawFactor = AVG_AADT / nearest.aadt;
+
+  return clamp(rawFactor, 0.6, 1.8);
+}  
+function getDistanceKm(lat1,lng1,lat2,lng2){
+  const R = 6371;
+  const dLat = deg2rad(lat2-lat1);
+  const dLng = deg2rad(lng2-lng1);
+
+  const a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) *
+    Math.cos(deg2rad(lat2)) *
+    Math.sin(dLng/2) *
+    Math.sin(dLng/2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function deg2rad(deg){
+  return deg * (Math.PI/180);
+}
+  /* ===== 1100도로 · 5·16도로 포함 여부 검사 ===== */
+
+const mountainRoadZones = [
+  {
+    name:"1100도로",
+    radius:1.15,
+    points:[
+      { lat:33.4050, lng:126.4890 },
+      { lat:33.3850, lng:126.4790 },
+      { lat:33.3580, lng:126.4625 },
+      { lat:33.3370, lng:126.4590 },
+      { lat:33.3110, lng:126.4690 }
+    ]
+  },
+  {
+    name:"5·16도로",
+    radius:1.15,
+    points:[
+      { lat:33.4380, lng:126.5570 },
+      { lat:33.4140, lng:126.5790 },
+      { lat:33.3850, lng:126.6060 },
+      { lat:33.3690, lng:126.6240 },
+      { lat:33.3440, lng:126.6100 },
+      { lat:33.3150, lng:126.5860 }
+    ]
+  }
+];
+
+function detectMountainRoad(route){
+  if(!route || !Array.isArray(route.coords)){
+    return [];
+  }
+
+  const detectedRoads = [];
+
+  mountainRoadZones.forEach(road => {
+    let matchedPointCount = 0;
+
+    road.points.forEach(roadPoint => {
+      const isNearRoadPoint = route.coords.some(routePoint => {
+        const distance = getDistanceKm(
+          routePoint[0],
+          routePoint[1],
+          roadPoint.lat,
+          roadPoint.lng
+        );
+
+        return distance <= road.radius;
+      });
+
+      if(isNearRoadPoint){
+        matchedPointCount++;
+      }
+    });
+
+    /*
+      한 지점만 우연히 근접한 경우를 제외하고,
+      기준점 2개 이상을 통과할 때 해당 도로로 판단
+    */
+    if(matchedPointCount >= 2){
+      detectedRoads.push(road.name);
+    }
+  });
+
+  return detectedRoads;
+}
+
+function showMountainRoadPopup(roadNames){
+  if(!roadNames || roadNames.length === 0){
+    return;
+  }
+
+  const popup = document.getElementById("mountainRoadPopup");
+  const nameBox = document.getElementById("mountainRoadName");
+
+  nameBox.textContent =
+    roadNames.join(" · ") + " 포함";
+
+  popup.classList.add("active");
+}
+
+function closeMountainRoadPopup(){
+  document
+    .getElementById("mountainRoadPopup")
+    .classList.remove("active");
+}
+  function openNavigationApp(url){
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+  function updateLastFeedbackData(index){
+
+  if(!lastRouteSummaries || lastRouteSummaries.length === 0){
+    return;
+  }
+
+  const selected = lastRouteSummaries[index];
+
+  const otherIndex = lastRouteSummaries.length > 1
+    ? (index === 0 ? 1 : 0)
+    : index;
+
+  const other = lastRouteSummaries[otherIndex];
+
+  const selectedRisk = Math.round(selected.risk.score);
+  const otherRisk = Math.round(other.risk.score);
+
+  lastFeedbackData = {
+    start: lastStart?.name || "",
+    end: lastEnd?.name || "",
+
+    route: (index + 1) + "코스",
+
+    distance: Number(selected.distanceKm),
+    time: selected.durationMin,
+    count: selected.risk.totalCount,
+    epdo: selected.risk.totalEpdo,
+
+    // 숫자로 저장해야 나중에 평균·합계 계산 가능
+    risk: selectedRisk,
+
+routeChoice: (index + 1) + "코스 기준",
+
+    // 현재 선택경로와 비교되는 다른 경로
+    altRisk: otherRisk,
+
+    // 양수면 선택경로가 더 안전, 음수면 더 위험
+    riskDiff: otherRisk - selectedRisk,
+
+    altTime: other.durationMin,
+
+    // 양수면 선택경로가 더 오래 걸림
+    timeDiff: selected.durationMin - other.durationMin,
+
+    navigation: lastNavigation,
+
+    currentArea: customStartArea || "기타"
+  };
+}
+
+function openNaverMap(){
+
+  if(!lastStart || !lastEnd){
+    alert("먼저 경로를 분석해주세요.");
+    return;
+  }
+
+  const appname =
+    "https://koroad-jeju.github.io/jeju-safe-map";
+
+  const url =
+    "nmap://route/car?" +
+    "slat=" + lastStart.lat +
+    "&slng=" + lastStart.lng +
+    "&sname=" + encodeURIComponent(lastStart.name) +
+    "&dlat=" + lastEnd.lat +
+    "&dlng=" + lastEnd.lng +
+    "&dname=" + encodeURIComponent(lastEnd.name) +
+    "&appname=" + encodeURIComponent(appname);
+
+  sendNavigationLog("네이버지도");
+  openNavigationApp(url);
+}
+ function openTmap(){
+
+  if(!lastStart || !lastEnd){
+    alert("먼저 경로를 분석해주세요.");
+    return;
+  }
+
+  const url =
+    "tmap://route?" +
+    "startx=" + lastStart.lng +
+    "&starty=" + lastStart.lat +
+    "&startname=" + encodeURIComponent(lastStart.name) +
+    "&goalx=" + lastEnd.lng +
+    "&goaly=" + lastEnd.lat +
+    "&goalname=" + encodeURIComponent(lastEnd.name);
+
+  sendNavigationLog("TMAP");
+  openNavigationApp(url);
+}
+function openKakaoNavi(){
+
+  if(!lastStart || !lastEnd){
+    alert("먼저 경로를 분석해주세요.");
+    return;
+  }
+
+  const url =
+    "kakaomap://route?" +
+    "sp=" + lastStart.lat + "," + lastStart.lng +
+    "&ep=" + lastEnd.lat + "," + lastEnd.lng +
+    "&by=car";
+
+  sendNavigationLog("카카오맵");
+  openNavigationApp(url);
+}
+async function searchDestination(){
+console.log("검색 함수 실행");
+  const keyword = document.getElementById("endInput").value.trim();
+
+  if(keyword === ""){
+    alert("목적지를 입력해주세요.");
+    return;
+  }
+
+ const resultBox = document.getElementById("endResults");
+resultBox.style.display = "block";
+resultBox.innerHTML = "검색중...";
+
+  try{
+    const response = await fetch(
+      "https://dapi.kakao.com/v2/local/search/keyword.json?query=" +
+     encodeURIComponent("제주 " + keyword),
+      {
+        headers:{
+          Authorization:"KakaoAK " + kakaoKey
+        }
+      }
+    );
+
+    const data = await response.json();
+
+    resultBox.innerHTML = "";
+
+    if(!data.documents || data.documents.length === 0){
+      resultBox.innerHTML = "검색 결과가 없습니다.";
+      return;
+    }
+
+    data.documents.forEach(place=>{
+      const div = document.createElement("div");
+      div.className = "address-result";
+
+      div.innerHTML =
+        "<b>" + place.place_name + "</b><br>" +
+        (place.road_address_name || place.address_name);
+
+      div.onclick = function(){
+        const fixedKey = Object.keys(fixedDestinationCoords).find(key =>
+  place.place_name.includes(key) || keyword.includes(key)
+);
+
+if(fixedKey){
+  customEnd = fixedDestinationCoords[fixedKey];
+  customEndName = fixedKey;
+}else{
+  customEnd = {
+    lat: parseFloat(place.y),
+    lng: parseFloat(place.x)
+  };
+
+  customEndName = place.place_name;
+}
+
+customEndArea = getJejuRegion(
+  place.road_address_name ||
+  place.address_name ||
+  place.place_name
+);
+
+/*
+  일부 관광지는 행정주소 대신 관광지 이름으로 권역 보정
+*/
+customEndArea = getDestinationRegion(
+  customEndName,
+  customEndArea
+);
+
+       document.getElementById("endInput").value = place.place_name;
+      
+resultBox.innerHTML = "";
+resultBox.style.display = "none";
+
+        document.getElementById("info").innerHTML =
+          "목적지가 '" + place.place_name + "'(으)로 설정되었습니다.";
+      };
+
+      resultBox.appendChild(div);
+    });
+
+  }catch(error){
+    alert("목적지 검색 중 오류가 발생했어요.\n\n" + error.message);
+  }
+}
+  
+  async function searchStartPlace(){
+
+  const keyword = document.getElementById("startInput").value.trim();
+
+  if(keyword === ""){
+    alert("출발지를 입력해주세요.");
+    return;
+  }
+
+  const resultBox = document.getElementById("startResults");
+resultBox.style.display = "block";
+resultBox.innerHTML = "검색중...";
+
+  try{
+    const response = await fetch(
+      "https://dapi.kakao.com/v2/local/search/keyword.json?query=" +
+      encodeURIComponent("제주 " + keyword),
+      {
+        headers:{
+          Authorization:"KakaoAK " + kakaoKey
+        }
+      }
+    );
+
+    const data = await response.json();
+
+    resultBox.innerHTML = "";
+
+    if(!data.documents || data.documents.length === 0){
+      resultBox.innerHTML = "검색 결과가 없습니다.";
+      return;
+    }
+
+    data.documents.forEach(place=>{
+      const div = document.createElement("div");
+      div.className = "address-result";
+
+      div.innerHTML =
+        "<b>" + place.place_name + "</b><br>" +
+        (place.road_address_name || place.address_name || "");
+
+      div.onclick = function(){
+        customStart = {
+          lat: parseFloat(place.y),
+          lng: parseFloat(place.x)
+        };
+
+        customStartName = place.place_name;
+        customStartArea = getJejuRegion(
+  place.road_address_name ||
+  place.address_name ||
+  place.place_name
+);
+
+document.getElementById("startInput").value = place.place_name;
+resultBox.innerHTML = "";
+resultBox.style.display = "none";
+
+document.getElementById("info").innerHTML =
+          "출발지가 '" + place.place_name + "'(으)로 설정되었습니다.";
+      };
+
+      resultBox.appendChild(div);
+    });
+
+  }catch(error){
+    alert("출발지 검색 중 오류가 발생했어요.\n\n" + error.message);
+  }
+}
+function selectPopularTour(){
+
+  const value = document.getElementById("popularSelect").value;
+
+  if(!value) return;
+
+  const data = value.split("|");
+
+  customEnd = {
+    lng: parseFloat(data[1]),
+    lat: parseFloat(data[2])
+  };
+
+  customEndName = data[0];
+customEndArea = getDestinationRegion(customEndName, "기타");
+  document.getElementById("endInput").value = data[0];
+
+  document.getElementById("endResults").innerHTML = "";
+  document.getElementById("endResults").style.display = "none";
+
+  document.getElementById("info").innerHTML =
+    "목적지가 '" + data[0] + "'(으)로 설정되었습니다.";
+}
+function goHome(){
+
+  document.body.classList.remove("risk-map-mode");
+  document.body.classList.remove("route-active");
+  document.body.classList.remove("safety-guide-mode");
+  document.body.classList.remove("route-analysis-mode");
+  document.body.classList.remove("route-fallback-mode");
+  document.getElementById("adminStatsPage").classList.remove("active");
+
+  document.querySelector(".panel").classList.remove("route-mode");
+
+  document.getElementById("info").innerHTML = "";
+
+  document.getElementById("startInput").value = "";
+  document.getElementById("endInput").value = "";
+  document.getElementById("popularSelect").value = "";
+
+  document.getElementById("startResults").innerHTML = "";
+  document.getElementById("endResults").innerHTML = "";
+
+  customStart = null;
+  customEnd = null;
+  customStartName = null;
+  customEndName = null;
+  customStartArea = "기타";
+  customEndArea = "기타";
+lastNavigation = "";
+
+  if(routeLayer){
+    map.removeLayer(routeLayer);
+    routeLayer = null;
+  }
+
+  resetHomeMap();
+
+  document.getElementById("startInput").placeholder = "제주국제공항";
+  document.getElementById("endInput").placeholder = "성산일출봉";
+
+  document.querySelectorAll(".bottom-item").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+  document.querySelectorAll(".bottom-item")[0].classList.add("active");
+}
+
+function setRating(score){
+
+  if(ratingSubmitted){
+    alert("이번 경로 분석에 대한 평가는 이미 제출되었습니다.");
+    return;
+  }
+
+  ratingSubmitted = true;
+
+  const buttons = document.querySelectorAll("#ratingStars button");
+
+  buttons.forEach((btn, index) => {
+    btn.textContent = index < score ? "★" : "☆";
+    btn.disabled = true;
+    btn.style.opacity = "0.55";
+    btn.style.cursor = "default";
+  });
+
+ const card = document.querySelector(".result-feedback-card");
+
+if(card){
+  card.innerHTML = `
+    <div class="rating-complete">
+      <div class="rating-complete-icon">✓</div>
+
+      <h3>평가해주셔서 감사합니다!</h3>
+
+      <p>
+        ${score}점 평가가 저장되었습니다.<br>
+        소중한 의견은 더 안전한 제주 여행 서비스를<br>
+        만드는 데 활용하겠습니다.
+      </p>
+    </div>
+  `;
+}
+
+  fetch(feedbackApiUrl,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{
+      "Content-Type":"application/json"
+    },
+body:JSON.stringify({
+  start:lastFeedbackData.start,
+  end:lastFeedbackData.end,
+  route:lastFeedbackData.route,
+  distance:lastFeedbackData.distance,
+  time:lastFeedbackData.time,
+  count:lastFeedbackData.count,
+  epdo:lastFeedbackData.epdo,
+  risk:lastFeedbackData.risk,
+  feedback:"별점 " + score,
+
+  routeChoice:lastFeedbackData.routeChoice,
+  altRisk:lastFeedbackData.altRisk,
+  riskDiff:lastFeedbackData.riskDiff,
+  altTime:lastFeedbackData.altTime,
+  timeDiff:lastFeedbackData.timeDiff,
+  navigation:lastFeedbackData.navigation,
+  currentArea:lastFeedbackData.currentArea
+})
+  });
+}
+function sendRouteAnalysisLog(){
+
+  fetch(feedbackApiUrl,{
+    method:"POST",
+    mode:"no-cors",
+    keepalive:true,
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      start:lastFeedbackData.start,
+      end:lastFeedbackData.end,
+      route:lastFeedbackData.route,
+      distance:lastFeedbackData.distance,
+      time:lastFeedbackData.time,
+      count:lastFeedbackData.count,
+      epdo:lastFeedbackData.epdo,
+      risk:lastFeedbackData.risk,
+      feedback:"경로분석",
+
+      routeChoice:lastFeedbackData.routeChoice,
+      altRisk:lastFeedbackData.altRisk,
+      riskDiff:lastFeedbackData.riskDiff,
+      altTime:lastFeedbackData.altTime,
+      timeDiff:lastFeedbackData.timeDiff,
+      navigation:"",
+      currentArea:lastFeedbackData.currentArea
+    })
+  });
+}
+  function sendNavigationLog(navigationName){
+
+  lastNavigation = navigationName;
+
+  fetch(feedbackApiUrl,{
+    method:"POST",
+    mode:"no-cors",
+    keepalive:true,
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      start:lastStart?.name || "",
+      end:lastEnd?.name || "",
+      route:"내비 자체경로",
+      distance:"",
+      time:"",
+      count:"",
+      epdo:"",
+      risk:"",
+      feedback:"길안내",
+      routeChoice:"내비 앱 자체경로",
+      altRisk:"",
+      riskDiff:"",
+      altTime:"",
+      timeDiff:"",
+      navigation:navigationName,
+      currentArea:customStartArea || "기타"
+    })
+  });
+}
+  function openAdminStats(){
+  const input = prompt("관리자 비밀번호를 입력하세요.");
+
+  if(input !== adminPassword){
+    alert("비밀번호가 올바르지 않습니다.");
+    return;
+  }
+
+  document.getElementById("adminStatsPage").classList.add("active");
+   fetch(feedbackApiUrl)
+  .then(res => res.json())
+  .then(data => {
+
+   document.getElementById("statTotal").innerText =
+  data.totalRoute;
+
+document.getElementById("statGoodRate").innerText =
+  "⭐ " + data.avgRating;
+
+document.getElementById("statGood").innerText =
+  data.ratingCount + "건";
+
+document.getElementById("statBad").innerText =
+  data.fiveStarRate + "%";
+  });
+}
+function closeAdminStats(){
+  document.getElementById("adminStatsPage").classList.remove("active");
+}
+function showSafetyGuide(){
+
+document.body.classList.remove("route-active");
+document.body.classList.remove("risk-map-mode");
+document.body.classList.remove("route-analysis-mode");
+document.body.classList.add("safety-guide-mode");
+
+  document.querySelectorAll(".bottom-item").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+
+  document.querySelectorAll(".bottom-item")[3].classList.add("active");
+}
+let riskMiniMap = null;
+let riskMiniLayer = null;
+  
+function getRiskColor(epdo){
+  if(epdo >= 12) return "#ef4444";
+  if(epdo >= 6) return "#f97316";
+  if(epdo >= 3) return "#facc15";
+  return "#10b981";
+}
+
+function getRiskRadius(epdo){
+  if(epdo >= 12) return 7;
+  if(epdo >= 6) return 5;
+  if(epdo >= 3) return 3;
+  return 4;
+}
+function initRiskMiniMap(){
+  if(riskMiniMap){
+    setTimeout(() => {
+      riskMiniMap.invalidateSize();
+    }, 200);
+    return;
+  }
+
+riskMiniMap = L.map("riskMiniMap", {
+  zoomControl:true,
+  attributionControl:false
+}).setView([33.36,126.55], 9);
+
+const jejuBounds = L.latLngBounds(
+  [33.18,126.15],
+  [33.58,126.98]
+);
+
+riskMiniMap.fitBounds(jejuBounds, {
+  padding:[5,5]
+});
+
+L.tileLayer(
+  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  {
+    subdomains:"abcd",
+    maxZoom:20
+  }
+).addTo(riskMiniMap);
+
+riskMiniLayer = L.layerGroup().addTo(riskMiniMap);
+accidentData.forEach(accident => {
+  const epdo = accident.epdo || 1;
+  const color = getRiskColor(epdo);
+
+  L.circleMarker([accident.lat, accident.lng], {
+    radius:getRiskRadius(epdo),
+    color:color,
+    fillColor:color,
+   fillOpacity:.68,
+weight:1
+  })
+  .bindPopup(
+   "<b>사고 정보</b><br>" +
+  "피해정도: " + (accident.severity || "-") + "<br>" +
+  "법규위반: " + (accident.violation || "-") + "<br>" +
+  "사고유형: " + (accident.type || accident.accidentType || accident.crashType || "-")
+)
+  .addTo(riskMiniLayer);
+});
+
+  setTimeout(() => {
+    riskMiniMap.invalidateSize();
+  }, 300);
+}
+  let riskMiniMapPopup = null;
+let riskMiniLayerPopup = null;
+
+function initRiskMiniMapPopup(){
+  if(riskMiniMapPopup){
+    riskMiniMapPopup.remove();
+    riskMiniMapPopup = null;
+  }
+
+  riskMiniMapPopup = L.map("riskMiniMapPopup", {
+    zoomControl:true,
+    attributionControl:false
+  }).setView([33.36,126.55], 9);
+
+  const jejuBounds = L.latLngBounds(
+    [33.18,126.15],
+    [33.58,126.98]
+  );
+
+  riskMiniMapPopup.fitBounds(jejuBounds, {
+    padding:[5,5]
+  });
+
+  L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    {
+      subdomains:"abcd",
+      maxZoom:20
+    }
+  ).addTo(riskMiniMapPopup);
+
+  riskMiniLayerPopup = L.layerGroup().addTo(riskMiniMapPopup);
+
+  accidentData.forEach(accident => {
+    const epdo = accident.epdo || 1;
+    const color = getRiskColor(epdo);
+
+    L.circleMarker([accident.lat, accident.lng], {
+      radius:getRiskRadius(epdo),
+      color:color,
+      fillColor:color,
+      fillOpacity:.68,
+      weight:1
+    })
+    .bindPopup(
+      "<b>사고 정보</b><br>" +
+      "피해정도: " + (accident.severity || "-") + "<br>" +
+      "법규위반: " + (accident.violation || "-") + "<br>" +
+      "사고유형: " + (accident.type || accident.accidentType || accident.crashType || "-")
+    )
+    .addTo(riskMiniLayerPopup);
+  });
+
+  setTimeout(() => {
+    riskMiniMapPopup.invalidateSize();
+  }, 300);
+}
+
+function updateAccidentStatsPopup(content){
+  if(!Array.isArray(accidentData)) return;
+
+  const death = accidentData.filter(a => (a.severity || "").includes("사망")).length;
+  const serious = accidentData.filter(a => (a.severity || "").includes("중상")).length;
+  const minor = accidentData.filter(a => (a.severity || "").includes("경상")).length;
+
+  const deathEl = content.querySelector("#deathCount");
+  const seriousEl = content.querySelector("#seriousCount");
+  const minorEl = content.querySelector("#minorCount");
+
+  if(deathEl) deathEl.textContent = death + "건";
+  if(seriousEl) seriousEl.textContent = serious + "건";
+  if(minorEl) minorEl.textContent = minor + "건";
+}
+  function updateAccidentStats(){
+  if(!Array.isArray(accidentData)) return;
+
+  const death = accidentData.filter(a => (a.severity || "").includes("사망")).length;
+  const serious = accidentData.filter(a => (a.severity || "").includes("중상")).length;
+  const minor = accidentData.filter(a => (a.severity || "").includes("경상")).length;
+
+  const deathEl = document.getElementById("deathCount");
+  const seriousEl = document.getElementById("seriousCount");
+  const minorEl = document.getElementById("minorCount");
+
+  if(deathEl) deathEl.textContent = death + "건";
+  if(seriousEl) seriousEl.textContent = serious + "건";
+  if(minorEl) minorEl.textContent = minor + "건";
+}
+function showRiskMap(){
+
+ document.body.classList.remove("route-active");
+document.body.classList.remove("safety-guide-mode");
+document.body.classList.remove("route-analysis-mode");
+document.body.classList.add("risk-map-mode");
+  
+  document.querySelectorAll(".bottom-item").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+
+  document.querySelectorAll(".bottom-item")[2].classList.add("active");
+  updateAccidentStats();
+
+  setTimeout(initRiskMiniMap, 200);
+}
+function showRouteAnalysis(){
+
+  document.body.classList.remove(
+    "risk-map-mode",
+    "safety-guide-mode",
+    "route-active"
+  );
+
+  document.body.classList.add("route-analysis-mode");
+
+  document.querySelectorAll(".bottom-item").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  const buttons = document.querySelectorAll(".bottom-item");
+
+  if(buttons[1]){
+    buttons[1].classList.add("active");
+  }
+
+  const box =
+    document.getElementById("routeAnalysisContent");
+
+  if(!lastRouteAnalysisHtml){
+
+    box.innerHTML = `
+      <div class="route-analysis-empty">
+
+        <img src="route.svg" class="empty-icon">
+
+        <h3>아직 경로를 분석하지 않았어요</h3>
+
+        <p>
+          홈에서 출발지와 목적지를 입력한 뒤<br>
+          <b>'사고이력 기반 경로 비교'</b> 버튼을 눌러주세요.
+        </p>
+
+        <button type="button" onclick="goHome()">
+          <img src="home.svg">
+          홈으로 이동
+        </button>
+
+      </div>
+    `;
+
+    return;
+  }
+
+  box.innerHTML = lastRouteAnalysisHtml;
+
+  /*
+    숨겨져 있던 지도가 다시 나타난 뒤
+    크기를 정상적으로 계산하도록 처리
+  */
+  setTimeout(() => {
+    map.invalidateSize();
+
+    if(lastRouteSummaries.length > 0){
+      const allRouteCoords =
+        lastRouteSummaries.flatMap(route => route.coords);
+
+      map.fitBounds(
+        L.latLngBounds(allRouteCoords),
+        {
+          paddingTopLeft:[25,25],
+          paddingBottomRight:[25,360]
+        }
+      );
+    }
+  }, 250);
+}
+function openSideMenu(){
+  document.getElementById("sideMenu").classList.add("active");
+  document.getElementById("menuBackdrop").classList.add("active");
+}
+
+function closeSideMenu(){
+  document.getElementById("sideMenu").classList.remove("active");
+  document.getElementById("menuBackdrop").classList.remove("active");
+}
+
+function openRiskMapFromMenu(){
+  closeSideMenu();
+  openMenuPopup("risk");
+}
+function openEpdoFromMenu(){
+  closeSideMenu();
+  openMenuPopup("epdo");
+}
+
+function openNoticeFromMenu(){
+  closeSideMenu();
+  openMenuPopup("notice");
+}
+
+function openMenuPopup(type){
+  const popup = document.getElementById("menuPopup");
+  const title = document.getElementById("menuPopupTitle");
+  const content = document.getElementById("menuPopupContent");
+
+  if(type === "risk"){
+    title.innerText = "사고 위험 지도";
+    content.innerHTML = document.getElementById("riskMapPage").innerHTML;
+    popup.classList.add("active");
+setTimeout(() => {
+  const mapBox = content.querySelector("#riskMiniMap");
+
+  if(mapBox){
+    mapBox.id = "riskMiniMapPopup";
+    mapBox.style.width = "100%";
+    initRiskMiniMapPopup();
+  }
+
+  updateAccidentStatsPopup(content);
+}, 300);
+  }
+
+  if(type === "epdo"){
+    title.innerText = "EPDO 위험도";
+
+content.innerHTML = `
+  <div class="risk-info-card">
+    <h3>EPDO 위험도 분석</h3>
+    <p>
+      EPDO는 사고의 심각도를 점수화한 지표입니다.
+      사망·중상사고일수록 더 높은 점수가 부여됩니다.
+    </p>
+    <p>
+  이 서비스는 사고데이터와 사고 심각도를 분석해
+  이동 경로 주변의 사고정보를 비교하여 제공합니다.
+</p>
+  </div>
+
+`;
+
+    popup.classList.add("active");
+  }
+
+  if(type === "notice"){
+    title.innerText = "공지사항";
+
+    content.innerHTML = `
+      <div class="risk-info-card">
+        <h3>업데이트 내역</h3>
+        <p>✔ 사고이력 기반 경로 비교 기능 제공</p>
+        <p>✔ EPDO 및 교통량 보정값 반영</p>
+        <p>✔ 제주 렌터카 안전운전 가이드 제공</p>
+        <p>※ 관광소식 연동은 추후 업데이트 예정입니다.</p>
+      </div>
+    `;
+
+    popup.classList.add("active");
+  }
+}
+
+function closeMenuPopup(){
+  document.getElementById("menuPopup").classList.remove("active");
+}
+</script>
+</body>
+</html>
