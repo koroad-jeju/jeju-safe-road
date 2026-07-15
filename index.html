@@ -4522,6 +4522,8 @@ routes.forEach((route,index)=>{
 
   const roadNames =
     getMainRouteRoadNames(route);
+  const roadProfiles =
+  detectJejuRoadProfiles(roadNames);
 
   routeSummaries[index] = {
     coords:coords,
@@ -4530,6 +4532,7 @@ routes.forEach((route,index)=>{
     risk:risk,
     accidentAnalysis:accidentAnalysis,
     roadNames:roadNames
+    roadProfiles:roadProfiles
   };
 });
 lastRouteSummaries = routeSummaries;
@@ -4588,6 +4591,15 @@ console.log(
 console.log(
   "2코스 주요 도로:",
   route2?.roadNames
+);
+    console.log(
+  "1코스 제주 도로 분류:",
+  route1.roadProfiles
+);
+
+console.log(
+  "2코스 제주 도로 분류:",
+  route2?.roadProfiles
 );
 const matchedTipKey = Object.keys(destinationTips).find(key =>
   endName.includes(key) || key.includes(endName)
@@ -4950,6 +4962,134 @@ function getMainRouteRoadNames(route){
   );
 
   return meaningfulRoads.slice(0, 3);
+}
+  /* ===== 제주 주요 도로별 특징 ===== */
+
+const jejuRoadProfiles = [
+  {
+    name:"1100도로",
+    aliases:["1100도로", "1100로", "1139"],
+    category:"difficult",
+    features:[
+      "급커브와 급경사 구간이 이어집니다.",
+      "안개·비·결빙 등 기상변화에 주의하세요."
+    ]
+  },
+  {
+    name:"5·16도로",
+    aliases:["5·16도로", "5.16도로", "516도로", "516로", "1131"],
+    category:"difficult",
+    features:[
+      "곡선과 경사구간이 많은 산간도로입니다.",
+      "안개와 내리막 구간에서 충분히 감속하세요."
+    ]
+  },
+  {
+    name:"산록남로",
+    aliases:["산록남로"],
+    category:"difficult",
+    features:[
+      "중산간 곡선도로와 경사구간이 이어집니다.",
+      "야간과 안개 발생 시 시야 확보에 주의하세요."
+    ]
+  },
+  {
+    name:"산록북로",
+    aliases:["산록북로"],
+    category:"difficult",
+    features:[
+      "곡선구간과 교차로 시야가 제한된 곳이 있습니다.",
+      "비·안개 시 속도를 충분히 줄이세요."
+    ]
+  },
+  {
+    name:"비자림로",
+    aliases:["비자림로"],
+    category:"difficult",
+    features:[
+      "숲길과 중산간 곡선구간이 이어집니다.",
+      "교차로와 관광지 진출입 차량에 주의하세요."
+    ]
+  },
+  {
+    name:"남조로",
+    aliases:["남조로"],
+    category:"difficult",
+    features:[
+      "중산간 구간과 교차로가 이어집니다.",
+      "농로와 마을도로 진입 차량에 주의하세요."
+    ]
+  },
+
+  {
+    name:"번영로",
+    aliases:["번영로", "97번 지방도"],
+    category:"major",
+    features:[
+      "비교적 빠른 주행이 이루어지는 간선도로입니다.",
+      "교차로와 농로 진입 차량에 주의하세요."
+    ]
+  },
+  {
+    name:"평화로",
+    aliases:["평화로", "1135"],
+    category:"major",
+    features:[
+      "직선구간이 길고 차량의 주행속도가 높은 도로입니다.",
+      "합류·분기 구간에서는 미리 차로를 확인하세요."
+    ]
+  },
+  {
+    name:"애조로",
+    aliases:["애조로"],
+    category:"major",
+    features:[
+      "차량 속도가 높은 간선도로 구간입니다.",
+      "합류와 차로변경 차량에 주의하세요."
+    ]
+  },
+  {
+    name:"일주동로",
+    aliases:["일주동로", "1132"],
+    category:"major",
+    features:[
+      "마을과 관광지 진출입 구간이 자주 이어집니다.",
+      "교차로와 보행자 통행에 주의하세요."
+    ]
+  },
+  {
+    name:"일주서로",
+    aliases:["일주서로"],
+    category:"major",
+    features:[
+      "관광지와 해안지역 진출입 차량이 많을 수 있습니다.",
+      "급감속·주정차 차량에 주의하세요."
+    ]
+  }
+];
+
+
+/* ORS가 반환한 도로명을 제주 주요 도로 정보와 연결 */
+function detectJejuRoadProfiles(roadNames){
+  if(!Array.isArray(roadNames)){
+    return [];
+  }
+
+  const extractedNames = roadNames.map(road =>
+    String(road.name || "").replace(/\s/g, "")
+  );
+
+  return jejuRoadProfiles.filter(profile => {
+    return profile.aliases.some(alias => {
+      const normalizedAlias =
+        String(alias).replace(/\s/g, "");
+
+      return extractedNames.some(extractedName =>
+        extractedName.includes(normalizedAlias) ||
+        normalizedAlias.includes(extractedName)
+      );
+    });
+  });
 }
 function analyzeRouteRisk(coords){
   const SEARCH_RADIUS_M = 250;
