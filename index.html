@@ -4852,31 +4852,39 @@ lastRouteAnalysisHtml = `
   </div>
 
     <div class="compare-detail-new always-open">
-    <div class="compare-title">
-      <img src="chart-bar.svg" class="title-svg">
-      코스별 주요 정보
-    </div>
+ <div class="compare-title">
+  <img src="chart-bar.svg" class="title-svg">
+  ${route2 ? "코스별 주요 정보" : "주요 경로 정보"}
+</div>
 
-    <div class="compare-cards route-info-cards">
+<div class="compare-cards route-info-cards">
 
-      ${makeRouteInfoCard(
-        route1,
-        1,
-        "recommend"
-      )}
+  ${makeRouteInfoCard(
+    route1,
+    1,
+    "recommend"
+  )}
 
-      ${makeRouteInfoCard(
+  ${route2
+    ? makeRouteInfoCard(
         route2,
         2,
         "alt"
-      )}
+      )
+    : ""
+  }
 
-    </div>
+</div>
 
-    <div class="route-data-note">
-      ※ 사고이력은 2025년 렌터카 사고자료 중 경로 주변에서 확인된
-      중상 이상 사고를 기준으로 제공되는 참고정보입니다.
-    </div>
+<div class="route-data-note">
+  ${route2
+    ? `※ 사고이력은 2025년 렌터카 사고자료 중 경로 주변에서 확인된
+       중상 이상 사고를 기준으로 제공되는 참고정보입니다.`
+    : `※ 유의미한 대안경로가 확인되지 않아 하나의 경로만 안내합니다.
+       사고이력은 2025년 렌터카 사고자료 중 경로 주변에서 확인된
+       중상 이상 사고를 기준으로 제공됩니다.`
+  }
+</div>
   </div>
   <div class="navi-section">
     <h3>내비게이션으로 길안내</h3>
