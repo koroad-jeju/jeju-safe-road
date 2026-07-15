@@ -4520,10 +4520,26 @@ routes.forEach((route,index)=>{
   const accidentAnalysis =
     routeAccidentAnalyses[index];
 
-  const roadNames =
-    getMainRouteRoadNames(route);
-  const roadProfiles =
-  detectJejuRoadProfiles(roadNames);
+/*
+  ORS가 반환한 전체 도로 목록
+*/
+const allRoadNames =
+  extractRouteRoadNames(route);
+
+/*
+  화면에는 오래 주행한 도로 최대 3개만 표시
+*/
+const roadNames =
+  allRoadNames
+    .filter(road => road.distanceKm >= 0.5)
+    .slice(0, 3);
+
+/*
+  도로 특성 판별은 전체 도로 목록을 기준으로 진행
+  짧게 통과한 산간도로가 누락되는 것을 방지
+*/
+const roadProfiles =
+  detectJejuRoadProfiles(allRoadNames);
 
   routeSummaries[index] = {
     coords:coords,
@@ -4531,6 +4547,7 @@ routes.forEach((route,index)=>{
     durationMin:durationMin,
     risk:risk,
     accidentAnalysis:accidentAnalysis,
+    allRoadNames:allRoadNames,
     roadNames:roadNames,
     roadProfiles:roadProfiles
   };
@@ -4600,6 +4617,27 @@ console.log(
 console.log(
   "2코스 제주 도로 분류:",
   route2?.roadProfiles
+);
+    console.log(
+  "1코스 화면 정보:",
+  {
+    roads:getRouteRoadText(route1),
+    accident:getAccidentHistoryText(route1),
+    difficult:getDifficultRoadText(route1),
+    feature:makeCourseFeature(route1)
+  }
+);
+
+console.log(
+  "2코스 화면 정보:",
+  route2
+    ? {
+        roads:getRouteRoadText(route2),
+        accident:getAccidentHistoryText(route2),
+        difficult:getDifficultRoadText(route2),
+        feature:makeCourseFeature(route2)
+      }
+    : null
 );
 const matchedTipKey = Object.keys(destinationTips).find(key =>
   endName.includes(key) || key.includes(endName)
@@ -5090,6 +5128,181 @@ function detectJejuRoadProfiles(roadNames){
       );
     });
   });
+}
+  /* ===== 코스 정보 화면 표시용 함수 ===== */
+
+function getRouteRoadText(route){
+  if(
+    !route ||
+    !Array.isArray(route.roadNames) ||
+    route.roadNames.length === 0
+  ){
+    return "주요 도로 정보 없음";
+  }
+
+  return route.roadNames
+    .map(road => road.name)
+    .join(" → ");
+}
+
+
+function getDifficultRoadNames(route){
+  if(!route){
+    return [];
+  }
+
+  /*
+    ORS 도로명으로 확인된 고난도 도로
+  */
+  const profileRoads =
+    Array.isArray(route.roadProfiles)
+      ? route.roadProfiles
+          .filter(profile =>
+            profile.category === "difficult"
+          )
+          .map(profile => profile.name)
+      : [];
+
+  /*
+    기존 좌표 방식으로 판별한
+    1100도로·5·16도로
+  */
+  const coordinateRoads =
+    detectMountainRoad(route);
+
+  /*
+    중복 제거
+  */
+  return [
+    ...new Set([
+      ...profileRoads,
+      ...coordinateRoads
+    ])
+  ];
+}
+
+
+function getDifficultRoadText(route){
+  const roads =
+    getDifficultRoadNames(route);
+
+  return roads.length > 0
+    ? roads.join(" · ")
+    : "없음";
+}
+
+
+function getAccidentHistoryText(route){
+  const accident =
+    route?.accidentAnalysis;
+
+  if(!accident){
+    return "사고이력 정보 없음";
+  }
+
+  /*
+    사망사고가 있을 때 최우선 안내
+  */
+  if(accident.deathCount > 0){
+    return (
+      "사망 " +
+      accident.deathCount +
+      "건 · 중상 이상 " +
+      accident.seriousCount +
+      "건"
+    );
+  }
+
+  /*
+    중상 이상 사고가 있을 때만 표시
+  */
+  if(accident.seriousCount > 0){
+    return (
+      "중상 이상 사고이력 " +
+      accident.seriousCount +
+      "건"
+    );
+  }
+
+  return "중상 이상 사고이력 없음";
+}
+
+
+function makeCourseFeature(route){
+  const difficultRoads =
+    getDifficultRoadNames(route);
+
+  const roadProfiles =
+    Array.isArray(route?.roadProfiles)
+      ? route.roadProfiles
+      : [];
+
+  const accident =
+    route?.accidentAnalysis || {};
+
+  /*
+    고난도 도로가 포함된 경우
+  */
+  if(difficultRoads.length > 0){
+    const difficultProfiles =
+      roadProfiles.filter(profile =>
+        profile.category === "difficult"
+      );
+
+    if(
+      difficultProfiles.length > 0 &&
+      difficultProfiles[0].features?.length > 0
+    ){
+      return difficultProfiles[0]
+        .features
+        .slice(0, 2)
+        .join(" ");
+    }
+
+    return (
+      difficultRoads.join("·") +
+      "를 포함하여 곡선과 경사구간 주행에 주의가 필요합니다."
+    );
+  }
+
+  /*
+    주요 간선도로 특성 사용
+  */
+  const majorProfile =
+    roadProfiles.find(profile =>
+      profile.category === "major"
+    );
+
+  if(
+    majorProfile &&
+    Array.isArray(majorProfile.features)
+  ){
+    return majorProfile.features
+      .slice(0, 2)
+      .join(" ");
+  }
+
+  /*
+    사고 특성으로 보완
+  */
+  if((accident.pedestrianCount || 0) >= 3){
+    return (
+      "도심·관광지 구간을 포함하여 보행자와 " +
+      "진출입 차량에 주의가 필요합니다."
+    );
+  }
+
+  if((accident.singleVehicleCount || 0) >= 3){
+    return (
+      "차량단독 사고이력이 확인된 경로로 " +
+      "곡선구간과 과속 주행에 주의하세요."
+    );
+  }
+
+  return (
+    "일반도로를 중심으로 이동하는 경로입니다. " +
+    "교차로와 목적지 진입 전 충분히 감속하세요."
+  );
 }
 function analyzeRouteRisk(coords){
   const SEARCH_RADIUS_M = 250;
