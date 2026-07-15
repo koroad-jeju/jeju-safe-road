@@ -4691,6 +4691,33 @@ allRoadNames.forEach(road => {
     return;
   }
 
+  /*
+    ORS 도로명을 제주 대표도로와 연결
+  */
+  const matchedProfile =
+    findJejuRoadProfile(road.name);
+
+  console.log(
+    `[${index + 1}코스 주요도로 후보]`,
+    {
+      ORS원본:road.name,
+      주행거리:road.distanceKm,
+      전체경로비율:
+        Math.round(roadShare * 100) + "%",
+      최종판정:
+        matchedProfile
+          ? matchedProfile.name
+          : "대표도로 미매칭"
+    }
+  );
+
+  /*
+    대표도로 목록에 없는 도로는 제외
+  */
+  if(!matchedProfile){
+    return;
+  }
+
   const previousDistance =
     matchedRoadMap.get(matchedProfile.name) || 0;
 
@@ -5277,67 +5304,7 @@ function filterMeaningfulAlternativeRoutes(routes){
       sampledAltCoordinates.length
     : 0;
 }
-  function getRouteProfileNameSet(route){
-  const roadNames =
-    extractRouteRoadNames(route);
 
-  const matchedNames =
-    roadNames
-      .filter(road =>
-        road.distanceKm >= 0.5
-      )
-      .map(road => {
-        const profile =
-          findJejuRoadProfile(road.name);
-console.log(
-  `[${index + 1}코스 주요도로 후보]`,
-  {
-    ORS원본:road.name,
-    주행거리:road.distanceKm,
-    전체경로비율:
-      Math.round(roadShare * 100) + "%",
-    최종판정:
-      matchedProfile
-        ? matchedProfile.name
-        : "대표도로 미매칭"
-  }
-);
-        return profile
-          ? profile.name
-          : normalizeRoadDisplayName(road.name);
-      })
-      .filter(Boolean);
-
-  return new Set(matchedNames);
-}
-
-function calculateRoadSetSimilarity(setA, setB){
-  if(
-    !(setA instanceof Set) ||
-    !(setB instanceof Set)
-  ){
-    return 0;
-  }
-
-  if(setA.size === 0 && setB.size === 0){
-    return 1;
-  }
-
-  const intersection =
-    [...setA].filter(value =>
-      setB.has(value)
-    ).length;
-
-  const union =
-    new Set([
-      ...setA,
-      ...setB
-    ]).size;
-
-  return union > 0
-    ? intersection / union
-    : 0;
-}
 /* ===== ORS 경로에서 주요 통과도로 추출 ===== */
 
 function extractRouteRoadNames(route){
