@@ -5061,7 +5061,7 @@ setTimeout(() => {
 }
 
 }
-  function filterMeaningfulAlternativeRoutes(routes){
+function filterMeaningfulAlternativeRoutes(routes){
   if(!Array.isArray(routes) || routes.length <= 1){
     return routes || [];
   }
@@ -5090,63 +5090,189 @@ setTimeout(() => {
     return [mainRoute];
   }
 
-  const distanceDiffRate =
-    Math.abs(altDistance - mainDistance) /
-    mainDistance;
+  const distanceRatio =
+    altDistance / mainDistance;
 
-  const durationDiffRate =
-    Math.abs(altDuration - mainDuration) /
-    mainDuration;
+  const durationRatio =
+    altDuration / mainDuration;
 
-  const mainRoads =
-    getRouteProfileNameSet(mainRoute);
-
-  const altRoads =
-    getRouteProfileNameSet(altRoute);
-
-  const roadSimilarity =
-    calculateRoadSetSimilarity(
-      mainRoads,
-      altRoads
+  /*
+    두 경로의 실제 좌표가 얼마나 겹치는지 계산
+    1에 가까울수록 사실상 같은 길
+  */
+  const geometryOverlap =
+    calculateRouteGeometryOverlap(
+      mainRoute,
+      altRoute
     );
 
   /*
-    ① 거리와 시간이 거의 같고
-    ② 이용하는 대표도로도 거의 같으면
+    25km 이하 경로에서는 대안경로 기준을 엄격하게 적용
+  */
+  const isShortOrMediumRoute =
+    mainDistance <= 25000;
+
+  /*
+    단·중거리:
+    2코스가 거리 또는 시간에서 15% 넘게 불리하면 제외
+  */
+  const isUncompetitiveShortRoute =
+    isShortOrMediumRoute &&
+    (
+      distanceRatio > 1.15 ||
+      durationRatio > 1.15
+    );
+
+  /*
+    장거리라도 25% 이상 우회하면 제외
+  */
+  const isExcessiveDetour =
+    distanceRatio > 1.25 ||
+    durationRatio > 1.25;
+
+  /*
+    두 경로가 75% 이상 겹치면
     사실상 같은 경로로 판단
   */
   const isAlmostSameRoute =
-    distanceDiffRate < 0.08 &&
-    durationDiffRate < 0.08 &&
-    roadSimilarity >= 0.7;
+    geometryOverlap >= 0.75;
 
   /*
-    2코스가 지나치게 멀거나 오래 걸리면
-    억지로 생성된 우회경로로 판단
+    실제 대안경로로 인정하려면
+    경로 겹침이 70% 미만이어야 하고,
+    거리와 시간이 각각 20% 이내 차이여야 함
   */
-  const isExcessiveDetour =
-    altDistance > mainDistance * 1.35 ||
-    altDuration > mainDuration * 1.35;
+  const isMeaningfulAlternative =
+    geometryOverlap < 0.70 &&
+    distanceRatio <= 1.20 &&
+    durationRatio <= 1.20;
 
-  console.log("[대안경로 유효성 검사]", {
-    거리차이비율:
-      Math.round(distanceDiffRate * 100) + "%",
-    시간차이비율:
-      Math.round(durationDiffRate * 100) + "%",
-    대표도로유사도:
-      Math.round(roadSimilarity * 100) + "%",
-    사실상동일경로:isAlmostSameRoute,
-    과도한우회경로:isExcessiveDetour
+  console.log("[대안경로 최종 검사]", {
+    주경로거리:
+      Math.round(mainDistance / 100) / 10 + "km",
+
+    대안경로거리:
+      Math.round(altDistance / 100) / 10 + "km",
+
+    거리차이:
+      Math.round((distanceRatio - 1) * 100) + "%",
+
+    시간차이:
+      Math.round((durationRatio - 1) * 100) + "%",
+
+    경로겹침:
+      Math.round(geometryOverlap * 100) + "%",
+
+    단중거리비효율:
+      isUncompetitiveShortRoute,
+
+    과도한우회:
+      isExcessiveDetour,
+
+    사실상동일경로:
+      isAlmostSameRoute,
+
+    유의미한대안경로:
+      isMeaningfulAlternative
   });
 
   if(
+    isUncompetitiveShortRoute ||
+    isExcessiveDetour ||
     isAlmostSameRoute ||
-    isExcessiveDetour
+    !isMeaningfulAlternative
   ){
+    console.log(
+      "[대안경로 제거] 실제 선택 가치가 낮아 1코스만 표시합니다."
+    );
+
     return [mainRoute];
   }
 
+  console.log(
+    "[대안경로 유지] 실제로 구분되는 경쟁력 있는 경로입니다."
+  );
+
   return [mainRoute, altRoute];
+}
+  function calculateRouteGeometryOverlap(
+  mainRoute,
+  altRoute
+){
+  const mainCoordinates =
+    mainRoute?.geometry?.coordinates || [];
+
+  const altCoordinates =
+    altRoute?.geometry?.coordinates || [];
+
+  if(
+    mainCoordinates.length === 0 ||
+    altCoordinates.length === 0
+  ){
+    return 0;
+  }
+
+  /*
+    계산량을 줄이기 위해
+    대안경로 좌표를 최대 약 80개 지점으로 추출
+  */
+  const sampleInterval =
+    Math.max(
+      1,
+      Math.floor(
+        altCoordinates.length / 80
+      )
+    );
+
+  const sampledAltCoordinates =
+    altCoordinates.filter(
+      (_, index) =>
+        index % sampleInterval === 0
+    );
+
+  let overlappingCount = 0;
+
+  sampledAltCoordinates.forEach(
+    altCoordinate => {
+
+      const altLat = altCoordinate[1];
+      const altLng = altCoordinate[0];
+
+      const isNearMainRoute =
+        mainCoordinates.some(
+          mainCoordinate => {
+
+            const mainLat =
+              mainCoordinate[1];
+
+            const mainLng =
+              mainCoordinate[0];
+
+            const distanceM =
+              getDistanceKm(
+                altLat,
+                altLng,
+                mainLat,
+                mainLng
+              ) * 1000;
+
+            /*
+              250m 이내이면 같은 경로 구간으로 판단
+            */
+            return distanceM <= 250;
+          }
+        );
+
+      if(isNearMainRoute){
+        overlappingCount++;
+      }
+    }
+  );
+
+  return sampledAltCoordinates.length > 0
+    ? overlappingCount /
+      sampledAltCoordinates.length
+    : 0;
 }
   function getRouteProfileNameSet(route){
   const roadNames =
