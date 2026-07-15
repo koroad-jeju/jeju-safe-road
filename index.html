@@ -5576,8 +5576,9 @@ function findJejuRoadProfile(orsRoadName){
     normalizeRoadMatchText(orsRoadName);
 
   /*
-    ORS가 "평화로, 1135"처럼 여러 이름을 반환하는 경우를
-    각각 독립된 도로명으로 분리
+    ORS가 "일주서로, 1135"처럼
+    도로명과 도로번호를 함께 반환할 수 있으므로
+    항목별로 분리
   */
   const roadParts =
     normalizedRoadName
@@ -5588,8 +5589,42 @@ function findJejuRoadProfile(orsRoadName){
       .filter(Boolean);
 
   /*
-    신뢰할 수 있는 지방도 번호를 가장 먼저 판정
-    도로명 혼합 표기로 인한 오분류 방지
+    1단계:
+    명확한 도로명이 있으면 도로명을 최우선 판정
+  */
+  for(const roadPart of roadParts){
+
+    /*
+      숫자만 있는 항목은
+      도로명 검사에서 제외
+    */
+    if(/^\d+$/.test(roadPart)){
+      continue;
+    }
+
+    for(const profile of jejuRoadProfiles){
+      for(const alias of profile.aliases){
+        const normalizedAlias =
+          normalizeRoadMatchText(alias);
+
+        /*
+          숫자 별칭은 도로명 검사에서 제외
+        */
+        if(/^\d+$/.test(normalizedAlias)){
+          continue;
+        }
+
+        if(roadPart === normalizedAlias){
+          return profile;
+        }
+      }
+    }
+  }
+
+  /*
+    2단계:
+    명확한 도로명이 없을 때만
+    신뢰 가능한 도로번호로 보완 판정
   */
   const routeNumberMap = {
     "1135":"평화로",
@@ -5611,28 +5646,6 @@ function findJejuRoadProfile(orsRoadName){
     }
   }
 
-  /*
-    도로명은 부분 포함이 아니라
-    분리된 이름과 정확히 일치할 때만 인정
-  */
-  for(const profile of jejuRoadProfiles){
-    for(const alias of profile.aliases){
-      const normalizedAlias =
-        normalizeRoadMatchText(alias);
-
-      /*
-        숫자 별칭은 위 routeNumberMap에서만 처리
-      */
-      if(/^\d+$/.test(normalizedAlias)){
-        continue;
-      }
-
-      if(roadParts.includes(normalizedAlias)){
-        return profile;
-      }
-    }
-  }
-
   return null;
 }
 /* ORS가 반환한 도로명을 제주 주요 도로 정보와 연결 */
@@ -5646,6 +5659,14 @@ function detectJejuRoadProfiles(roadNames){
   roadNames.forEach(road => {
     const matchedProfile =
       findJejuRoadProfile(road.name);
+    console.log("[주요 통과도로 판정]", {
+  ORS원본:road.name,
+  주행거리:road.distanceKm,
+  최종도로:
+    matchedProfile
+      ? matchedProfile.name
+      : "미매칭"
+});
     console.log(
   "[도로 매칭 검사]",
   {
