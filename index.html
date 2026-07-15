@@ -4714,8 +4714,16 @@ const roadNames =
   도로 특성 판별은 전체 도로 목록을 기준으로 진행
   짧게 통과한 산간도로가 누락되는 것을 방지
 */
+const meaningfulRoadNames =
+  allRoadNames.filter(road =>
+    road.distanceKm >= 0.5 ||
+    road.distanceKm / Number(distanceKm) >= 0.03
+  );
+
 const roadProfiles =
-  detectJejuRoadProfiles(allRoadNames);
+  detectJejuRoadProfiles(
+    meaningfulRoadNames
+  );
 
   routeSummaries[index] = {
     coords:coords,
@@ -5296,33 +5304,65 @@ function findJejuRoadProfile(orsRoadName){
   const normalizedRoadName =
     normalizeRoadMatchText(orsRoadName);
 
+  /*
+    ORS가 "평화로, 1135"처럼 여러 이름을 반환하는 경우를
+    각각 독립된 도로명으로 분리
+  */
   const roadParts =
     normalizedRoadName
-      .split(",")
-      .map(part => part.trim())
+      .split(/[,;/|]/)
+      .map(part =>
+        normalizeRoadMatchText(part)
+      )
       .filter(Boolean);
 
-  return jejuRoadProfiles.find(profile =>
-    profile.aliases.some(alias => {
+  /*
+    신뢰할 수 있는 지방도 번호를 가장 먼저 판정
+    도로명 혼합 표기로 인한 오분류 방지
+  */
+  const routeNumberMap = {
+    "1135":"평화로",
+    "1131":"5·16도로",
+    "1118":"남조로",
+    "1112":"비자림로",
+    "97":"번영로"
+  };
+
+  for(const roadPart of roadParts){
+    const mappedRoadName =
+      routeNumberMap[roadPart];
+
+    if(mappedRoadName){
+      return jejuRoadProfiles.find(
+        profile =>
+          profile.name === mappedRoadName
+      ) || null;
+    }
+  }
+
+  /*
+    도로명은 부분 포함이 아니라
+    분리된 이름과 정확히 일치할 때만 인정
+  */
+  for(const profile of jejuRoadProfiles){
+    for(const alias of profile.aliases){
       const normalizedAlias =
         normalizeRoadMatchText(alias);
 
       /*
-        숫자로 된 노선번호는 정확히 일치할 때만 인정
-        예: 97, 1131, 1135
+        숫자 별칭은 위 routeNumberMap에서만 처리
       */
       if(/^\d+$/.test(normalizedAlias)){
-        return roadParts.includes(normalizedAlias);
+        continue;
       }
 
-      /*
-        일반 도로명은 ORS 도로명 안에 포함되어 있으면 인정
-      */
-      return normalizedRoadName.includes(
-        normalizedAlias
-      );
-    })
-  ) || null;
+      if(roadParts.includes(normalizedAlias)){
+        return profile;
+      }
+    }
+  }
+
+  return null;
 }
 /* ORS가 반환한 도로명을 제주 주요 도로 정보와 연결 */
 function detectJejuRoadProfiles(roadNames){
@@ -5335,6 +5375,16 @@ function detectJejuRoadProfiles(roadNames){
   roadNames.forEach(road => {
     const matchedProfile =
       findJejuRoadProfile(road.name);
+    console.log(
+  "[도로 매칭 검사]",
+  {
+    ors원본도로명: road.name,
+    ors구간거리: road.distanceKm,
+    변환결과: matchedProfile
+      ? matchedProfile.name
+      : "대표도로 미매칭"
+  }
+);
 
     if(
       matchedProfile &&
