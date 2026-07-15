@@ -5147,37 +5147,21 @@ function getRouteRoadText(route){
 
 
 function getDifficultRoadNames(route){
-  if(!route){
+  if(
+    !route ||
+    !Array.isArray(route.roadProfiles)
+  ){
     return [];
   }
 
-  /*
-    ORS 도로명으로 확인된 고난도 도로
-  */
-  const profileRoads =
-    Array.isArray(route.roadProfiles)
-      ? route.roadProfiles
-          .filter(profile =>
-            profile.category === "difficult"
-          )
-          .map(profile => profile.name)
-      : [];
-
-  /*
-    기존 좌표 방식으로 판별한
-    1100도로·5·16도로
-  */
-  const coordinateRoads =
-    detectMountainRoad(route);
-
-  /*
-    중복 제거
-  */
   return [
-    ...new Set([
-      ...profileRoads,
-      ...coordinateRoads
-    ])
+    ...new Set(
+      route.roadProfiles
+        .filter(profile =>
+          profile.category === "difficult"
+        )
+        .map(profile => profile.name)
+    )
   ];
 }
 
