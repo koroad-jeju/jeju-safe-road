@@ -4666,25 +4666,28 @@ const allRoadNames =
 
 /*
   화면에는 지정한 제주 대표도로만 표시
-  최소 1km 이상, 전체 경로의 5% 이상 이용한 경우만 인정
+  최소 3km 이상이면서 전체 경로의 10% 이상 이용한 경우만 인정
 */
 const matchedRoadMap = new Map();
 
 allRoadNames.forEach(road => {
-  if(
-    road.distanceKm < 1.0 ||
-    road.distanceKm / Number(distanceKm) < 0.05
-  ){
-    return;
-  }
+  const routeDistanceKm =
+    Number(distanceKm);
 
-  const matchedProfile =
-    findJejuRoadProfile(road.name);
+  const roadShare =
+    routeDistanceKm > 0
+      ? road.distanceKm / routeDistanceKm
+      : 0;
 
   /*
-    대표도로 목록에 없는 도로는 화면에서 제외
+    주요 통과도로는
+    최소 3km 이상이면서
+    전체 경로의 10% 이상 이용한 경우만 인정
   */
-  if(!matchedProfile){
+  if(
+    road.distanceKm < 3.0 ||
+    roadShare < 0.10
+  ){
     return;
   }
 
@@ -4709,7 +4712,7 @@ const roadNames =
       (a, b) =>
         b.distanceKm - a.distanceKm
     )
-    .slice(0, 3);
+    .slice(0, 2);
 
 /*
   도로 특성 판별은 전체 도로 목록을 기준으로 진행
@@ -5286,7 +5289,19 @@ function filterMeaningfulAlternativeRoutes(routes){
       .map(road => {
         const profile =
           findJejuRoadProfile(road.name);
-
+console.log(
+  `[${index + 1}코스 주요도로 후보]`,
+  {
+    ORS원본:road.name,
+    주행거리:road.distanceKm,
+    전체경로비율:
+      Math.round(roadShare * 100) + "%",
+    최종판정:
+      matchedProfile
+        ? matchedProfile.name
+        : "대표도로 미매칭"
+  }
+);
         return profile
           ? profile.name
           : normalizeRoadDisplayName(road.name);
@@ -5473,26 +5488,6 @@ const jejuRoadProfiles = [
     ]
   },
   {
-    name:"일주동로",
-    aliases:["일주동로"],
-    category:"major",
-    guide:"제주 동부 해안과 주요 관광지를 연결하는 순환도로입니다.",
-    features:[
-      "마을과 관광지 진출입 구간이 자주 이어집니다.",
-      "교차로와 보행자 통행에 주의하세요."
-    ]
-  },
-  {
-    name:"일주서로",
-    aliases:["일주서로"],
-    category:"major",
-    guide:"제주 서부 해안과 주요 관광지를 연결하는 순환도로입니다.",
-    features:[
-      "관광지와 해안지역 진출입 차량이 많을 수 있습니다.",
-      "급감속·주정차 차량에 주의하세요."
-    ]
-  },
-  {
     name:"산록남로",
     aliases:["산록남로"],
     category:"difficult",
@@ -5659,14 +5654,7 @@ function detectJejuRoadProfiles(roadNames){
   roadNames.forEach(road => {
     const matchedProfile =
       findJejuRoadProfile(road.name);
-    console.log("[주요 통과도로 판정]", {
-  ORS원본:road.name,
-  주행거리:road.distanceKm,
-  최종도로:
-    matchedProfile
-      ? matchedProfile.name
-      : "미매칭"
-});
+
     console.log(
   "[도로 매칭 검사]",
   {
