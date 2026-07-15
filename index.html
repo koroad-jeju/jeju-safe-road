@@ -5175,9 +5175,7 @@ function detectJejuRoadProfiles(roadNames){
 const roadNumberMap = {
   "1132":"일주동로",
   "1135":"평화로",
-  "97":"번영로",
-  "516로":"5·16도로",
-  "516도로":"5·16도로"
+  "97":"번영로"
 };
 
   if(roadNumberMap[roadName]){
@@ -5221,24 +5219,40 @@ function getRouteRoadText(route){
 }
 
 function getDifficultRoadNames(route){
-  if(
-    !route ||
-    !Array.isArray(route.roadProfiles)
-  ){
+  if(!route){
     return [];
   }
 
+  /*
+    이름으로 판별하는 고난도 도로
+    1100도로·5·16도로는 제외하고
+    산록·비자림·남조로만 사용
+  */
+  const profileRoads =
+    Array.isArray(route.roadProfiles)
+      ? route.roadProfiles
+          .filter(profile =>
+            profile.category === "difficult" &&
+            profile.name !== "1100도로" &&
+            profile.name !== "5·16도로"
+          )
+          .map(profile => profile.name)
+      : [];
+
+  /*
+    1100도로와 5·16도로는
+    실제 산간구간 좌표로 판별
+  */
+  const mountainRoads =
+    detectMountainRoad(route);
+
   return [
-    ...new Set(
-      route.roadProfiles
-        .filter(profile =>
-          profile.category === "difficult"
-        )
-        .map(profile => profile.name)
-    )
+    ...new Set([
+      ...profileRoads,
+      ...mountainRoads
+    ])
   ];
 }
-
 
 function getDifficultRoadText(route){
   const roads =
