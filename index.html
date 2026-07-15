@@ -4760,16 +4760,82 @@ const roadProfiles =
     meaningfulRoadNames
   );
 
-  routeSummaries[index] = {
-    coords:coords,
-    distanceKm:distanceKm,
-    durationMin:durationMin,
-    risk:risk,
-    accidentAnalysis:accidentAnalysis,
-    allRoadNames:allRoadNames,
-    roadNames:roadNames,
-    roadProfiles:roadProfiles
-  };
+routeSummaries[index] = {
+  coords:coords,
+  distanceKm:distanceKm,
+  durationMin:durationMin,
+  risk:risk,
+  accidentAnalysis:accidentAnalysis,
+  allRoadNames:allRoadNames,
+  roadNames:roadNames,
+  roadProfiles:roadProfiles
+};
+
+/*
+  ORS 도로명에서 평화로가 누락되는 경우가 있어
+  실제 경로 좌표로 평화로 통과 여부를 보완 판정
+*/
+const currentRouteSummary =
+  routeSummaries[index];
+
+const hasPyeonghwaRoad =
+  detectPyeonghwaRoad(
+    currentRouteSummary
+  );
+
+if(hasPyeonghwaRoad){
+
+  /*
+    주요 통과도로에 평화로가 없을 때만 추가
+  */
+  const alreadyIncluded =
+    currentRouteSummary.roadNames.some(
+      road =>
+        road.name === "평화로"
+    );
+
+  if(!alreadyIncluded){
+    currentRouteSummary.roadNames.unshift({
+      name:"평화로",
+      distanceKm:null,
+      detectedBy:"coordinates"
+    });
+  }
+
+  /*
+    코스 특징에도 평화로 특성을 반영
+  */
+  const pyeonghwaProfile =
+    jejuRoadProfiles.find(
+      profile =>
+        profile.name === "평화로"
+    );
+
+  const profileAlreadyIncluded =
+    currentRouteSummary.roadProfiles.some(
+      profile =>
+        profile.name === "평화로"
+    );
+
+  if(
+    pyeonghwaProfile &&
+    !profileAlreadyIncluded
+  ){
+    currentRouteSummary.roadProfiles.unshift(
+      pyeonghwaProfile
+    );
+  }
+  currentRouteSummary.roadNames =
+  currentRouteSummary.roadNames
+    .filter(
+      (road, roadIndex, array) =>
+        array.findIndex(
+          item =>
+            item.name === road.name
+        ) === roadIndex
+    )
+    .slice(0, 2);
+}
 });
 lastRouteSummaries = routeSummaries;
 
@@ -6309,6 +6375,85 @@ function getDistanceKm(lat1,lng1,lat2,lng2){
 
 function deg2rad(deg){
   return deg * (Math.PI/180);
+}
+  /* ===== 평화로 실제 경로 좌표 판정 ===== */
+
+/*
+  평화로 중심 구간을 북쪽에서 남쪽 방향으로 배치한 기준점입니다.
+
+  ORS가 평화로를 다른 도로명으로 반환하더라도
+  실제 경로가 이 기준점들을 연속해서 통과하면
+  평화로로 판정합니다.
+*/
+const pyeonghwaRoadZone = {
+  name:"평화로",
+
+  /*
+    기준점과 경로 사이 허용거리
+    0.85km 이내이면 해당 기준점을 지난 것으로 판단
+  */
+  radius:0.85,
+
+  points:[
+    { lat:33.4445, lng:126.4320 },
+    { lat:33.4260, lng:126.4180 },
+    { lat:33.4070, lng:126.4010 },
+    { lat:33.3880, lng:126.3830 },
+    { lat:33.3680, lng:126.3650 },
+    { lat:33.3480, lng:126.3470 },
+    { lat:33.3290, lng:126.3300 },
+    { lat:33.3110, lng:126.3150 }
+  ]
+};
+
+function detectPyeonghwaRoad(route){
+  if(
+    !route ||
+    !Array.isArray(route.coords) ||
+    route.coords.length === 0
+  ){
+    return false;
+  }
+
+  let matchedPointCount = 0;
+
+  pyeonghwaRoadZone.points.forEach(roadPoint => {
+    const isNearRoadPoint =
+      route.coords.some(routePoint => {
+        const distanceKm =
+          getDistanceKm(
+            routePoint[0],
+            routePoint[1],
+            roadPoint.lat,
+            roadPoint.lng
+          );
+
+        return distanceKm <=
+          pyeonghwaRoadZone.radius;
+      });
+
+    if(isNearRoadPoint){
+      matchedPointCount++;
+    }
+  });
+
+  /*
+    기준점 4개 이상을 통과해야 평화로로 인정
+
+    한두 지점만 우연히 가까운 경로가
+    평화로로 잘못 표시되는 것을 방지
+  */
+  const detected =
+    matchedPointCount >= 4;
+
+  console.log("[평화로 좌표 판정]", {
+    일치기준점수:matchedPointCount,
+    전체기준점수:
+      pyeonghwaRoadZone.points.length,
+    평화로판정:detected
+  });
+
+  return detected;
 }
   /* ===== 1100도로 · 5·16도로 포함 여부 검사 ===== */
 
