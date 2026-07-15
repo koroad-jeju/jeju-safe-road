@@ -5129,6 +5129,39 @@ function detectJejuRoadProfiles(roadNames){
     });
   });
 }
+  function normalizeRoadDisplayName(name){
+  let roadName = String(name || "").trim();
+
+  /*
+    "노형로, 1136"처럼 뒤에 붙은 도로번호 제거
+  */
+  roadName = roadName
+    .replace(/,\s*\d+\s*$/g, "")
+    .trim();
+
+  /*
+    확실하게 연결 가능한 도로번호만 실제 도로명으로 변경
+  */
+  const roadNumberMap = {
+    "1132":"일주동로",
+    "1135":"평화로",
+    "97":"번영로"
+  };
+
+  if(roadNumberMap[roadName]){
+    return roadNumberMap[roadName];
+  }
+
+  /*
+    숫자만 있는 도로명은 화면에서 제외
+    1139를 무조건 1100도로라고 부르는 오류 방지
+  */
+  if(/^\d+$/.test(roadName)){
+    return "";
+  }
+
+  return roadName;
+}
   /* ===== 코스 정보 화면 표시용 함수 ===== */
 
 function getRouteRoadText(route){
@@ -5140,11 +5173,20 @@ function getRouteRoadText(route){
     return "주요 도로 정보 없음";
   }
 
-  return route.roadNames
-    .map(road => road.name)
-    .join(" → ");
-}
+  const roadNames = route.roadNames
+    .map(road =>
+      normalizeRoadDisplayName(road.name)
+    )
+    .filter(name => name);
 
+  const uniqueRoadNames = [
+    ...new Set(roadNames)
+  ];
+
+  return uniqueRoadNames.length > 0
+    ? uniqueRoadNames.join(" → ")
+    : "주요 도로 정보 없음";
+}
 
 function getDifficultRoadNames(route){
   if(
