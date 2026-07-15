@@ -4606,12 +4606,13 @@ try{
       return;
     }
 
-    const routes = data.features;
-    console.log("경로 개수:", routes.length);
+   let routes = data.features;
+
+routes = filterMeaningfulAlternativeRoutes(routes);
+
+console.log("최종 표시 경로 개수:", routes.length);
 console.log("ORS 전체 응답:", data);
-    if(routes.length < 2){
-  console.warn("대안경로가 2개 생성되지 않았습니다.", routes.length);
-}
+
     const routeRisks = routes.map(route => {
       const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
       return analyzeRouteRisk(coords);
@@ -5051,6 +5052,142 @@ setTimeout(() => {
   showRouteFallback();
 }
 
+}
+  function filterMeaningfulAlternativeRoutes(routes){
+  if(!Array.isArray(routes) || routes.length <= 1){
+    return routes || [];
+  }
+
+  const mainRoute = routes[0];
+  const altRoute = routes[1];
+
+  const mainDistance =
+    Number(mainRoute?.properties?.summary?.distance || 0);
+
+  const altDistance =
+    Number(altRoute?.properties?.summary?.distance || 0);
+
+  const mainDuration =
+    Number(mainRoute?.properties?.summary?.duration || 0);
+
+  const altDuration =
+    Number(altRoute?.properties?.summary?.duration || 0);
+
+  if(
+    mainDistance <= 0 ||
+    altDistance <= 0 ||
+    mainDuration <= 0 ||
+    altDuration <= 0
+  ){
+    return [mainRoute];
+  }
+
+  const distanceDiffRate =
+    Math.abs(altDistance - mainDistance) /
+    mainDistance;
+
+  const durationDiffRate =
+    Math.abs(altDuration - mainDuration) /
+    mainDuration;
+
+  const mainRoads =
+    getRouteProfileNameSet(mainRoute);
+
+  const altRoads =
+    getRouteProfileNameSet(altRoute);
+
+  const roadSimilarity =
+    calculateRoadSetSimilarity(
+      mainRoads,
+      altRoads
+    );
+
+  /*
+    ① 거리와 시간이 거의 같고
+    ② 이용하는 대표도로도 거의 같으면
+    사실상 같은 경로로 판단
+  */
+  const isAlmostSameRoute =
+    distanceDiffRate < 0.08 &&
+    durationDiffRate < 0.08 &&
+    roadSimilarity >= 0.7;
+
+  /*
+    2코스가 지나치게 멀거나 오래 걸리면
+    억지로 생성된 우회경로로 판단
+  */
+  const isExcessiveDetour =
+    altDistance > mainDistance * 1.35 ||
+    altDuration > mainDuration * 1.35;
+
+  console.log("[대안경로 유효성 검사]", {
+    거리차이비율:
+      Math.round(distanceDiffRate * 100) + "%",
+    시간차이비율:
+      Math.round(durationDiffRate * 100) + "%",
+    대표도로유사도:
+      Math.round(roadSimilarity * 100) + "%",
+    사실상동일경로:isAlmostSameRoute,
+    과도한우회경로:isExcessiveDetour
+  });
+
+  if(
+    isAlmostSameRoute ||
+    isExcessiveDetour
+  ){
+    return [mainRoute];
+  }
+
+  return [mainRoute, altRoute];
+}
+  function getRouteProfileNameSet(route){
+  const roadNames =
+    extractRouteRoadNames(route);
+
+  const matchedNames =
+    roadNames
+      .filter(road =>
+        road.distanceKm >= 0.5
+      )
+      .map(road => {
+        const profile =
+          findJejuRoadProfile(road.name);
+
+        return profile
+          ? profile.name
+          : normalizeRoadDisplayName(road.name);
+      })
+      .filter(Boolean);
+
+  return new Set(matchedNames);
+}
+
+function calculateRoadSetSimilarity(setA, setB){
+  if(
+    !(setA instanceof Set) ||
+    !(setB instanceof Set)
+  ){
+    return 0;
+  }
+
+  if(setA.size === 0 && setB.size === 0){
+    return 1;
+  }
+
+  const intersection =
+    [...setA].filter(value =>
+      setB.has(value)
+    ).length;
+
+  const union =
+    new Set([
+      ...setA,
+      ...setB
+    ]).size;
+
+  return union > 0
+    ? intersection / union
+    : 0;
 }
 /* ===== ORS 경로에서 주요 통과도로 추출 ===== */
 
