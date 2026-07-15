@@ -4546,8 +4546,8 @@ lastEnd = {
 }
   document.getElementById("info").innerHTML = `
 <div class="loading-card">
-<b>사고데이터 기반으로 경로를 분석하고 있습니다</b>
-  <p>사고데이터와 교통량을 단계별로 비교 중입니다.</p>
+<b>안전운전 정보를 준비하고 있습니다</b>
+  <p>주요 통과도로와 사고이력을 확인하는 중입니다.</p>
   <p id="slowLoadingNotice" class="slow-loading-notice">
   분석에 시간이 조금 더 걸리고 있습니다.<br>
   약 5~10초 정도 소요될 수 있습니다.
@@ -4557,22 +4557,22 @@ lastEnd = {
 
   <div class="loading-step" id="step1">
     <span class="step-spinner"></span>
-    <span>사고데이터 분석 중</span>
+    <span>주요 통과도로 확인 중</span>
   </div>
 
   <div class="loading-step" id="step2">
     <span class="step-spinner"></span>
-    <span>EPDO 계산 중</span>
+    <span>사고이력 분석 중</span>
   </div>
 
   <div class="loading-step" id="step3">
     <span class="step-spinner"></span>
-    <span>교통량 보정 반영 중</span>
+    <span>도로 특성 분석 중</span>
   </div>
 
   <div class="loading-step" id="step4">
     <span class="step-spinner"></span>
-    <span>비교 경로 생성 중</span>
+    <span>안전운전 정보 정리 중</span>
   </div>
 
 </div>
@@ -4594,7 +4594,7 @@ lastEnd = {
     s.className="loading-step done";
     s.innerHTML=`
       <span class="step-dot"></span>
-      <span>사고데이터 분석 완료</span>
+      <span>주요 통과도로 확인 완료</span>
     `;
   }
 },350);
@@ -4605,7 +4605,7 @@ setTimeout(()=>{
     s.className="loading-step done";
     s.innerHTML=`
       <span class="step-dot"></span>
-      <span>EPDO 계산 완료</span>
+      <span>사고이력 분석 완료</span>
     `;
   }
 },700);
@@ -4616,7 +4616,7 @@ setTimeout(()=>{
     s.className="loading-step done";
     s.innerHTML=`
       <span class="step-dot"></span>
-      <span>교통량 보정 완료</span>
+      <span>도로 특성 분석 완료</span>
     `;
   }
 },1050);
@@ -4627,7 +4627,7 @@ setTimeout(()=>{
     s.className="loading-step done";
     s.innerHTML=`
       <span class="step-dot"></span>
-      <span>비교 경로 생성 완료</span>
+      <span>안전운전 정보 정리 완료</span>
     `;
   }
 },1400);
