@@ -4618,7 +4618,10 @@ const allRoadNames =
 */
 const roadNames =
   allRoadNames
-    .filter(road => road.distanceKm >= 0.5)
+    .filter(road =>
+      road.distanceKm >= 1.0 &&
+      road.distanceKm / Number(distanceKm) >= 0.05
+    )
     .slice(0, 3);
 
 /*
