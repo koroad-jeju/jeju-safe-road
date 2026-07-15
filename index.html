@@ -4753,36 +4753,33 @@ lastRouteAnalysisHtml = `
     ${endName}
   </div>
 
-  <div class="compare-detail-new always-open">
+    <div class="compare-detail-new always-open">
     <div class="compare-title">
       <img src="chart-bar.svg" class="title-svg">
-      코스 상세 비교
+      코스별 주요 정보
     </div>
 
-<div class="compare-cards route-info-cards">
+    <div class="compare-cards route-info-cards">
 
-  ${makeRouteInfoCard(
-    route1,
-    1,
-    "recommend"
-  )}
+      ${makeRouteInfoCard(
+        route1,
+        1,
+        "recommend"
+      )}
 
-  ${makeRouteInfoCard(
-    route2,
-    2,
-    "alt"
-  )}
+      ${makeRouteInfoCard(
+        route2,
+        2,
+        "alt"
+      )}
 
-</div>
+    </div>
 
-<div class="route-data-note">
-  ※ 사고이력은 2025년 렌터카 사고자료 중 경로 주변에서 확인된
-  중상 이상 사고를 기준으로 제공되는 참고정보입니다.
-</div>
-      ※ 사고이력은 경로 주변의 과거 사고자료를 기준으로 제공되는 참고정보입니다.
+    <div class="route-data-note">
+      ※ 사고이력은 2025년 렌터카 사고자료 중 경로 주변에서 확인된
+      중상 이상 사고를 기준으로 제공되는 참고정보입니다.
     </div>
   </div>
-
   <div class="navi-section">
     <h3>내비게이션으로 길안내</h3>
 
@@ -5325,7 +5322,49 @@ function makeCourseFeature(route){
       "를 포함하여 곡선과 경사구간 주행에 주의가 필요합니다."
     );
   }
-  function makeRouteInfoCard(route, courseNumber, cardClass){
+
+  /*
+    주요 간선도로 특성 사용
+  */
+  const majorProfile =
+    roadProfiles.find(profile =>
+      profile.category === "major"
+    );
+
+  if(
+    majorProfile &&
+    Array.isArray(majorProfile.features)
+  ){
+    return majorProfile.features
+      .slice(0, 2)
+      .join(" ");
+  }
+
+  /*
+    사고 특성으로 보완
+  */
+  if((accident.pedestrianCount || 0) >= 3){
+    return (
+      "도심·관광지 구간을 포함하여 보행자와 " +
+      "진출입 차량에 주의가 필요합니다."
+    );
+  }
+
+  if((accident.singleVehicleCount || 0) >= 3){
+    return (
+      "차량단독 사고이력이 확인된 경로로 " +
+      "곡선구간과 과속 주행에 주의하세요."
+    );
+  }
+
+  return (
+    "일반도로를 중심으로 이동하는 경로입니다. " +
+    "교차로와 목적지 진입 전 충분히 감속하세요."
+  );
+}
+
+
+function makeRouteInfoCard(route, courseNumber, cardClass){
   if(!route){
     return `
       <div class="compare-mini ${cardClass}">
@@ -5382,46 +5421,6 @@ function makeCourseFeature(route){
 
     </div>
   `;
-}
-
-  /*
-    주요 간선도로 특성 사용
-  */
-  const majorProfile =
-    roadProfiles.find(profile =>
-      profile.category === "major"
-    );
-
-  if(
-    majorProfile &&
-    Array.isArray(majorProfile.features)
-  ){
-    return majorProfile.features
-      .slice(0, 2)
-      .join(" ");
-  }
-
-  /*
-    사고 특성으로 보완
-  */
-  if((accident.pedestrianCount || 0) >= 3){
-    return (
-      "도심·관광지 구간을 포함하여 보행자와 " +
-      "진출입 차량에 주의가 필요합니다."
-    );
-  }
-
-  if((accident.singleVehicleCount || 0) >= 3){
-    return (
-      "차량단독 사고이력이 확인된 경로로 " +
-      "곡선구간과 과속 주행에 주의하세요."
-    );
-  }
-
-  return (
-    "일반도로를 중심으로 이동하는 경로입니다. " +
-    "교차로와 목적지 진입 전 충분히 감속하세요."
-  );
 }
 function analyzeRouteRisk(coords){
   const SEARCH_RADIUS_M = 250;
