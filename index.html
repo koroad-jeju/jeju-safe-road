@@ -2948,6 +2948,295 @@ body.route-fallback-mode .app-topbar{
   font-size:13.5px;
   font-weight:850;
 }
+  /* ===== 2026 압축형 결과화면 ===== */
+
+/* 로딩화면 */
+.loading-card{
+  margin:10px 0 12px !important;
+  padding:17px 16px !important;
+  border-radius:20px !important;
+  background:#ffffff !important;
+  border:1px solid #e5e9ef !important;
+  box-shadow:0 8px 22px rgba(15,23,42,.055) !important;
+}
+
+.loading-card b{
+  color:#16202c !important;
+  font-size:16px !important;
+  letter-spacing:-.35px;
+}
+
+.loading-card p{
+  color:#7a8594 !important;
+  font-size:12.5px !important;
+}
+
+.loading-steps{
+  margin-top:14px !important;
+  gap:7px !important;
+}
+
+.loading-step{
+  height:40px !important;
+  padding:0 13px !important;
+  border-radius:13px !important;
+  background:#f7f9fb !important;
+  border:1px solid #edf0f3 !important;
+  color:#334155 !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  box-shadow:none !important;
+}
+
+.loading-step.done{
+  background:#f5faf9 !important;
+  border-color:#dceeea !important;
+  color:#176d64 !important;
+}
+
+.step-spinner{
+  width:11px !important;
+  height:11px !important;
+  border-color:#d5e4e2 !important;
+  border-top-color:#188f83 !important;
+}
+
+.step-dot{
+  width:7px !important;
+  height:7px !important;
+  background:#188f83 !important;
+  box-shadow:0 0 0 3px rgba(24,143,131,.10) !important;
+}
+
+/* 코스별 주요정보 전체 카드 */
+.compare-detail-new.always-open{
+  padding:14px !important;
+  margin:10px 0 !important;
+  border-radius:20px !important;
+}
+
+.compare-title{
+  margin-bottom:10px !important;
+  font-size:16px !important;
+}
+
+/* 1·2코스 세로 배치 */
+.route-info-cards{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  gap:9px !important;
+}
+
+/* 코스 카드 */
+.route-info-card{
+  padding:13px 13px 12px !important;
+  border-radius:17px !important;
+  background:#fff !important;
+}
+
+body.route-analysis-mode .compare-mini.recommend{
+  border:1px solid #d8e8e5 !important;
+  background:#fff !important;
+}
+
+body.route-analysis-mode .compare-mini.alt{
+  border:1px solid #e2e7ec !important;
+  background:#fff !important;
+}
+
+/* 코스 제목 + 거리·시간 */
+.compact-course-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:9px;
+}
+
+.compact-course-head > b{
+  color:#16202c;
+  font-size:17px;
+  font-weight:900;
+}
+
+.compact-course-head > strong{
+  color:#176d64;
+  font-size:15px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.compact-course-head > strong span{
+  margin:0 3px;
+  color:#a0a8b3;
+}
+
+/* 주요도로 한 줄 */
+.compact-route-row{
+  padding:9px 0;
+  border-top:1px solid #edf0f3;
+}
+
+.compact-route-row > span{
+  display:block;
+  margin-bottom:6px;
+  color:#7b8491;
+  font-size:11px;
+  font-weight:800;
+}
+
+/* 사고이력 + 주의도로 한 줄 */
+.compact-double-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  padding:9px 0;
+  border-top:1px solid #edf0f3;
+}
+
+.compact-info-box{
+  min-width:0;
+}
+
+.compact-info-box > span{
+  display:block;
+  margin-bottom:4px;
+  color:#7b8491;
+  font-size:11px;
+  font-weight:800;
+}
+
+.compact-info-box > b{
+  display:block;
+  color:#1f2937;
+  font-size:12.5px;
+  font-weight:850;
+  line-height:1.4;
+  word-break:keep-all;
+}
+
+/* 특징 2줄 */
+.compact-feature{
+  padding:9px 11px;
+  border-radius:12px;
+  background:#f7f9fb;
+}
+
+.compact-feature > span{
+  display:block;
+  margin-bottom:4px;
+  color:#176d64;
+  font-size:11px;
+  font-weight:900;
+}
+
+.compact-feature > p{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  margin:0;
+  color:#475569;
+  font-size:12.5px;
+  font-weight:700;
+  line-height:1.45;
+  word-break:keep-all;
+}
+
+/* 주요도로 칩 축소 */
+.route-road-list{
+  gap:5px !important;
+}
+
+.route-road-chip{
+  min-height:27px !important;
+  padding:4px 8px 4px 9px !important;
+  border-color:#d7e8e5 !important;
+  background:#f6fbfa !important;
+  color:#176d64 !important;
+  font-size:11.5px !important;
+}
+
+.route-road-info-icon{
+  width:14px !important;
+  height:14px !important;
+  font-size:9px !important;
+  background:#367f77 !important;
+}
+
+/* 안내문 축소 */
+.route-data-note{
+  margin-top:9px !important;
+  padding-top:8px !important;
+  font-size:10.5px !important;
+  line-height:1.45 !important;
+}
+
+/* 내비게이션 */
+.navi-section{
+  margin:10px 0 !important;
+  padding:14px !important;
+  border-radius:20px !important;
+}
+
+.navi-section h3{
+  margin-bottom:9px !important;
+  font-size:15px !important;
+}
+
+.navi-grid.final-navi{
+  gap:7px !important;
+}
+
+.navi-btn{
+  height:50px !important;
+  border-radius:15px !important;
+  box-shadow:0 5px 14px rgba(15,23,42,.055) !important;
+}
+
+/* 안전팁 */
+body.route-analysis-mode .info-split-col.tip{
+  margin-top:10px !important;
+  padding:14px !important;
+  border-radius:20px !important;
+}
+
+.info-split-col.tip h3{
+  margin-bottom:9px !important;
+  color:#1f2937 !important;
+  font-size:15px !important;
+}
+
+.tip-list{
+  gap:6px !important;
+}
+
+.tip-item{
+  padding:9px 10px !important;
+  border-radius:12px !important;
+  background:#f7f9fb !important;
+}
+
+.tip-item div{
+  color:#475569 !important;
+  font-size:12.5px !important;
+  line-height:1.45 !important;
+}
+
+/* 별점은 가장 아래 */
+.result-feedback-card{
+  margin:10px 0 0 !important;
+  padding:14px !important;
+  border-radius:20px !important;
+}
+
+.result-feedback-card h3{
+  font-size:15px !important;
+}
+
+.result-feedback-card .rating-stars button{
+  font-size:31px !important;
+}
 </style>
 </head>
 
@@ -5295,23 +5584,6 @@ lastRouteAnalysisHtml = `
     </div>
   </div>
 
-  <div class="feedback-card result-feedback-card">
-    <h3>이번 경로정보는 도움이 되었나요?</h3>
-    <p>별점을 선택하면 평가가 저장됩니다.</p>
-
-    <div class="rating-stars" id="ratingStars">
-      <button type="button" onclick="setRating(1)">☆</button>
-      <button type="button" onclick="setRating(2)">☆</button>
-      <button type="button" onclick="setRating(3)">☆</button>
-      <button type="button" onclick="setRating(4)">☆</button>
-      <button type="button" onclick="setRating(5)">☆</button>
-    </div>
-
-    <div id="ratingText" class="rating-text">
-      별점을 눌러주세요
-    </div>
-  </div>
-
   <div class="info-split-col tip">
     <h3>
       <img src="map-pin-check.svg" class="title-svg">
@@ -5340,6 +5612,22 @@ lastRouteAnalysisHtml = `
         <div>${tips[2]}</div>
       </div>
     </div>
+    <div class="feedback-card result-feedback-card">
+    <h3>이번 경로정보는 도움이 되었나요?</h3>
+    <p>별점을 선택하면 평가가 저장됩니다.</p>
+
+    <div class="rating-stars" id="ratingStars">
+      <button type="button" onclick="setRating(1)">☆</button>
+      <button type="button" onclick="setRating(2)">☆</button>
+      <button type="button" onclick="setRating(3)">☆</button>
+      <button type="button" onclick="setRating(4)">☆</button>
+      <button type="button" onclick="setRating(5)">☆</button>
+    </div>
+
+    <div id="ratingText" class="rating-text">
+      별점을 눌러주세요
+    </div>
+  </div>
   </div>
 `;
 
@@ -6270,18 +6558,16 @@ function makeCourseFeature(route){
   );
 }
 
-
-function makeRouteInfoCard(route, courseNumber, cardClass){
+  function makeRouteInfoCard(route, courseNumber, cardClass){
   if(!route){
     return `
-      <div class="compare-mini ${cardClass}">
-        <div class="compare-head">
-          <b>${courseNumber}코스</b>
+      <div class="compare-mini route-info-card ${cardClass}">
+        <div class="compact-course-title">
+          ${courseNumber}코스
         </div>
 
-        <div class="compare-row2">
-          <span>경로 정보</span>
-          <b>경로 없음</b>
+        <div class="compact-empty">
+          경로 정보가 없습니다.
         </div>
       </div>
     `;
@@ -6290,43 +6576,40 @@ function makeRouteInfoCard(route, courseNumber, cardClass){
   return `
     <div class="compare-mini route-info-card ${cardClass}">
 
-      <div class="compare-head">
+      <div class="compact-course-head">
         <b>${courseNumber}코스</b>
+
+        <strong>
+          ${route.distanceKm}km
+          <span>·</span>
+          ${route.durationMin}분
+        </strong>
       </div>
 
-      <div class="route-basic-grid">
-        <div>
-          <span>거리</span>
-          <b>${route.distanceKm}km</b>
+      <div class="compact-route-row">
+        <span>주요도로</span>
+
+        <div class="route-road-list">
+          ${getRouteRoadHtml(route)}
+        </div>
+      </div>
+
+      <div class="compact-double-grid">
+
+        <div class="compact-info-box">
+          <span>사고이력</span>
+          <b>${getAccidentHistoryText(route)}</b>
         </div>
 
-        <div>
-          <span>예상시간</span>
-          <b>${route.durationMin}분</b>
+        <div class="compact-info-box">
+          <span>주의도로</span>
+          <b>${getDifficultRoadText(route)}</b>
         </div>
+
       </div>
 
-   <div class="route-info-row">
-  <span class="route-info-label">
-    주요 통과도로
-  </span>
-
-  <div class="route-road-list">
-    ${getRouteRoadHtml(route)}
-  </div>
-</div>
-      <div class="route-info-row">
-        <span class="route-info-label">사고이력 구간</span>
-        <b>${getAccidentHistoryText(route)}</b>
-      </div>
-
-      <div class="route-info-row">
-        <span class="route-info-label">운전 난이도 높은 도로</span>
-        <b>${getDifficultRoadText(route)}</b>
-      </div>
-
-      <div class="course-feature-box">
-        <span>코스 특징</span>
+      <div class="compact-feature">
+        <span>특징</span>
         <p>${makeCourseFeature(route)}</p>
       </div>
 
