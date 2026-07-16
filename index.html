@@ -3477,6 +3477,330 @@ body.route-analysis-mode
   justify-content:center !important;
   box-sizing:border-box !important;
 }
+  /* ===== 홈 화면 2026 리디자인 ===== */
+
+/* 홈 배경 */
+body:not(.route-active):not(.route-analysis-mode)
+.panel{
+  padding:12px 14px 96px;
+  background:
+    linear-gradient(
+      180deg,
+      #f7fafc 0%,
+      #ffffff 70%
+    );
+}
+
+/* 메인 배너 */
+.hero-banner{
+  height:280px !important;
+  border-radius:24px !important;
+  box-shadow:
+    0 14px 30px rgba(15,23,42,.13) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,23,42,.04) 0%,
+      rgba(15,23,42,.22) 38%,
+      rgba(8,29,48,.92) 100%
+    ),
+    url("성산.png")
+    center 58% / cover no-repeat !important;
+}
+
+/* 배너 문구 */
+.hero-text{
+  left:22px !important;
+  right:22px !important;
+  bottom:20px !important;
+}
+
+.hero-title{
+  font-size:26px !important;
+  line-height:1.25 !important;
+  letter-spacing:-1px !important;
+}
+
+.hero-sub{
+  margin-top:10px !important;
+  font-size:14px !important;
+  line-height:1.55 !important;
+  color:rgba(255,255,255,.92) !important;
+}
+
+/* 배너 하단 기능 */
+.hero-feature-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
+  margin-top:18px;
+  padding-top:15px;
+  border-top:
+    1px solid rgba(255,255,255,.24);
+}
+
+.hero-feature{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-width:0;
+  color:#fff;
+  font-size:10.5px;
+  font-weight:750;
+  line-height:1.35;
+  text-align:left;
+}
+
+.hero-feature + .hero-feature{
+  border-left:
+    1px solid rgba(255,255,255,.22);
+}
+
+.hero-feature-icon{
+  width:29px;
+  height:29px;
+  min-width:29px;
+  border:
+    1px solid rgba(255,255,255,.56);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+
+/* 입력 카드 */
+.route-input-card{
+  margin:14px 0 0 !important;
+  padding:18px 15px 16px !important;
+  border-radius:24px !important;
+  border:1px solid #e8edf2;
+  box-shadow:
+    0 10px 26px rgba(15,23,42,.075) !important;
+}
+
+.route-input-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+  padding:0 4px;
+}
+
+.route-input-title{
+  color:#17202c;
+  font-size:17px;
+  font-weight:900;
+  letter-spacing:-.45px;
+}
+
+.route-input-sub{
+  margin-top:4px;
+  color:#8a94a2;
+  font-size:11.5px;
+  font-weight:650;
+}
+
+.field-label{
+  margin:0 0 7px 5px !important;
+  color:#374151 !important;
+  font-size:12.5px !important;
+  font-weight:850 !important;
+}
+
+/* 입력창 */
+.address-row{
+  height:54px !important;
+  margin-bottom:16px !important;
+  padding:0 9px 0 11px !important;
+  border-radius:18px !important;
+  border:1px solid #e3e8ef !important;
+  box-shadow:none !important;
+  background:#fbfcfd !important;
+}
+
+.address-row:focus-within{
+  border-color:#87cfc7 !important;
+  background:#fff !important;
+  box-shadow:
+    0 0 0 3px rgba(20,184,166,.09) !important;
+}
+
+.field-icon{
+  width:34px !important;
+  height:34px !important;
+  min-width:34px !important;
+  background:#edf9f7 !important;
+}
+
+.field-icon img{
+  width:17px !important;
+  height:17px !important;
+}
+
+.address-row input{
+  height:52px !important;
+  line-height:52px !important;
+  color:#253042 !important;
+  font-size:14px !important;
+  font-weight:750 !important;
+}
+
+.location-btn{
+  height:30px !important;
+  padding:0 10px !important;
+  background:#edf9f7 !important;
+  color:#188f83 !important;
+  font-size:10px !important;
+}
+
+.clear-btn,
+.mini-btn{
+  width:31px !important;
+  height:31px !important;
+  background:#fff !important;
+  border-color:#e7ebf0 !important;
+}
+
+/* 인기 관광지 */
+.popular-area{
+  margin-top:14px;
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #e8edf2;
+  box-shadow:
+    0 8px 22px rgba(15,23,42,.055);
+}
+
+.popular-head{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:12px;
+  color:#344050;
+  font-size:13.5px;
+  font-weight:900;
+}
+
+.popular-pin{
+  color:#159d90;
+  font-size:17px;
+}
+
+.popular-chip-list{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding-bottom:3px;
+  scrollbar-width:none;
+}
+
+.popular-chip-list::-webkit-scrollbar{
+  display:none;
+}
+
+.popular-chip{
+  flex:0 0 auto;
+  height:38px;
+  padding:0 14px;
+  border:1px solid #e1e6eb;
+  border-radius:14px;
+  background:#fafbfc;
+  color:#4b5563;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+.popular-chip.active{
+  border-color:#55bdb2;
+  background:#edf9f7;
+  color:#147e74;
+}
+
+/* 분석 버튼 */
+.analyze-btn{
+  width:100% !important;
+  height:58px !important;
+  margin:14px 0 0 !important;
+  border-radius:20px !important;
+  background:
+    linear-gradient(
+      135deg,
+      #0f9f91,
+      #18b9aa
+    ) !important;
+  box-shadow:
+    0 12px 24px rgba(15,159,145,.22) !important;
+}
+
+.analyze-main{
+  font-size:16px !important;
+  letter-spacing:-.35px;
+}
+
+/* 하단 안내 */
+.home-guide-note{
+  min-height:auto !important;
+  margin-top:12px;
+  padding:14px 16px !important;
+  border-radius:18px;
+  background:transparent;
+  box-shadow:none;
+}
+
+.home-guide-note .epdo-icon{
+  width:34px !important;
+  height:34px !important;
+  opacity:.58;
+}
+
+.home-guide-note .epdo-title{
+  color:#475569;
+  font-size:13px;
+  font-weight:850;
+}
+
+.home-guide-note .epdo-desc2{
+  margin-top:4px;
+  color:#94a3b8;
+  font-size:10.5px;
+  line-height:1.5;
+}
+
+/* 작은 휴대전화 */
+@media(max-width:390px){
+
+  .hero-banner{
+    height:255px !important;
+  }
+
+  .hero-title{
+    font-size:23px !important;
+  }
+
+  .hero-feature{
+    gap:5px;
+    font-size:9.5px;
+  }
+
+  .hero-feature-icon{
+    width:26px;
+    height:26px;
+    min-width:26px;
+  }
+
+  .route-input-card{
+    padding-left:13px !important;
+    padding-right:13px !important;
+  }
+}
 </style>
 </head>
 
@@ -3595,16 +3919,43 @@ body.route-analysis-mode
 
 <div class="panel">
   <div class="hero-banner">
-    <div class="hero-text">
-      <div class="hero-title">안전한 제주 여행의 시작</div>
-      <div class="hero-sub">
-  출발지에서 목적지까지의 경로와<br>
-  주변 사고정보를 미리 확인하세요
-</div>
+  <div class="hero-text">
+    <div class="hero-title">제주 안전 경로 안내</div>
+
+    <div class="hero-sub">
+      출발지와 목적지를 입력하면<br>
+      주요 통과도로와 사고이력을 안내합니다.
+    </div>
+
+    <div class="hero-feature-row">
+      <div class="hero-feature">
+        <span class="hero-feature-icon">✓</span>
+        <span>사고이력<br>확인</span>
+      </div>
+
+      <div class="hero-feature">
+        <span class="hero-feature-icon">↝</span>
+        <span>주요도로<br>안내</span>
+      </div>
+
+      <div class="hero-feature">
+        <span class="hero-feature-icon">!</span>
+        <span>도로특성<br>확인</span>
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="input-card route-input-card">
+<div class="input-card route-input-card">
+
+  <div class="route-input-head">
+    <div>
+      <div class="route-input-title">이동 경로 입력</div>
+      <div class="route-input-sub">
+        출발지와 목적지를 선택해주세요.
+      </div>
+    </div>
+  </div>
 
   <div class="field-label">출발지</div>
 <div class="address-row start-row">
@@ -3671,27 +4022,25 @@ body.route-analysis-mode
 </div>
 <button class="analyze-btn" onclick="drawRoutes()">
   <div class="analyze-main">
-  출발 전 안전운전 안내
-</div>
+    안전경로 분석하기
+  </div>
 </button>
 
 <div id="info"></div>
 
-<div class="small">
+<div class="small home-guide-note">
 
   <img src="map-2.png" class="epdo-icon">
 
   <div>
-
     <div class="epdo-title">
-      출발 전 운전 경로 확인
+      출발 전 안전운전 정보를 확인하세요
     </div>
 
     <div class="epdo-desc2">
-      이동 경로의 주요 통과도로와 도로 특성,
-      주변 사고이력을 함께 안내합니다.
+      실제 길안내 경로는 교통상황과
+      내비게이션 설정에 따라 달라질 수 있습니다.
     </div>
-
   </div>
 
 </div>
@@ -7752,6 +8101,52 @@ customEndArea = getDestinationRegion(customEndName, "기타");
 
   document.getElementById("info").innerHTML =
     "목적지가 '" + data[0] + "'(으)로 설정되었습니다.";
+}
+  function selectPopularTourButton(
+  name,
+  lng,
+  lat
+){
+  customEnd = {
+    lng:Number(lng),
+    lat:Number(lat)
+  };
+
+  customEndName = name;
+
+  customEndArea =
+    getDestinationRegion(
+      customEndName,
+      "기타"
+    );
+
+  document
+    .getElementById("endInput")
+    .value = name;
+
+  document
+    .getElementById("endResults")
+    .innerHTML = "";
+
+  document
+    .getElementById("endResults")
+    .style.display = "none";
+
+  document
+    .querySelectorAll(".popular-chip")
+    .forEach(button => {
+      button.classList.toggle(
+        "active",
+        button.textContent.trim() === name
+      );
+    });
+
+  document
+    .getElementById("info")
+    .innerHTML =
+      "목적지가 '" +
+      name +
+      "'(으)로 설정되었습니다.";
 }
 function goHome(){
 
