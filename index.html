@@ -3801,6 +3801,281 @@ body:not(.route-active):not(.route-analysis-mode)
     padding-right:13px !important;
   }
 }
+  /* ==================================================
+   홈 화면 한 화면 압축형 최종 적용
+   반드시 CSS 가장 마지막에 배치
+================================================== */
+
+/* 홈 화면에서만 적용 */
+body:not(.route-active):not(.route-analysis-mode)
+.panel{
+  top:56px !important;
+  bottom:66px !important;
+  padding:8px 14px 12px !important;
+  box-sizing:border-box !important;
+  background:#f7f9fb !important;
+  overflow-y:auto !important;
+}
+
+/* 1. 상단 사진 높이 축소 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-banner{
+  height:190px !important;
+  min-height:190px !important;
+  border-radius:22px !important;
+  box-shadow:0 9px 22px rgba(15,23,42,.11) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,23,42,.04) 0%,
+      rgba(15,23,42,.24) 40%,
+      rgba(8,29,48,.90) 100%
+    ),
+    url("성산.png") center 58% / cover no-repeat !important;
+}
+
+/* 사진 안 문구 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-text{
+  left:18px !important;
+  right:18px !important;
+  bottom:15px !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.hero-title{
+  font-size:20px !important;
+  line-height:1.2 !important;
+  letter-spacing:-.65px !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.hero-sub{
+  margin-top:6px !important;
+  font-size:11.5px !important;
+  line-height:1.4 !important;
+}
+
+/* 배너 아래 기능 3칸 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-feature-row{
+  margin-top:11px !important;
+  padding-top:10px !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.hero-feature{
+  gap:5px !important;
+  font-size:9px !important;
+  line-height:1.25 !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.hero-feature-icon{
+  width:24px !important;
+  height:24px !important;
+  min-width:24px !important;
+  font-size:11px !important;
+}
+
+/* 2. 입력 카드 압축 */
+body:not(.route-active):not(.route-analysis-mode)
+.route-input-card{
+  margin:8px 0 0 !important;
+  padding:13px 13px 14px !important;
+  border-radius:20px !important;
+  border:1px solid #e6eaf0 !important;
+  box-shadow:0 8px 20px rgba(15,23,42,.07) !important;
+}
+
+/* 이동 경로 입력 제목 */
+body:not(.route-active):not(.route-analysis-mode)
+.route-input-head{
+  margin-bottom:11px !important;
+  padding:0 3px !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.route-input-title{
+  font-size:14.5px !important;
+  letter-spacing:-.3px !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.route-input-sub{
+  margin-top:2px !important;
+  font-size:9.5px !important;
+}
+
+/* 출발지·목적지 라벨 */
+body:not(.route-active):not(.route-analysis-mode)
+.field-label{
+  margin:0 0 5px 4px !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+}
+
+/* 출발지·목적지 입력칸 */
+body:not(.route-active):not(.route-analysis-mode)
+.address-row{
+  height:44px !important;
+  margin-bottom:10px !important;
+  padding:0 7px 0 9px !important;
+  gap:5px !important;
+  border-radius:14px !important;
+  background:#fbfcfd !important;
+}
+
+/* 출발·목적지와 추천관광지 높이를 같게 */
+body:not(.route-active):not(.route-analysis-mode)
+.address-row input{
+  height:42px !important;
+  line-height:42px !important;
+  font-size:12px !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.field-icon{
+  width:28px !important;
+  height:28px !important;
+  min-width:28px !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.field-icon img{
+  width:15px !important;
+  height:15px !important;
+}
+
+/* 현재 위치 사용 */
+body:not(.route-active):not(.route-analysis-mode)
+.location-btn{
+  height:25px !important;
+  padding:0 8px !important;
+  font-size:8.5px !important;
+}
+
+/* 삭제·검색 버튼 */
+body:not(.route-active):not(.route-analysis-mode)
+.clear-btn,
+body:not(.route-active):not(.route-analysis-mode)
+.mini-btn{
+  width:27px !important;
+  height:27px !important;
+  min-width:27px !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.clear-btn img,
+body:not(.route-active):not(.route-analysis-mode)
+.mini-btn img{
+  width:14px !important;
+  height:14px !important;
+}
+
+/* 3. 추천 관광지는 기존 select 유지 */
+body:not(.route-active):not(.route-analysis-mode)
+.popular-title{
+  margin:0 3px 7px !important;
+  gap:7px !important;
+  font-size:10.5px !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.popular-select{
+  height:44px !important;
+  padding:0 34px 0 13px !important;
+  border-radius:14px !important;
+  font-size:12px !important;
+  box-shadow:none !important;
+  background-color:#fbfcfd !important;
+}
+
+/* 4. 분석 버튼 */
+body:not(.route-active):not(.route-analysis-mode)
+.analyze-btn{
+  width:100% !important;
+  height:54px !important;
+  margin:9px 0 0 !important;
+  border-radius:17px !important;
+  background:
+    linear-gradient(
+      135deg,
+      #15978d 0%,
+      #45b8ad 100%
+    ) !important;
+  box-shadow:0 9px 19px rgba(21,151,141,.20) !important;
+}
+
+body:not(.route-active):not(.route-analysis-mode)
+.analyze-main{
+  font-size:15px !important;
+  font-weight:900 !important;
+}
+
+/* 버튼 화살표는 시안처럼 오른쪽 방향 */
+body:not(.route-active):not(.route-analysis-mode)
+.analyze-main::after{
+  content:"  ›" !important;
+  font-size:21px !important;
+  vertical-align:-2px !important;
+}
+
+/* 5. 하단 설명은 홈에서 숨겨 한 화면 확보 */
+body:not(.route-active):not(.route-analysis-mode)
+.home-guide-note{
+  display:none !important;
+}
+
+/* 검색 결과가 나타날 때는 정상적으로 아래로 스크롤 */
+#startResults,
+#endResults{
+  position:relative;
+  z-index:20;
+}
+
+/* 세로가 짧은 휴대전화 추가 압축 */
+@media(max-height:720px){
+
+  body:not(.route-active):not(.route-analysis-mode)
+  .hero-banner{
+    height:170px !important;
+    min-height:170px !important;
+  }
+
+  body:not(.route-active):not(.route-analysis-mode)
+  .hero-title{
+    font-size:18px !important;
+  }
+
+  body:not(.route-active):not(.route-analysis-mode)
+  .hero-feature-row{
+    margin-top:8px !important;
+    padding-top:8px !important;
+  }
+
+  body:not(.route-active):not(.route-analysis-mode)
+  .route-input-card{
+    padding-top:11px !important;
+    padding-bottom:12px !important;
+  }
+
+  body:not(.route-active):not(.route-analysis-mode)
+  .route-input-head{
+    margin-bottom:8px !important;
+  }
+
+  body:not(.route-active):not(.route-analysis-mode)
+  .address-row{
+    margin-bottom:8px !important;
+  }
+
+  body:not(.route-active):not(.route-analysis-mode)
+  .analyze-btn{
+    height:50px !important;
+  }
+}
 </style>
 </head>
 
