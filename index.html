@@ -4007,13 +4007,13 @@ function makeRouteCacheKey(){
   const endLat = Number(lastEnd.lat).toFixed(3);
   const endLng = Number(lastEnd.lng).toFixed(3);
 
-  return [
-    "jejuSafeRoute",
-    startLat,
-    startLng,
-    endLat,
-    endLng
-  ].join("_");
+return [
+  "jejuSafeRouteV2",
+  startLat,
+  startLng,
+  endLat,
+  endLng
+].join("_");
 }
 
 function saveSuccessfulRouteCache(routeSummaries, tips){
@@ -4030,13 +4030,31 @@ function saveSuccessfulRouteCache(routeSummaries, tips){
       endName:lastEnd?.name || "",
       startArea:customStartArea || "기타",
       endArea:customEndArea || "기타",
-      routes:routeSummaries.slice(0, 2).map((route, index) => ({
-        course:index + 1,
-        distanceKm:route.distanceKm,
-        durationMin:route.durationMin,
-        totalCount:route.risk.totalCount,
-        totalEpdo:route.risk.totalEpdo
-      })),
+routes:routeSummaries.slice(0, 2).map((route, index) => {
+  const accident =
+    route.accidentAnalysis || {};
+
+  return {
+    course:index + 1,
+
+    distanceKm:route.distanceKm,
+    durationMin:route.durationMin,
+
+    deathCount:
+      accident.deathCount || 0,
+
+    seriousCount:
+      accident.seriousCount || 0,
+
+    difficultRoads:
+      getDifficultRoadNames(route),
+
+    roadNames:
+      Array.isArray(route.roadNames)
+        ? route.roadNames.map(road => road.name)
+        : []
+  };
+}),
       tips:Array.isArray(tips) ? tips.slice(0, 3) : []
     };
 
@@ -4128,8 +4146,45 @@ function makeNavigationButtonsHtml(){
 }
 
 function buildCachedFallbackHtml(cache){
-  const routeCards = cache.routes.map(route => `
-    <div class="compare-mini ${route.course === 1 ? "recommend" : "alt"}">
+const routeCards = cache.routes.map(route => {
+
+  let accidentText =
+    "중상 이상 사고이력 없음";
+
+  if((route.deathCount || 0) > 0){
+    accidentText =
+      "사망 " +
+      route.deathCount +
+      "건 · 중상 이상 " +
+      (route.seriousCount || 0) +
+      "건";
+
+  }else if((route.seriousCount || 0) > 0){
+    accidentText =
+      "중상 이상 사고이력 " +
+      route.seriousCount +
+      "건";
+  }
+
+  const roadText =
+    Array.isArray(route.roadNames) &&
+    route.roadNames.length > 0
+      ? route.roadNames.join(" · ")
+      : "일반도로 중심 경로";
+
+  const difficultRoadText =
+    Array.isArray(route.difficultRoads) &&
+    route.difficultRoads.length > 0
+      ? route.difficultRoads.join(" · ")
+      : "없음";
+
+  return `
+    <div class="compare-mini ${
+      route.course === 1
+        ? "recommend"
+        : "alt"
+    }">
+
       <div class="compare-head">
         <b>${route.course}코스</b>
       </div>
@@ -4145,16 +4200,23 @@ function buildCachedFallbackHtml(cache){
       </div>
 
       <div class="compare-row2">
-        <span>경로 주변 사고이력</span>
-        <b>${route.totalCount}건</b>
+        <span>주요 통과도로</span>
+        <b>${roadText}</b>
       </div>
 
       <div class="compare-row2">
-        <span>사고 심각도 합계</span>
-        <b>${route.totalEpdo}점</b>
+        <span>사고이력 구간</span>
+        <b>${accidentText}</b>
       </div>
+
+      <div class="compare-row2">
+        <span>운전 난이도 높은 도로</span>
+        <b>${difficultRoadText}</b>
+      </div>
+
     </div>
-  `).join("");
+  `;
+}).join("");
 
   const savedTime = new Date(cache.savedAt).toLocaleString("ko-KR");
 
