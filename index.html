@@ -23,879 +23,949 @@
 
 <style>
 /* ===== 기본 ===== */
-/*
-  Jeju Safe Map 정리 CSS
-  - 기존 디자인과 기능을 유지
-  - 같은 선택자에서 뒤쪽 CSS에 의해 완전히 덮이는 속성 제거
-  - 빈 CSS 블록과 누적된 중복 선언 정리
-  - 기존 <style>...</style> 내부를 이 파일 내용으로 교체
-*/
-
 html, body{
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  font-family: "Pretendard","SUIT","Noto Sans KR",Arial,sans-serif;
-  background: #fff;
-  overflow-x: hidden;
+  margin:0;
+  width:100%;
+  height:100%;
+  font-family:'Pretendard','SUIT','Noto Sans KR',Arial,sans-serif;
+  background:#fff;
+  overflow-x:hidden;
 }
 
 #map{
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100vh;
-  z-index: 1;
-  display: none;
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100vh;
+  z-index:1;
+  display:none;
 }
 
 body.route-active #map{
-  display: block;
+  display:block;
 }
-
 body.route-analysis-mode #map{
-  display: block;
+  display:block;
 }
-
 #map::after{
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(
     circle at center,
     rgba(255,255,255,0) 38%,
     rgba(255,255,255,.22) 62%,
     rgba(255,255,255,.70) 100%
   );
-  pointer-events: none;
-  z-index: 400;
+  pointer-events:none;
+  z-index:400;
 }
 
 .leaflet-tile-pane{
-  filter: brightness(1.12) saturate(.82) contrast(.92);
+  filter:brightness(1.12) saturate(.82) contrast(.92);
 }
 
+/* ===== 상단바 ===== */
 .app-topbar{
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:64px;
+  z-index:10000;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 18px;
+  box-sizing:border-box;
 }
-
+ 
 .app-topbar .brand{
-  display: flex;
-  align-items: center;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#0f9f91;
+  font-size:17px;
+  font-weight:900;
 }
 
+.app-topbar .brand img{
+  width:18px;
+  height:18px;
+  object-fit:contain;
+}
+
+/* ===== 메인 패널 ===== */
 .panel{
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9999;
-  border-radius: 0;
-  overflow-y: auto;
-  box-shadow: none;
+  position:fixed;
+  top:64px;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:9999;
+  background:#fff;
+  border-radius:0;
+  padding:10px 14px 92px;
+  overflow-y:auto;
+  box-shadow:none;
 }
 
 .drag-handle,
 .header-box{
-  display: none;
+  display:none;
 }
 
 .drag-handle{
-  width: 48px;
-  height: 5px;
-  border-radius: 999px;
-  background: #d9dee7;
-  opacity: .75;
-  margin: 0 auto 10px;
+  width:48px;
+  height:5px;
+  border-radius:999px;
+  background:#d9dee7;
+  opacity:.75;
+  margin:0 auto 10px;
 }
+
+/* ===== 지도/경로 라벨 ===== */
 
 .tour-label-marker,
 .route-label-marker{
-  background: transparent !important;
-  border: none !important;
+  background:transparent !important;
+  border:none !important;
 }
 
 .route-label{
-  padding: 6px 12px;
-  border-radius: 999px;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 900;
-  box-shadow: 0 4px 10px rgba(0,0,0,.18);
-  white-space: nowrap;
+  padding:6px 12px;
+  border-radius:999px;
+  color:#fff;
+  font-size:12px;
+  font-weight:900;
+  box-shadow:0 4px 10px rgba(0,0,0,.18);
+  white-space:nowrap;
 }
 
+.route-label-1{ background:#14b8a6; }
+.route-label-2{ background:#64748b; }
+
+/* ===== 경로 분석 후 화면 ===== */
 body.route-active .app-topbar,
 body.route-active .hero-banner,
 body.route-active .route-input-card,
 body.route-active .analyze-btn,
 body.route-active .small{
-  display: none;
+  display:none;
 }
 
 body.route-active .panel{
-  top: 44vh;
-  border-radius: 28px 28px 0 0;
-  background: #f8fafc;
-  padding: 12px 14px 135px;
-  overflow-y: auto;
-  box-shadow: 0 -10px 28px rgba(15,23,42,.08);
+  top:44vh;
+  border-radius:28px 28px 0 0;
+  background:#f8fafc;
+  padding:12px 14px 135px;
+  overflow-y:auto;
+  box-shadow:0 -10px 28px rgba(15,23,42,.08);
 }
 
 body.route-active .drag-handle{
-  display: block;
+  display:block;
 }
 
 body.route-active .bottom-nav{
-  display: grid;
+  display:grid;
 }
 
 .routePath{
-  display: block;
-  margin: 4px 4px 12px;
-  font-size: 15px;
-  font-weight: 900;
-  color: #64748b;
+  display:block;
+  margin:4px 4px 12px;
+  font-size:15px;
+  font-weight:900;
+  color:#64748b;
 }
 
 .routePath .arrow{
-  color: #14b8a6;
-  margin: 0 6px;
+  color:#14b8a6;
+  margin:0 6px;
 }
 
 .result-hero-card,
 .compare-detail-new,
 .info-split-col{
-  background: #fff;
-  border-radius: 22px;
-  box-shadow: 0 8px 24px rgba(15,23,42,.07);
-  border: 1px solid #edf2f7;
+  background:#fff;
+  border-radius:22px;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
 }
 
 .result-hero-card{
-  padding: 14px;
+  padding:14px;
 }
 
 .result-main-grid{
-  display: grid;
-  grid-template-columns: 1.3fr .85fr .85fr;
-  align-items: center;
-  gap: 10px;
+  display:grid;
+  grid-template-columns:1.3fr .85fr .85fr;
+  align-items:center;
+  gap:10px;
 }
 
 .result-course{
-  display: flex;
-  gap: 12px;
-  align-items: center;
+  display:flex;
+  gap:12px;
+  align-items:center;
 }
 
 .result-shield{
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #e8f8f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 17px;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#e8f8f5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17px;
 }
 
 .result-title{
-  font-size: 18px;
-  font-weight: 700;
-  color: #0f766e;
-  letter-spacing: -0.5px;
+  font-size:18px;
+  font-weight:700;
+  color:#0f766e;
+  letter-spacing:-0.5px;
 }
 
 .result-sub{
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 750;
-  color: #334155;
-  line-height: 1.45;
+  margin-top:8px;
+  font-size:12px;
+  font-weight:750;
+  color:#334155;
+  line-height:1.45;
 }
 
 .result-sub b{
-  display: block;
-  margin-top: 3px;
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f766e;
+  display:block;
+  margin-top:3px;
+  font-size:15px;
+  font-weight:700;
+  color:#0f766e;
 }
 
 .result-metric{
-  text-align: center;
-  border-left: 1px solid #e5e7eb;
+  text-align:center;
+  border-left:1px solid #e5e7eb;
 }
 
 .result-metric-icon{
-  width: 34px;
-  height: 34px;
-  margin: 0 auto 7px;
-  border-radius: 50%;
-  background: #e8f8f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 17px;
+  width:34px;
+  height:34px;
+  margin:0 auto 7px;
+  border-radius:50%;
+  background:#e8f8f5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17px;
 }
 
 .result-metric span{
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 800;
+  font-size:12px;
+  color:#64748b;
+  font-weight:800;
 }
 
 .result-metric b{
-  display: block;
-  margin-top: 4px;
-  font-size: 16px;
-  color: #0f172a;
-  font-weight: 700;
+  display:block;
+  margin-top:4px;
+  font-size:16px;
+  color:#0f172a;
+  font-weight:700;
 }
 
+/* ===== 네비 버튼 ===== */
 .navi-grid{
-  display: grid;
-  grid-template-columns: repeat(3,minmax(0,1fr));
-  gap: 10px;
-  width: 100%;
-  margin-top: 14px;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  width:100%;
+  margin-top:14px;
 }
 
 .navi-grid.final-navi{
-  margin: 12px 0;
+  margin:12px 0;
+  gap:9px;
 }
 
 .navi-btn{
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 6px;
+  height:56px;
+  border:0;
+  border-radius:18px;
+  background:#fff;
+  color:#0f172a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0 6px;
+  box-shadow:0 8px 20px rgba(15,23,42,.08);
 }
 
 .nav-icon{
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 17px;
-  font-weight: 900;
-  color: #fff;
+  width:32px;
+  height:32px;
+  min-width:32px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17px;
+  font-weight:900;
+  color:#fff;
 }
 
-.naver{
-  background: #03c75a;
-}
-
-.tmap{
-  background: #2f80ff;
-}
-
-.kakao{
-  background: #ffd43b;
-  color: #111;
-}
+.naver{ background:#03c75a; }
+.tmap{ background:#2f80ff; }
+.kakao{ background:#ffd43b; color:#111; }
 
 .nav-text{
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 0;
-  line-height: 1.1;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  min-width:0;
+  line-height:1.1;
 }
 
 .nav-text b{
-  font-size: 12px;
-  font-weight: 900;
-  white-space: nowrap;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
 }
 
 .nav-text small{
-  font-size: 10px;
-  color: #6b7280;
+  font-size:10px;
+  color:#6b7280;
 }
 
+/* ===== AI 추천 이유 / 안전팁 ===== */
+
 .info-split-col{
-  border-radius: 20px;
-  padding: 16px;
+  border-radius:20px;
+  padding:16px;
 }
 
 .info-split-col h3{
-  margin: 0 0 10px;
-  font-size: 17px;
-  font-weight: 900;
-  line-height: 1.35;
+  margin:0 0 10px;
+  font-size:17px;
+  font-weight:900;
+  line-height:1.35;
 }
 
 .info-split-col.ai h3{
-  color: #0f766e;
+  color:#0f766e;
+}
+
+.info-split-col.tip h3{
+  color:#ea7800;
 }
 
 .info-split-col p{
-  margin: 7px 0;
-  font-size: 13.5px;
-  font-weight: 700;
-  line-height: 1.55;
-  color: #334155;
+  margin:7px 0;
+  font-size:13.5px;
+  font-weight:700;
+  line-height:1.55;
+  color:#334155;
 }
 
+/* ===== 경로 상세 비교 ===== */
+
+
 .compare-detail-new summary{
-  cursor: pointer;
-  list-style: none;
-  font-size: 16px;
-  font-weight: 700;
-  color: #0f172a;
+  cursor:pointer;
+  list-style:none;
+  font-size:16px;
+  font-weight:700;
+  color:#0f172a;
 }
 
 .compare-detail-new summary::-webkit-details-marker{
-  display: none;
+  display:none;
 }
 
 .compare-mini.recommend{
-  border-color: #7dd3c7;
-  background: #f3fffd;
+  border-color:#7dd3c7;
+  background:#f3fffd;
 }
 
 .compare-head{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  font-weight: 950;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+  font-weight:950;
 }
 
 .compare-head b{
-  font-size: 18px;
+  font-size:18px;
 }
 
 .compare-tag{
-  padding: 4px 9px;
-  border-radius: 8px;
-  background: #14b8a6;
-  color: #fff;
-  font-size: 12px;
+  padding:4px 9px;
+  border-radius:8px;
+  background:#14b8a6;
+  color:#fff;
+  font-size:12px;
 }
 
 .compare-mini.alt .compare-tag{
-  background: #8b8f97;
+  background:#8b8f97;
 }
 
 .compare-row2{
-  display: flex;
-  justify-content: space-between;
-  border-top: 1px solid #edf2f7;
-  font-size: 12.5px;
-  color: #475569;
+  display:flex;
+  justify-content:space-between;
+  padding:7px 0;
+  border-top:1px solid #edf2f7;
+  font-size:12.5px;
+  color:#475569;
 }
 
 .compare-row2 b{
-  color: #0f172a;
+  color:#0f172a;
+  font-size:14px;
 }
 
 .compare-mini.recommend .compare-row2 b{
-  color: #0f766e;
+  color:#0f766e;
 }
 
 .compare-mini.alt .risk-score b{
-  color: #e04f1a;
+  color:#e04f1a;
 }
 
+/* ===== 하단 메뉴 ===== */
 .bottom-nav{
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10001;
-  background: #fff;
-  display: grid;
-  grid-template-columns: repeat(4,1fr);
-  padding: 6px 8px 8px;
-  box-sizing: border-box;
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  height:68px;
+  z-index:10001;
+  background:#fff;
+  border-top:1px solid #eef2f7;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  padding:6px 8px 8px;
+  box-sizing:border-box;
 }
 
 .bottom-item{
-  border: 0;
-  background: transparent;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  color: #94a3b8;
-  font-family: "Pretendard","SUIT",sans-serif;
+  border:0;
+  background:transparent;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  color:#94a3b8;
+  font-family:'Pretendard','SUIT',sans-serif;
 }
 
 .bottom-item b{
-  font-weight: 800;
+  font-size:11px;
+  font-weight:800;
 }
 
 .bottom-item span{
-  display: none;
+  display:none;
+}
+
+.bottom-item img{
+  width:24px;
+  height:24px;
+  object-fit:contain;
+  opacity:.45;
 }
 
 .bottom-item.active{
-  color: #13a89a;
+  color:#13a89a;
 }
 
+.bottom-item.active img{
+  opacity:1;
+  filter:invert(51%) sepia(79%) saturate(523%) hue-rotate(131deg) brightness(88%) contrast(90%);
+}
+
+/* ===== 위험지도 페이지 ===== */
 body.risk-map-mode .app-topbar,
 body.risk-map-mode .hero-banner,
 body.risk-map-mode .route-input-card,
 body.risk-map-mode .analyze-btn,
 body.risk-map-mode .small,
 body.risk-map-mode .panel{
-  display: none;
+  display:none;
 }
 
 .risk-map-page{
-  display: none;
-  position: fixed;
-  inset: 64px 0 68px 0;
-  background: linear-gradient(180deg,#f8fffd 0%,#ffffff 55%);
-  z-index: 10000;
-  overflow-y: auto;
-  box-sizing: border-box;
+  display:none;
+  position:fixed;
+  inset:64px 0 68px 0;
+  background:linear-gradient(180deg,#f8fffd 0%,#ffffff 55%);
+  z-index:10000;
+  overflow-y:auto;
+  padding:18px 16px 32px;
+  box-sizing:border-box;
 }
 
 body.risk-map-mode .risk-map-page{
-  display: block;
+  display:block;
 }
 
 .risk-map-title{
-  font-size: 22px;
-  font-weight: 900;
-  color: #0f172a;
-  letter-spacing: -.8px;
+  font-size:22px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.8px;
 }
 
 .risk-map-sub{
-  margin-top: 6px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #64748b;
-  line-height: 1.45;
+  margin-top:6px;
+  font-size:12.5px;
+  font-weight:700;
+  color:#64748b;
+  line-height:1.45;
 }
 
+
+/* ===== 지도 팝업 ===== */
 .region-popup{
-  min-width: 190px;
-  font-family: "Pretendard","SUIT",sans-serif;
+  min-width:190px;
+  font-family:'Pretendard','SUIT',sans-serif;
 }
 
 .region-popup-title{
-  font-size: 16px;
-  font-weight: 900;
-  color: #0f172a;
-  margin-bottom: 7px;
+  font-size:16px;
+  font-weight:900;
+  color:#0f172a;
+  margin-bottom:7px;
 }
 
 .region-popup-level{
-  display: inline-block;
-  margin-bottom: 9px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #0f766e;
-  font-size: 12px;
-  font-weight: 900;
+  display:inline-block;
+  margin-bottom:9px;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#f1f5f9;
+  color:#0f766e;
+  font-size:12px;
+  font-weight:900;
 }
 
 .region-popup-text{
-  font-size: 13px;
-  line-height: 1.55;
-  color: #334155;
+  font-size:13px;
+  line-height:1.55;
+  color:#334155;
 }
 
+/* ===== 안내수칙 페이지 ===== */
 .safety-guide-page{
-  display: none;
-  position: fixed;
-  inset: 64px 0 68px 0;
-  background: #f8fcff;
-  z-index: 10000;
-  overflow-y: auto;
-  padding: 18px 14px 24px;
-  box-sizing: border-box;
+  display:none;
+  position:fixed;
+  inset:64px 0 68px 0;
+  background:#f8fcff;
+  z-index:10000;
+  overflow-y:auto;
+  padding:18px 14px 24px;
+  box-sizing:border-box;
 }
 
 body.safety-guide-mode .safety-guide-page{
-  display: block;
+  display:block;
 }
 
 body.safety-guide-mode .panel,
 body.safety-guide-mode .risk-map-page{
-  display: none;
+  display:none;
 }
 
 .safety-guide-card{
-  padding: 18px;
-  background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 10px 28px rgba(15,23,42,.08);
-  border: 1px solid #edf2f7;
+  padding:18px;
+  background:#fff;
+  border-radius:24px;
+  box-shadow:0 10px 28px rgba(15,23,42,.08);
+  border:1px solid #edf2f7;
 }
 
 .section-title,
 .rule-title{
-  font-size: 18px;
-  font-weight: 900;
-  color: #0f172a;
-  letter-spacing: -.5px;
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.5px;
 }
 
 .rule-title{
-  margin-top: 28px;
+  margin-top:28px;
 }
 
 .section-sub{
-  margin-top: 6px;
-  font-size: 13px;
-  font-weight: 650;
-  color: #64748b;
+  margin-top:6px;
+  font-size:13px;
+  font-weight:650;
+  color:#64748b;
 }
 
 .video-box{
-  margin-top: 16px;
-  border-radius: 18px;
-  overflow: hidden;
-  background: #e5e7eb;
+  margin-top:16px;
+  border-radius:18px;
+  overflow:hidden;
+  background:#e5e7eb;
 }
 
 .video-box video{
-  width: 100%;
-  display: block;
-  aspect-ratio: 16/9;
-  object-fit: cover;
+  width:100%;
+  display:block;
+  aspect-ratio:16/9;
+  object-fit:cover;
 }
 
-@media (max-width:420px){
+/* ===== 작은 화면 보정 ===== */
+@media(max-width:420px){
   .result-main-grid{
-    grid-template-columns: 1.35fr .8fr .8fr;
-    gap: 6px;
+    grid-template-columns:1.35fr .8fr .8fr;
+    gap:6px;
   }
 }
-
-.guide-image-card{
-  margin-top: 16px;
-  border-radius: 22px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 10px 28px rgba(15,23,42,.08);
-  border: 1px solid #edf2f7;
+  .guide-image-card{
+  margin-top:16px;
+  border-radius:22px;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(15,23,42,.08);
+  border:1px solid #edf2f7;
 }
 
 .guide-image-card img{
-  width: 100%;
-  display: block;
+  width:100%;
+  display:block;
 }
 
-.loading-card{
-  color: #0f766e;
-  font-size: 14px;
-  font-weight: 800;
+  .loading-card{
+  margin-top:12px;
+  padding:18px;
+  border-radius:20px;
+  background:#f0fbf9;
+  border:1px solid #cdeee8;
+  color:#0f766e;
+  font-size:14px;
+  font-weight:800;
 }
 
-#riskMiniMap{
-  width: 100%;
-  overflow: hidden;
+.loading-card p{
+  margin:6px 0 0;
+  color:#64748b;
+  font-size:12px;
+  font-weight:700;
+}
+  #riskMiniMap{
+  width:100%;
+  height:330px;
+  border-radius:24px;
+  overflow:hidden;
 }
 
 .risk-map-card{
-  margin-top: 18px;
-  background: #eaf7ff;
-  box-shadow: 0 12px 30px rgba(15,23,42,.10);
+  margin-top:18px;
+  padding:10px;
+  border-radius:28px;
+  background:#eaf7ff;
+  box-shadow:0 12px 30px rgba(15,23,42,.10);
 }
 
 .risk-map-legend{
-  margin-top: 10px;
-  border-radius: 18px;
-  background: #fff;
-  display: grid;
-  grid-template-columns: repeat(4,1fr);
-  font-weight: 900;
-  color: #334155;
-  text-align: center;
+  margin-top:10px;
+  padding:12px;
+  border-radius:18px;
+  background:#fff;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  font-size:11px;
+  font-weight:900;
+  color:#334155;
+  text-align:center;
 }
 
 .risk-map-legend small{
-  color: #64748b;
-  font-weight: 700;
+  font-size:9px;
+  color:#64748b;
+  font-weight:700;
 }
 
 .risk-dot{
-  display: block;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  margin: 0 auto 4px;
+  display:block;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  margin:0 auto 4px;
 }
 
-.risk-dot.high{
-  background: #ef4444;
-}
-
-.risk-dot.midhigh{
-  background: #f97316;
-}
-
-.risk-dot.mid{
-  background: #facc15;
-}
-
-.risk-dot.low{
-  background: #10b981;
-}
+.risk-dot.high{ background:#ef4444; }
+.risk-dot.midhigh{ background:#f97316; }
+.risk-dot.mid{ background:#facc15; }
+.risk-dot.low{ background:#10b981; }
 
 .risk-dashboard{
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  padding-bottom: 20px;
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  padding-bottom:20px;
 }
 
 .risk-info-card{
-  background: #fff;
-  border-radius: 22px;
-  padding: 16px;
-  box-shadow: 0 8px 22px rgba(15,23,42,.07);
-  border: 1px solid #edf2f7;
+  background:#fff;
+  border-radius:22px;
+  padding:16px;
+  box-shadow:0 8px 22px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
 }
 
 .risk-info-card h3{
-  margin: 0 0 12px;
-  font-size: 17px;
-  font-weight: 900;
-  color: #0f172a;
+  margin:0 0 12px;
+  font-size:17px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .risk-info-card p{
-  margin: 8px 0;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.45;
-  color: #334155;
+  margin:8px 0;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.45;
+  color:#334155;
 }
 
 .risk-question{
-  margin-bottom: 10px;
-  font-size: 13px;
-  font-weight: 900;
-  color: #0f172a;
+  margin-bottom:10px;
+  font-size:13px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .type-row{
-  display: grid;
-  grid-template-columns: 80px 1fr 44px;
-  align-items: center;
-  gap: 8px;
-  margin: 9px 0;
-  font-size: 12px;
-  font-weight: 800;
+  display:grid;
+  grid-template-columns:80px 1fr 44px;
+  align-items:center;
+  gap:8px;
+  margin:9px 0;
+  font-size:12px;
+  font-weight:800;
 }
 
 .type-row div{
-  height: 8px;
-  border-radius: 999px;
-  background: #edf2f7;
-  overflow: hidden;
+  height:8px;
+  border-radius:999px;
+  background:#edf2f7;
+  overflow:hidden;
 }
 
 .type-row i{
-  display: block;
-  height: 100%;
-  border-radius: 999px;
+  display:block;
+  height:100%;
+  border-radius:999px;
 }
 
 .type-row b{
-  font-size: 12px;
-  text-align: right;
+  font-size:12px;
+  text-align:right;
 }
 
 .stat-grid{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
 }
 
 .stat-grid div{
-  padding: 12px 4px;
-  border-radius: 18px;
-  background: #f8fafc;
-  text-align: center;
-  min-width: 0;
+  padding:12px 4px;
+  border-radius:18px;
+  background:#f8fafc;
+  text-align:center;
+  min-width:0;
 }
 
 .stat-grid b{
-  display: block;
-  color: #0f9f91;
-  font-size: 20px;
-  line-height: 1.1;
-  white-space: nowrap;
+  display:block;
+  color:#0f9f91;
+  font-size:20px;
+  line-height:1.1;
+  white-space:nowrap;
 }
 
 .stat-grid span{
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 800;
+  font-size:11px;
+  color:#64748b;
+  font-weight:800;
+}
+  .risk-score-guide{
+  margin-top:12px;
+  padding:24px;
+  border-radius:20px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  box-shadow:0 8px 22px rgba(15,23,42,.05);
 }
 
-.risk-score-guide{
-  margin-top: 12px;
-  border-radius: 20px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 8px 22px rgba(15,23,42,.05);
+  .epdo-desc{
+  margin:10px 2px 0;
+  padding:0 4px;
+  color:#64748b;
+  font-size:11.5px;
+  font-weight:750;
+  line-height:1.45;
+  text-align:left;
+  word-break:keep-all;
 }
-
-.epdo-desc{
-  margin: 10px 2px 0;
-  padding: 0 4px;
-  color: #64748b;
-  font-size: 11.5px;
-  font-weight: 750;
-  line-height: 1.45;
-  text-align: left;
-  word-break: keep-all;
-}
-
-.stat-grid.four{
-  grid-template-columns: repeat(4,1fr);
+  .stat-grid.four{
+  grid-template-columns:repeat(4,1fr);
 }
 
 .feature-list{
-  margin-top: 12px;
+  margin-top:12px;
 }
 
 .feature-list p{
-  margin: 7px 0;
-  font-size: 12.5px;
-  font-weight: 750;
-  color: #334155;
+  margin:7px 0;
+  font-size:12.5px;
+  font-weight:750;
+  color:#334155;
 }
-
-.compare-detail-new.always-open{
-  margin-top: 12px;
-  margin-bottom: 12px;
+  .compare-detail-new.always-open{
+  margin-top:12px;
+  margin-bottom:12px;
+  padding:16px;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
 }
 
 .compare-title{
-  font-weight: 900;
-  color: #0f172a;
+  margin-bottom:12px;
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .compare-cards{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:0;
+}
+
+.compare-mini{
+  border-radius:18px;
+  padding:14px 12px;
 }
 
 .risk-score-guide h3{
-  margin: 0 0 10px;
-  font-weight: 900;
-  color: #0f172a;
+  margin:0 0 10px;
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .risk-score-guide p{
-  color: #475569;
-  word-break: keep-all;
+  font-size:15px;
+  line-height:1.8;
+  color:#475569;
+  margin:12px 0;
+  word-break:keep-all;
 }
 
 .info-split-col.ai p{
-  font-size: 14px;
-  line-height: 1.65;
-  font-weight: 700;
-  color: #334155;
+  font-size:14px;
+  line-height:1.65;
+  font-weight:700;
+  color:#334155;
 }
 
 .info-split-col.ai b{
-  color: #0f766e;
-  font-weight: 900;
+  color:#0f766e;
+  font-weight:900;
 }
-
-.recommend-badge{
-  display: inline-block;
-  margin-left: 5px;
-  padding: 3px 7px;
-  border-radius: 999px;
-  background: #e8f8f5;
-  color: #0f766e;
-  font-size: 10px;
-  font-weight: 900;
-  vertical-align: middle;
+  .recommend-badge{
+  display:inline-block;
+  margin-left:5px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:#e8f8f5;
+  color:#0f766e;
+  font-size:10px;
+  font-weight:900;
+  vertical-align:middle;
 }
 
 .result-reason{
-  margin-top: 7px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+  margin-top:7px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
 }
 
 .reason-chip{
-  display: inline-block;
-  padding: 4px 7px;
-  border-radius: 999px;
-  background: #f1faf8;
-  color: #0f766e;
-  font-size: 10.5px;
-  font-weight: 900;
-  white-space: nowrap;
+  display:inline-block;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#f1faf8;
+  color:#0f766e;
+  font-size:10.5px;
+  font-weight:900;
+  white-space:nowrap;
 }
-
-.tip-list{
-  display: flex;
-  flex-direction: column;
+ 
+  .tip-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 
 .tip-item{
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1.45;
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  padding:10px 11px;
+  border-radius:15px;
+  background:#fff8ef;
+  color:#334155;
+  font-size:13px;
+  font-weight:750;
+  line-height:1.45;
 }
 
 .tip-item span{
-  font-size: 15px;
+  font-size:15px;
 }
-
-.feedback-card{
-  margin-top: 12px;
-  padding: 16px;
-  border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15,23,42,.07);
-  border: 1px solid #edf2f7;
-  text-align: center;
+  .feedback-card{
+  margin-top:12px;
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+  text-align:center;
 }
 
 .feedback-card h3{
-  margin: 0 0 6px;
-  font-size: 16px;
-  font-weight: 900;
-  color: #0f172a;
+  margin:0 0 6px;
+  font-size:16px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .feedback-card p{
-  margin: 0 0 12px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #64748b;
+  margin:0 0 12px;
+  font-size:12.5px;
+  font-weight:700;
+  color:#64748b;
 }
 
-.result-appear{
+  .result-appear{
   animation: resultAppear .42s ease-out both;
 }
 
@@ -909,1130 +979,1294 @@ body.safety-guide-mode .risk-map-page{
     transform:translateY(0);
   }
 }
-
-.tip-item div{
-  flex: 1;
-  font-weight: 750;
+  .tip-item div{
+  flex:1;
+  font-size:13px;
+  font-weight:750;
+  line-height:1.45;
 }
-
-.route-analysis-page{
-  display: none;
-  position: fixed;
-  top: 42vh;
-  left: 0;
-  right: 0;
-  bottom: 68px;
-  z-index: 10000;
-  overflow-y: auto;
-  box-sizing: border-box;
-  border-radius: 28px 28px 0 0;
-  background: #f8fafc;
-  box-shadow: 0 -10px 28px rgba(15,23,42,.10);
+ .route-analysis-page{
+  display:none;
+  position:fixed;
+  top:42vh;
+  left:0;
+  right:0;
+  bottom:68px;
+  z-index:10000;
+  overflow-y:auto;
+  padding:12px 14px 110px;
+  box-sizing:border-box;
+  border-radius:28px 28px 0 0;
+  background:#f8fafc;
+  box-shadow:0 -10px 28px rgba(15,23,42,.10);
 }
 
 body.route-analysis-mode .route-analysis-page{
-  display: block;
+  display:block;
 }
-
-body.route-analysis-mode .app-topbar{
-  display: none;
+  body.route-analysis-mode .app-topbar{
+  display:none;
 }
 
 body.route-analysis-mode .bottom-nav{
-  display: grid;
+  display:grid;
 }
 
 body.route-analysis-mode .panel,
 body.route-analysis-mode .risk-map-page,
 body.route-analysis-mode .safety-guide-page{
-  display: none;
+  display:none;
 }
 
 .route-analysis-empty{
-  margin-top: 40px;
-  padding: 22px 18px;
-  border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15,23,42,.07);
-  text-align: center;
+  margin-top:40px;
+  padding:22px 18px;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  text-align:center;
 }
 
 .route-analysis-empty h3{
-  margin: 0 0 8px;
-  font-size: 18px;
-  font-weight: 900;
-  color: #0f172a;
+  margin:0 0 8px;
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .route-analysis-empty p{
-  margin: 0 0 16px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #64748b;
-  line-height: 1.5;
+  margin:0 0 16px;
+  font-size:13px;
+  font-weight:700;
+  color:#64748b;
+  line-height:1.5;
 }
 
 .route-analysis-empty button{
-  height: 42px;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 14px;
-  background: #13a89a;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 900;
+  height:42px;
+  padding:0 18px;
+  border:0;
+  border-radius:14px;
+  background:#13a89a;
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
 }
 
-.admin-floating-btn{
-  display: none;
-  position: fixed;
-  right: 16px;
-  bottom: 82px;
-  z-index: 10002;
-  height: 42px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 999px;
-  background: #0f766e;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 900;
-  box-shadow: 0 10px 24px rgba(15,118,110,.28);
+  .admin-floating-btn{
+  display:none;
+  position:fixed;
+  right:16px;
+  bottom:82px;
+  z-index:10002;
+  height:42px;
+  padding:0 14px;
+  border:0;
+  border-radius:999px;
+  background:#0f766e;
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+  box-shadow:0 10px 24px rgba(15,118,110,.28);
 }
 
 body.admin-mode .admin-floating-btn{
-  display: block;
+  display:block;
 }
-
-.admin-stats-page{
-  display: none;
-  position: fixed;
-  inset: 64px 0 68px 0;
-  z-index: 10003;
-  background: #f8fafc;
-  overflow-y: auto;
-  padding: 18px 14px 28px;
-  box-sizing: border-box;
+  .admin-stats-page{
+  display:none;
+  position:fixed;
+  inset:64px 0 68px 0;
+  z-index:10003;
+  background:#f8fafc;
+  overflow-y:auto;
+  padding:18px 14px 28px;
+  box-sizing:border-box;
 }
 
 .admin-stats-page.active{
-  display: block;
+  display:block;
 }
 
 .admin-head{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
 }
 
 .admin-head h2{
-  margin: 0;
-  font-size: 22px;
-  font-weight: 900;
-  color: #0f172a;
+  margin:0;
+  font-size:22px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .admin-close{
-  border: 0;
-  border-radius: 999px;
-  background: #e2e8f0;
-  color: #334155;
-  height: 34px;
-  padding: 0 12px;
-  font-weight: 900;
+  border:0;
+  border-radius:999px;
+  background:#e2e8f0;
+  color:#334155;
+  height:34px;
+  padding:0 12px;
+  font-weight:900;
 }
 
 .admin-stat-grid{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
 }
 
 .admin-stat-card{
-  padding: 16px;
-  border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15,23,42,.07);
-  border: 1px solid #edf2f7;
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
 }
 
 .admin-stat-card span{
-  font-size: 12px;
-  font-weight: 800;
-  color: #64748b;
+  font-size:12px;
+  font-weight:800;
+  color:#64748b;
 }
 
 .admin-stat-card b{
-  display: block;
-  margin-top: 6px;
-  font-size: 24px;
-  font-weight: 900;
-  color: #0f766e;
+  display:block;
+  margin-top:6px;
+  font-size:24px;
+  font-weight:900;
+  color:#0f766e;
 }
 
 .admin-list-card{
-  margin-top: 12px;
-  padding: 16px;
-  border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15,23,42,.07);
-  border: 1px solid #edf2f7;
+  margin-top:12px;
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
 }
 
 .admin-list-card h3{
-  margin: 0 0 10px;
-  font-size: 17px;
-  font-weight: 900;
-  color: #0f172a;
+  margin:0 0 10px;
+  font-size:17px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .admin-list-card p{
-  margin: 8px 0;
-  font-size: 13px;
-  font-weight: 750;
-  color: #334155;
+  margin:8px 0;
+  font-size:13px;
+  font-weight:750;
+  color:#334155;
 }
-
-.rating-stars{
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-  margin-top: 12px;
+  .rating-stars{
+  display:flex;
+  justify-content:center;
+  gap:4px;
+  margin-top:12px;
 }
 
 .rating-stars button{
-  border: 0;
-  background: transparent;
-  color: #facc15;
-  font-size: 36px;
-  line-height: 1;
-  padding: 2px;
-  cursor: pointer;
+  border:0;
+  background:transparent;
+  color:#facc15;
+  font-size:36px;
+  line-height:1;
+  padding:2px;
+  cursor:pointer;
 }
 
 .rating-text{
-  margin-top: 8px;
-  font-size: 12.5px;
-  font-weight: 800;
-  color: #64748b;
+  margin-top:8px;
+  font-size:12.5px;
+  font-weight:800;
+  color:#64748b;
 }
 
 .ai-reason-box span{
-  padding: 5px 7px;
-  border-radius: 999px;
-  background: #f1faf8;
-  color: #0f766e;
-  font-size: 10px;
-  font-weight: 900;
-  white-space: nowrap;
+  padding:5px 7px;
+  border-radius:999px;
+  background:#f1faf8;
+  color:#0f766e;
+  font-size:10px;
+  font-weight:900;
+  white-space:nowrap;
 }
 
-.course-choice-box{
-  margin: 12px 0;
-  padding: 15px;
-  border-radius: 22px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15,23,42,.07);
-  border: 1px solid #edf2f7;
+  .course-choice-box{
+  margin:12px 0;
+  padding:15px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
 }
 
 .course-choice-box h3{
-  margin: 0 0 5px;
-  font-size: 16px;
-  font-weight: 900;
-  color: #0f172a;
+  margin:0 0 5px;
+  font-size:16px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .course-choice-box p{
-  margin: 0 0 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748b;
-  line-height: 1.45;
+  margin:0 0 12px;
+  font-size:12px;
+  font-weight:700;
+  color:#64748b;
+  line-height:1.45;
 }
 
 .course-choice-grid{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
 }
 
 .course-choice-btn{
-  border: 1px solid #e5e7eb;
-  border-radius: 17px;
-  background: #f8fafc;
-  padding: 12px 10px;
-  text-align: left;
+  border:1px solid #e5e7eb;
+  border-radius:17px;
+  background:#f8fafc;
+  padding:12px 10px;
+  text-align:left;
 }
 
 .course-choice-btn b{
-  display: block;
-  font-size: 14px;
-  font-weight: 900;
-  color: #0f172a;
+  display:block;
+  font-size:14px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .course-choice-btn span{
-  display: block;
-  margin-top: 5px;
-  font-size: 12px;
-  font-weight: 800;
-  color: #475569;
+  display:block;
+  margin-top:5px;
+  font-size:12px;
+  font-weight:800;
+  color:#475569;
 }
 
 .course-choice-btn small{
-  display: block;
-  margin-top: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #64748b;
+  display:block;
+  margin-top:4px;
+  font-size:11px;
+  font-weight:800;
+  color:#64748b;
 }
 
 .course-choice-btn.active{
-  border-color: #14b8a6;
-  background: #f0fdfa;
+  border-color:#14b8a6;
+  background:#f0fdfa;
 }
 
 .course-choice-btn.active b,
 .course-choice-btn.active small{
-  color: #0f766e;
+  color:#0f766e;
 }
+/* ===== 홈 화면 최종 정리 CSS ===== */
 
 body{
-  background: #f8fafc;
+  background:#f8fafc;
 }
 
+/* 상단바 */
 .app-topbar{
-  height: 56px;
-  background: #fff;
-  justify-content: center;
-  padding: 0 16px;
-  border-bottom: 1px solid #f1f5f9;
+  height:56px;
+  background:#fff;
+  justify-content:center;
+  padding:0 16px;
+  border-bottom:1px solid #f1f5f9;
 }
 
 .app-topbar::before{
-  position: absolute;
-  left: 18px;
-  font-size: 24px;
-  color: #0f172a;
+  content:"☰";
+  position:absolute;
+  left:18px;
+  font-size:24px;
+  color:#0f172a;
 }
 
 .app-topbar::after{
-  content: "";
+  content:"";
 }
 
 .app-topbar .brand{
-  position: static;
-  transform: none;
-  gap: 7px;
-  font-size: 18px;
-  font-weight: 900;
-  color: #0f9f91;
+  position:static;
+  transform:none;
+  gap:7px;
+  font-size:18px;
+  font-weight:900;
+  color:#0f9f91;
 }
 
 .app-topbar .brand img{
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  margin-right: 8px;
+    width:32px;
+    height:32px;
+    object-fit:contain;
+    margin-right:8px;
 }
 
+/* 홈 패널 */
 .panel{
-  top: 56px;
-  padding: 10px 16px 96px;
-  background: #f8fafc;
+  top:56px;
+  padding:10px 16px 96px;
+  background:#f8fafc;
 }
 
+/* 메인 이미지 */
 .hero-banner{
-  overflow: hidden;
+  height:205px;
+  border-radius:16px 16px 26px 26px;
+  overflow:hidden;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,23,42,.05) 0%,
+      rgba(15,23,42,.25) 42%,
+      rgba(15,23,42,.78) 100%
+    ),
+    url("성산.png") center 62%/cover no-repeat;
+  box-shadow:0 10px 22px rgba(15,23,42,.10);
 }
 
+/* 입력 카드 */
 .route-input-card{
-  background: #fff;
+   margin:8px 0 0;
+  padding:15px 14px 16px;
+  border-radius:0 0 26px 26px;
+  background:#fff;
+  box-shadow:0 12px 28px rgba(15,23,42,.10);
 }
 
 .field-label{
-  display: block;
+  display:block;
+  margin:0 0 7px 6px;
+  font-size:13px;
+  font-weight:600;
+  color:#475569;
 }
 
 .address-row{
-  display: flex;
-  align-items: center;
-  width: 100%;
-  box-sizing: border-box;
-  gap: 7px;
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:46px;
+  margin-bottom:13px;
+  padding:0 9px 0 10px;
+  box-sizing:border-box;
+  border-radius:16px;
+  border:1px solid #e8eef5;
+  background:#fff;
+  box-shadow:0 7px 16px rgba(15,23,42,.055);
+  gap:7px;
 }
 
 .field-icon{
-  border-radius: 50%;
-  color: #0f9f91;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 1;
+  width:31px;
+  height:31px;
+  min-width:31px;
+  border-radius:50%;
+  background:#e8f8f5;
+  color:#0f9f91;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  line-height:1;
 }
 
 .address-row input{
-  flex: 1;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
+  flex:1;
+  min-width:0;
+   height:46px;
+    line-height:46px;
+  padding:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  font-size:13.5px;
+ font-weight:600;
+    color:#64748b;
 }
 
 .address-row input::placeholder{
-  color: #9aa7b8;
+  color:#9aa7b8;
 }
 
 .location-btn{
-  flex: 0 0 auto;
-  border: 0;
-  border-radius: 999px;
-  font-weight: 900;
-  white-space: nowrap;
+  flex:0 0 auto;
+  height:26px;
+  padding:0 9px;
+  border:0;
+  border-radius:999px;
+  background:#e8f8f5;
+  color:#0f9f91;
+  font-size:9.5px;
+  font-weight:900;
+  white-space:nowrap;
 }
 
 .clear-btn,
 .mini-btn{
-  flex: 0 0 auto;
-  border: 1px solid #edf2f7;
-  border-radius: 50%;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  box-sizing: border-box;
+  flex:0 0 auto;
+  width:28px;
+    height:28px;
+  border:1px solid #edf2f7;
+  border-radius:50%;
+  background:#f8fafc;
+  color:#64748b;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  box-sizing:border-box;
 }
 
 .clear-btn{
-  font-size: 18px;
-  font-weight: 800;
+  font-size:18px;
+  font-weight:800;
 }
 
 .mini-btn{
-  font-size: 0;
-  color: transparent;
+  font-size:0;
+  color:transparent;
 }
 
 .mini-btn::before{
-  font-size: 17px;
-  color: #0f172a;
+  content:"🔍";
+  font-size:17px;
+  color:#0f172a;
 }
 
+/* 추천 관광지 */
 .popular-title{
-  margin: 2px 4px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 900;
-  color: #13a89a;
+  margin:2px 4px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:900;
+  color:#13a89a;
 }
 
 .popular-title::before,
 .popular-title::after{
-  content: "";
-  flex: 1;
-  height: 1px;
-  border-top: 1px dashed #d8e0e8;
+  content:"";
+  flex:1;
+  height:1px;
+  border-top:1px dashed #d8e0e8;
 }
 
 .popular-select{
-  width: 100%;
-  height: 44px;
-  padding: 0 38px 0 14px;
-  border: 1px solid #e8eef5;
-  border-radius: 16px;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  color: #0f172a;
-  box-shadow: 0 7px 16px rgba(15,23,42,.055);
-  appearance: none;
-  -webkit-appearance: none;
+  width:100%;
+  height:44px;
+  padding:0 38px 0 14px;
+  border:1px solid #e8eef5;
+  border-radius:16px;
+  background:#fff;
+  font-size:13px;
+  font-weight:600;
+  color:#0f172a;
+  box-shadow:0 7px 16px rgba(15,23,42,.055);
+  appearance:none;
+  -webkit-appearance:none;
 }
 
+/* 분석 버튼 */
 .analyze-btn{
-  border: 0;
-  color: #fff;
+  width:calc(100% - 20px);
+  height:52px;
+  margin:13px 10px 0;
+  border:0;
+  border-radius:18px;
+  background:linear-gradient(135deg,#0ea5a3,#19c6b4);
+  color:#fff;
+  box-shadow:0 12px 24px rgba(20,184,166,.26);
 }
 
 .analyze-main{
-  font-weight: 900;
-  color: #fff;
+  font-size:15px;
+  font-weight:900;
+  color:#fff;
 }
 
 .analyze-main::after{
-  content: "  ›";
-  font-size: 24px;
-  vertical-align: -2px;
+  content:"  ›";
+  font-size:24px;
+  vertical-align:-2px;
 }
 
+/* EPDO 카드 */
+
 .small{
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 86px;
-  padding: 20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  min-height:86px;
+  padding:20px;
 }
 
 .small::before,
 .small::after{
-  display: none;
+  display:none;
 }
 
+/* 하단 메뉴 */
 .bottom-nav{
-  height: 66px;
-  border-top: 1px solid #e5e7eb;
-  box-shadow: 0 -4px 18px rgba(15,23,42,.04);
+  height:66px;
+  border-top:1px solid #e5e7eb;
+  box-shadow:0 -4px 18px rgba(15,23,42,.04);
 }
 
 .bottom-item b{
-  font-size: 11px;
+  font-size:11px;
 }
 
+  /* 메인 이미지 문구 최종 위치 */
 .hero-banner{
-  position: relative !important;
+  position:relative !important;
 }
 
 .hero-text{
-  position: absolute !important;
-  z-index: 2 !important;
+  position:absolute !important;
+  left:18px !important;
+  right:18px !important;
+  bottom:20px !important;
+  z-index:2 !important;
 }
 
 .hero-title{
-  font-weight: 900 !important;
-  color: #fff !important;
-  text-align: left !important;
+  font-size:20px !important;
+  line-height:1.25 !important;
+  font-weight:900 !important;
+  color:#fff !important;
+  text-align:left !important;
 }
 
 .hero-sub{
-  text-align: left !important;
+  margin-top:7px !important;
+  font-size:12.5px !important;
+  line-height:1.5 !important;
+  color:#fff !important;
+  text-align:left !important;
 }
-
-.field-icon img{
-  display: block;
+  .field-icon img{
+  width:18px;
+  height:18px;
+  display:block;
 }
 
 .clear-btn img,
 .mini-btn img{
-  width: 17px;
-  height: 17px;
-  display: block;
+  width:17px;
+  height:17px;
+  display:block;
 }
 
+
 .location-btn{
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .mini-btn::before{
-  content: none !important;
+  content:none !important;
 }
-
-.epdo-icon{
-  width: 46px;
-  height: 46px;
+  .epdo-icon{
+    width:46px;
+    height:46px;
 }
 
 .epdo-title{
-  font-size: 20px;
-  font-weight: 800;
-  color: #111827;
+    font-size:20px;
+    font-weight:800;
+    color:#111827;
 }
 
 .epdo-desc2{
-  margin-top: 6px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #64748b;
+    margin-top:6px;
+    font-size:13px;
+    line-height:1.6;
+    color:#64748b;
 }
-
-.result-shield img{
-  width: 20px;
-  height: 20px;
+  .result-shield img{
+    width:20px;
+    height:20px;
 }
-
-.result-metric-icon img{
-  width: 18px;
-  height: 18px;
+  .result-metric-icon img{
+    width:18px;
+    height:18px;
 }
-
-.title-svg{
-  width: 18px;
-  height: 18px;
-  margin-right: 7px;
-  vertical-align: -3px;
+  .title-svg{
+    width:18px;
+    height:18px;
+    margin-right:7px;
+    vertical-align:-3px;
 }
 
 h3 .title-svg,
 .section-title .title-svg,
 .rule-title .title-svg,
 .compare-title .title-svg{
-  display: inline-block;
+    display:inline-block;
 }
-
-.tip-icon{
-  width: 18px;
-  height: 18px;
-  display: block;
-  margin-top: 1px;
-  flex-shrink: 0;
+ .tip-icon{
+    width:18px;
+    height:18px;
+    display:block;
+    margin-top:1px;
+    flex-shrink:0;
 }
 
 .tip-item span{
-  width: 20px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-}
+    width:20px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+} 
+  /* ===== 결과화면 2026 스타일 ===== */
 
 .result-hero-card.new-result{
-  padding: 18px;
-  border-radius: 26px;
-  background: linear-gradient(180deg,#ffffff 0%,#f0fdfa 100%);
-  margin-bottom: 18px;
+  padding:18px;
+  border-radius:26px;
+  background:linear-gradient(180deg,#ffffff 0%,#f0fdfa 100%);
+  margin-bottom:18px;
 }
-
 .course-choice-btn strong{
-  display: block;
-  margin-top: 6px;
-  font-size: 22px;
-  font-weight: 950;
-  color: #0f172a;
+  display:block;
+  margin-top:6px;
+  font-size:22px;
+  font-weight:950;
+  color:#0f172a;
 }
 
 .route-analysis-page{
-  padding-top: 14px;
+  padding-top:14px;
 }
 
 .analysis-main-card{
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15,23,42,.07);
-  border: 1px solid #edf2f7;
-  margin-bottom: 12px;
+  background:#fff;
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
+  border:1px solid #edf2f7;
+  margin-bottom:12px;
 }
 
 .analysis-main-card h3{
-  font-weight: 950;
-  color: #0f172a;
+  margin:0 0 8px;
+  font-size:17px;
+  font-weight:950;
+  color:#0f172a;
 }
 
+.analysis-link-btn{
+width:100%;
+height:56px;
+border:0;
+border-radius:20px;
+background:linear-gradient(135deg,#0f766e,#14b8a6);
+color:#fff;
+font-size:17px;
+font-weight:900;
+letter-spacing:-0.3px;
+box-shadow:0 10px 24px rgba(20,184,166,.18);
+}
+ 
 .ai-summary-text .force-break{
-  display: block;
+  display:block;
 }
 
 .detail-analysis-btn{
-  width: 100%;
-  height: 58px;
-  border: 0;
-  border-radius: 22px;
-  background: linear-gradient(135deg,#0f8f80,#14b8a6);
-  color: white;
-  font-size: 18px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  box-shadow: 0 14px 28px rgba(20,184,166,.22);
+  width:100%;
+  height:58px;
+  border:0;
+  border-radius:22px;
+  background:linear-gradient(135deg,#0f8f80,#14b8a6);
+  color:white;
+  font-size:18px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  box-shadow:0 14px 28px rgba(20,184,166,.22);
 }
 
 .detail-analysis-btn::after{
-  content: "›";
-  font-size: 30px;
-  line-height: 1;
-  margin-left: 6px;
+  content:"›";
+  font-size:30px;
+  line-height:1;
+  margin-left:6px;
 }
-
-.analysis-point{
-  display: flex;
-  align-items: flex-start;
-  border-bottom: 1px solid #edf2f7;
+ .analysis-point{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid #edf2f7;
 }
 
 .analysis-point:last-child{
-  border-bottom: none;
+  border-bottom:none;
 }
 
 .analysis-icon{
-  border-radius: 50%;
-  background: #eefcf9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width:38px;
+  height:38px;
+  min-width:38px;
+  border-radius:50%;
+  background:#eefcf9;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.analysis-icon img{
+  width:20px;
+  height:20px;
 }
 
 .analysis-text{
-  flex: 1;
+  flex:1;
 }
 
 .analysis-text b{
-  display: block;
-  font-weight: 900;
-  color: #0f8f80;
+  display:block;
+  margin-bottom:5px;
+  font-size:16px;
+  font-weight:900;
+  color:#0f8f80;
 }
 
 .analysis-text span{
-  font-weight: 750;
-  color: #334155;
+  font-size:15px;
+  line-height:1.6;
+  font-weight:750;
+  color:#334155;
 }
-
-.analysis-text strong{
-  color: #0f8f80;
-  font-weight: 950;
+  .analysis-text strong{
+  color:#0f8f80;
+  font-weight:950;
 }
-
+  /* AI 안전 브리핑 위 간격 줄이기 */
 .ai-briefing-card,
 .ai-briefing{
-  margin-top: 0 !important;
-  padding: 18px 20px 16px !important;
+  margin-top:0 !important;
+  padding:18px 20px 16px !important;
 }
 
+/* AI 안전 브리핑 카드 높이 줄이기 */
 .ai-briefing-row{
-  padding: 8px 0 !important;
-  gap: 10px !important;
+  padding:8px 0 !important;
+  gap:10px !important;
 }
 
 .ai-briefing-row .icon,
 .ai-briefing-icon{
-  width: 44px !important;
-  height: 44px !important;
-  font-size: 20px !important;
+  width:44px !important;
+  height:44px !important;
+  font-size:20px !important;
 }
 
 .ai-briefing-label{
-  font-size: 16px !important;
-  margin-bottom: 4px !important;
+  font-size:16px !important;
+  margin-bottom:4px !important;
 }
 
 .ai-briefing-text{
-  font-size: 16px !important;
-  line-height: 1.35 !important;
+  font-size:16px !important;
+  line-height:1.35 !important;
 }
-
+  /* 로딩 박스 세련되게 */
 .loading-steps{
-  display: flex;
-  flex-direction: column;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:18px;
 }
 
 .step-spinner{
-  border-radius: 50%;
-  border: 2px solid rgba(20,184,166,.22);
-  animation: spin .8s linear infinite;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  border:2px solid rgba(20,184,166,.22);
+  border-top-color:#14b8a6;
+  animation:spin .8s linear infinite;
 }
 
 @keyframes spin{
   to{ transform:rotate(360deg); }
 }
-
-.loading-step.done{
-  border: 1px solid #d9f5ee;
+  .loading-step.done{
+    color:#0f766e;
+    background:#ffffff;
+    border:1px solid #d9f5ee;
 }
 
 .loading-step.done .step-spinner{
-  display: none;
+    display:none;
 }
 
 .loading-step.done .step-dot{
-  display: block;
-}
-
-.analysis-link-btn{
-  margin: 10px 0 12px !important;
-  width: 100% !important;
-  height: 48px !important;
-  border: 1px solid #cdeee8 !important;
-  border-radius: 18px !important;
-  background: #ffffff !important;
-  color: #0f766e !important;
-  font-size: 15px !important;
-  font-weight: 900 !important;
-  letter-spacing: -0.3px !important;
-  box-shadow: 0 6px 16px rgba(15,23,42,.045) !important;
-}
-
-.loading-card{
-  margin-top: 10px !important;
-}
-
-.loading-card p{
-  margin-top: 5px !important;
-}
-
-.loading-step{
-  gap: 9px !important;
-}
-
-.step-spinner{
-  border-width: 2px !important;
-}
-
-.loading-card b{
-  display: block;
-  font-weight: 900 !important;
-}
-
-.loading-card p{
-  margin: 6px 0 0 !important;
-  font-weight: 700 !important;
-}
-
-.loading-step{
-  display: flex !important;
-  align-items: center !important;
+    display:block;
 }
 
 .step-dot{
-  display: none;
-  border-radius: 50%;
+    display:none;
+}
+  /* 경로 상세 분석 버튼 - 연한 iOS 스타일 */
+.analysis-link-btn{
+  margin:10px 0 12px !important;
+  width:100% !important;
+  height:48px !important;
+  border:1px solid #cdeee8 !important;
+  border-radius:18px !important;
+  background:#ffffff !important;
+  color:#0f766e !important;
+  font-size:15px !important;
+  font-weight:900 !important;
+  letter-spacing:-0.3px !important;
+  box-shadow:0 6px 16px rgba(15,23,42,.045) !important;
 }
 
+/* 로딩 카드 전체 축소 */
+.loading-card{
+  margin-top:10px !important;
+  padding:15px 16px !important;
+  border-radius:20px !important;
+}
+
+.loading-card b{
+  font-size:15px !important;
+}
+
+.loading-card p{
+  font-size:12px !important;
+  margin-top:5px !important;
+}
+
+/* 로딩 스텝 칸 줄이기 */
+.loading-steps{
+  margin-top:12px !important;
+  gap:7px !important;
+}
+
+.loading-step{
+  height:38px !important;
+  padding:0 13px !important;
+  border-radius:14px !important;
+  gap:9px !important;
+  font-size:13.5px !important;
+  box-shadow:0 4px 12px rgba(15,23,42,.035) !important;
+}
+
+/* 스피너도 작게 */
+.step-spinner{
+  width:12px !important;
+  height:12px !important;
+  border-width:2px !important;
+}
+
+.step-dot{
+  width:9px !important;
+  height:9px !important;
+  box-shadow:0 0 0 4px rgba(20,184,166,.12) !important;
+}
+  /* ===== 깨진 부분 복구용 CSS ===== */
+
+/* 1. 로딩화면 복구 */
+.loading-card{
+  margin:12px 0 14px !important;
+  padding:18px 16px !important;
+  border-radius:22px !important;
+  background:#eefdf9 !important;
+  border:1px solid #c9f1e9 !important;
+}
+
+.loading-card b{
+  display:block;
+  font-size:15px !important;
+  font-weight:900 !important;
+  color:#00796f !important;
+}
+
+.loading-card p{
+  margin:6px 0 0 !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  color:#64748b !important;
+}
+
+.loading-step{
+  display:flex !important;
+  align-items:center !important;
+  height:42px !important;
+  padding:0 14px !important;
+  border-radius:16px !important;
+  background:#fff !important;
+  border:1px solid #d9f5ee !important;
+  color:#00796f !important;
+  font-size:13.5px !important;
+  font-weight:900 !important;
+}
+
+.step-dot{
+  display:none;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#14b8a6;
+}
+
+/* 2. AI 한줄요약 카드 복구 */
 .ai-mini-summary{
-  margin: 12px 0 12px;
-  padding: 16px 18px;
-  border-radius: 22px;
-  background: #fff;
-  border: 1px solid #edf2f7;
-  box-shadow: 0 8px 24px rgba(15,23,42,.07);
+  margin:12px 0 12px;
+  padding:16px 18px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #edf2f7;
+  box-shadow:0 8px 24px rgba(15,23,42,.07);
 }
 
 .ai-mini-summary h3{
-  margin: 0 0 10px;
-  font-size: 16px;
-  font-weight: 900;
-  color: #0f172a;
+  margin:0 0 10px;
+  font-size:16px;
+  font-weight:900;
+  color:#0f172a;
 }
 
 .ai-mini-summary p{
-  margin: 0;
-  font-size: 14.5px;
-  font-weight: 750;
-  line-height: 1.55;
-  color: #334155;
+  margin:0;
+  font-size:14.5px;
+  font-weight:750;
+  line-height:1.55;
+  color:#334155;
 }
 
 .ai-mini-summary b{
-  color: #0f766e;
-  font-weight: 950;
+  color:#0f766e;
+  font-weight:950;
 }
 
+/* 3. AI 안전브리핑 칸 축소 */
 .analysis-main-card{
-  padding: 15px 17px !important;
-  border-radius: 22px !important;
+  padding:15px 17px !important;
+  border-radius:22px !important;
 }
 
 .analysis-main-card h3{
-  margin: 0 0 8px !important;
-  font-size: 18px !important;
+  margin:0 0 8px !important;
+  font-size:18px !important;
 }
 
 .analysis-point{
-  padding: 8px 0 !important;
-  gap: 10px !important;
+  padding:8px 0 !important;
+  gap:10px !important;
 }
 
 .analysis-icon{
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
 }
 
 .analysis-icon img{
-  width: 18px !important;
-  height: 18px !important;
+  width:18px !important;
+  height:18px !important;
 }
 
 .analysis-text b{
-  margin-bottom: 3px !important;
-  font-size: 15px !important;
+  margin-bottom:3px !important;
+  font-size:15px !important;
 }
 
 .analysis-text span{
-  font-size: 14px !important;
-  line-height: 1.45 !important;
+  font-size:14px !important;
+  line-height:1.45 !important;
 }
+  /* ===== 햄버거 사이드 메뉴 ===== */
 
 .app-topbar::before{
-  content: none !important;
+  content:none !important;
 }
 
 .menu-btn{
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 38px;
-  height: 38px;
-  border: 0;
-  background: transparent;
-  font-size: 27px;
-  font-weight: 800;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position:absolute;
+  left:16px;
+  top:50%;
+  transform:translateY(-50%);
+  width:38px;
+  height:38px;
+  border:0;
+  background:transparent;
+  font-size:27px;
+  font-weight:800;
+  color:#0f172a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .menu-backdrop{
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 20000;
-  background: rgba(15,23,42,.35);
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:20000;
+  background:rgba(15,23,42,.35);
 }
 
 .menu-backdrop.active{
-  display: block;
+  display:block;
 }
 
 .side-menu{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 82%;
-  max-width: 340px;
-  height: 100vh;
-  z-index: 20001;
-  background: #fff;
-  transform: translateX(-105%);
-  transition: .25s ease;
-  padding: 22px 18px;
-  box-sizing: border-box;
-  box-shadow: 18px 0 38px rgba(15,23,42,.18);
+  position:fixed;
+  top:0;
+  left:0;
+  width:82%;
+  max-width:340px;
+  height:100vh;
+  z-index:20001;
+  background:#fff;
+  transform:translateX(-105%);
+  transition:.25s ease;
+  padding:22px 18px;
+  box-sizing:border-box;
+  box-shadow:18px 0 38px rgba(15,23,42,.18);
 }
 
 .side-menu.active{
-  transform: translateX(0);
+  transform:translateX(0);
 }
 
 .side-menu-head{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
 }
 
 .side-menu-title{
-  font-size: 19px;
-  font-weight: 950;
-  color: #0f172a;
+  font-size:19px;
+  font-weight:950;
+  color:#0f172a;
 }
 
 .side-close{
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 50%;
-  background: #f1f5f9;
-  font-size: 22px;
-  color: #0f172a;
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:#f1f5f9;
+  font-size:22px;
+  color:#0f172a;
 }
 
 .side-menu-list{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 
 .side-menu-item{
-  width: 100%;
-  border: 1px solid #edf2f7;
-  background: #fff;
-  border-radius: 20px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  text-align: left;
-  box-shadow: 0 8px 22px rgba(15,23,42,.06);
+  width:100%;
+  border:1px solid #edf2f7;
+  background:#fff;
+  border-radius:20px;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  text-align:left;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
 }
 
 .side-menu-main{
-  display: flex;
-  gap: 12px;
-  align-items: center;
+  display:flex;
+  gap:12px;
+  align-items:center;
 }
 
 .side-menu-icon{
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #e8f8f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:#e8f8f5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
 }
 
 .side-menu-text b{
-  display: block;
-  font-size: 16px;
-  font-weight: 950;
-  color: #0f172a;
+  display:block;
+  font-size:16px;
+  font-weight:950;
+  color:#0f172a;
 }
 
 .side-menu-text span{
-  display: block;
-  margin-top: 4px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #64748b;
+  display:block;
+  margin-top:4px;
+  font-size:12.5px;
+  font-weight:700;
+  color:#64748b;
 }
 
 .side-arrow{
-  font-size: 24px;
-  font-weight: 900;
-  color: #94a3b8;
+  font-size:24px;
+  font-weight:900;
+  color:#94a3b8;
 }
-
-.menu-popup{
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 30000;
-  background: rgba(15,23,42,.38);
-  box-sizing: border-box;
+  .menu-popup{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:30000;
+  background:rgba(15,23,42,.38);
+  padding:72px 14px 86px;
+  box-sizing:border-box;
 }
 
 .menu-popup.active{
-  display: block;
+  display:block;
 }
 
 .menu-popup-card{
-  background: #fff;
-  overflow: hidden;
-  box-shadow: 0 20px 50px rgba(15,23,42,.25);
-  display: flex;
-  flex-direction: column;
+  height:100%;
+  background:#fff;
+  border-radius:26px;
+  overflow:hidden;
+  box-shadow:0 20px 50px rgba(15,23,42,.25);
+  display:flex;
+  flex-direction:column;
 }
 
 .menu-popup-head{
-  height: 58px;
-  padding: 0 16px;
-  border-bottom: 1px solid #eef2f7;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 18px;
-  font-weight: 950;
-  color: #0f172a;
+  height:58px;
+  padding:0 16px;
+  border-bottom:1px solid #eef2f7;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:18px;
+  font-weight:950;
+  color:#0f172a;
 }
 
 .menu-popup-head button{
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 50%;
-  background: #f1f5f9;
-  font-size: 22px;
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:#f1f5f9;
+  font-size:22px;
 }
 
 .menu-popup-content{
-  flex: 1;
-  overflow-y: auto;
-  background: #f8fafc;
+  flex:1;
+  overflow-y:auto;
+  padding:16px;
+  background:#f8fafc;
 }
-
-#riskMiniMapPopup{
-  width: 100%;
-  overflow: hidden;
+  #riskMiniMapPopup{
+  width:100%;
+  height:330px;
+  border-radius:24px;
+  overflow:hidden;
 }
-
 .side-menu-icon img{
-  width: 23px;
-  height: 23px;
-  object-fit: contain;
-  display: block;
+  width:23px;
+  height:23px;
+  object-fit:contain;
+  display:block;
 }
-
-.menu-btn img{
-  width: 24px;
-  height: 24px;
+  .menu-btn img{
+    width:24px;
+    height:24px;
 }
-
-.side-arrow img{
-  width: 18px;
-  height: 18px;
-  opacity: .55;
+  .side-arrow img{
+    width:18px;
+    height:18px;
+    opacity:.55;
 }
-
-.route-analysis-empty button{
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  .route-analysis-empty button{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
 }
 
 .route-analysis-empty button img{
-  width: 18px;
-  height: 18px;
+    width:18px;
+    height:18px;
 }
-
-.empty-icon{
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 18px;
-  display: block;
-  opacity: .9;
+  .empty-icon{
+    width:56px;
+    height:56px;
+    margin:0 auto 18px;
+    display:block;
+    opacity:.9;
 }
-
-.bottom-item img{
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  opacity: .45;
-  transition: .2s;
+  .bottom-item img{
+    width:22px;
+    height:22px;
+    object-fit:contain;
+    opacity:.45;
+    transition:.2s;
 }
 
 .bottom-item.active img{
-  opacity: 1;
-  filter: invert(51%) sepia(79%) saturate(523%)
+    opacity:1;
+    filter:invert(51%) sepia(79%) saturate(523%)
            hue-rotate(131deg) brightness(88%) contrast(90%);
 }
+  /* ===== 메뉴 팝업 글자 정리 ===== */
 
 .menu-popup-content .risk-info-card,
 .menu-popup-content .risk-score-guide{
-  padding: 18px 20px !important;
-  border-radius: 22px !important;
+  padding:18px 20px !important;
+  border-radius:22px !important;
 }
 
 .menu-popup-content h3{
-  margin: 0 0 12px !important;
-  font-size: 18px !important;
-  font-weight: 900 !important;
-  color: #0f172a !important;
-  letter-spacing: -0.4px !important;
+  margin:0 0 12px !important;
+  font-size:18px !important;
+  font-weight:900 !important;
+  color:#0f172a !important;
+  letter-spacing:-0.4px !important;
 }
 
 .menu-popup-content p{
-  margin: 8px 0 !important;
-  font-size: 14px !important;
-  font-weight: 650 !important;
-  line-height: 1.65 !important;
-  color: #475569 !important;
-  word-break: keep-all !important;
+  margin:8px 0 !important;
+  font-size:14px !important;
+  font-weight:650 !important;
+  line-height:1.65 !important;
+  color:#475569 !important;
+  word-break:keep-all !important;
 }
 
 .menu-popup-content p b{
-  font-weight: 900 !important;
-  color: #334155 !important;
+  font-weight:900 !important;
+  color:#334155 !important;
 }
 
 .menu-popup-content .risk-score-guide{
-  background: #fff !important;
-  border: 1px solid #edf2f7 !important;
+  background:#fff !important;
+  border:1px solid #edf2f7 !important;
 }
 
 .menu-popup-content .risk-score-guide p{
-  font-size: 14px !important;
+  font-size:14px !important;
 }
+/* ===== 배포 전 최종 디자인 정리 ===== */
 
+/* 공통 카드 */
 .result-hero-card,
 .ai-mini-summary,
 .course-choice-box,
@@ -2042,157 +2276,197 @@ h3 .title-svg,
 .risk-score-guide,
 .feedback-card,
 .risk-info-card{
-  background: #fff !important;
-  border-radius: 22px !important;
-  border: 1px solid #edf2f7 !important;
-  box-shadow: 0 8px 22px rgba(15,23,42,.06) !important;
+  background:#fff !important;
+  border-radius:22px !important;
+  border:1px solid #edf2f7 !important;
+  box-shadow:0 8px 22px rgba(15,23,42,.06) !important;
 }
 
+/* 경로분석 페이지 여백 */
 .route-analysis-page{
-  padding: 14px 14px 110px !important;
+  padding:14px 14px 110px !important;
 }
 
+/* 위험점수 안내 흰색 카드 */
 .risk-score-guide{
-  background: #fff !important;
-  padding: 18px !important;
+  background:#fff !important;
+  padding:18px !important;
 }
 
 .risk-score-guide h3{
-  font-size: 17px !important;
-  margin-bottom: 12px !important;
+  font-size:17px !important;
+  margin-bottom:12px !important;
 }
 
 .risk-score-guide p{
-  font-size: 13.5px !important;
-  line-height: 1.65 !important;
-  margin: 10px 0 !important;
+  font-size:13.5px !important;
+  line-height:1.65 !important;
+  margin:10px 0 !important;
+}
+
+/* 경로 상세 비교 카드 */
+.compare-detail-new.always-open{
+  padding:16px !important;
+  margin:12px 0 !important;
+}
+
+.compare-title{
+  font-size:17px !important;
+  margin-bottom:12px !important;
 }
 
 .compare-mini{
-  padding: 12px 10px !important;
-  border-radius: 18px !important;
+  padding:12px 10px !important;
+  border-radius:18px !important;
 }
 
 .compare-row2{
-  padding: 6px 0 !important;
+  padding:6px 0 !important;
 }
 
 .compare-row2 span{
-  font-size: 12.5px !important;
+  font-size:12.5px !important;
 }
 
 .compare-row2 b{
-  font-size: 13.5px !important;
+  font-size:13.5px !important;
 }
 
+/* 대안경로 대비 문구 */
 .risk-compare-note{
-  margin-top: 12px !important;
-  padding-top: 8px !important;
-  border-top: 1px solid #dcefed !important;
-  text-align: center !important;
-  font-size: 12px !important;
-  line-height: 1.35 !important;
-  font-weight: 800 !important;
-  color: #0f766e !important;
-  word-break: keep-all !important;
+  margin-top:12px !important;
+  padding-top:8px !important;
+  border-top:1px solid #dcefed !important;
+  text-align:center !important;
+  font-size:12px !important;
+  line-height:1.35 !important;
+  font-weight:800 !important;
+  color:#0f766e !important;
+  word-break:keep-all !important;
 }
 
 .risk-compare-note b{
-  display: block;
-  margin-top: 2px;
-  font-size: 13px;
-  font-weight: 950;
+  display:block;
+  margin-top:2px;
+  font-size:13px;
+  font-weight:950;
 }
 
+/* 위험지도 팝업 축소 */
 .menu-popup{
-  padding: 78px 14px 96px !important;
+  padding:78px 14px 96px !important;
 }
 
 .menu-popup-card{
-  height: 78vh !important;
-  border-radius: 24px !important;
+  height:78vh !important;
+  border-radius:24px !important;
 }
 
 .menu-popup-content{
-  padding: 14px !important;
+  padding:14px !important;
 }
 
 #riskMiniMapPopup{
-  height: 260px !important;
-  border-radius: 20px !important;
+  height:260px !important;
+  border-radius:20px !important;
 }
 
+/* 위험지도 본페이지 */
 .risk-map-page{
-  padding: 18px 14px 110px !important;
+  padding:18px 14px 110px !important;
 }
 
 #riskMiniMap{
-  height: 285px !important;
-  border-radius: 22px !important;
+  height:285px !important;
+  border-radius:22px !important;
 }
 
 .risk-map-card{
-  padding: 8px !important;
-  border-radius: 24px !important;
+  padding:8px !important;
+  border-radius:24px !important;
 }
 
 .risk-map-legend{
-  padding: 10px 6px !important;
-  gap: 4px !important;
-  font-size: 10px !important;
+  padding:10px 6px !important;
+  gap:4px !important;
+  font-size:10px !important;
 }
 
 .risk-map-legend small{
-  font-size: 8.5px !important;
+  font-size:8.5px !important;
+}
+  /* ===== 경로 결과화면 별점 카드 ===== */
+.result-feedback-card{
+  margin:12px 0 !important;
+  padding:15px 14px !important;
 }
 
 .result-feedback-card h3{
-  margin: 0 0 5px !important;
+  margin:0 0 5px !important;
+  font-size:16px !important;
 }
 
 .result-feedback-card p{
-  margin: 0 0 8px !important;
+  margin:0 0 8px !important;
 }
 
 .result-feedback-card .rating-stars{
-  margin-top: 6px !important;
+  margin-top:6px !important;
 }
 
+.result-feedback-card .rating-stars button{
+  font-size:34px !important;
+}
+  /* 실제 로딩이 길어질 때만 표시 */
 .slow-loading-notice{
-  display: none;
-  margin-top: 10px !important;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: #fff8e8;
-  color: #a16207 !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  line-height: 1.5;
+  display:none;
+  margin-top:10px !important;
+  padding:10px 12px;
+  border-radius:14px;
+  background:#fff8e8;
+  color:#a16207 !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  line-height:1.5;
 }
 
 .slow-loading-notice.show{
-  display: block;
+  display:block;
+}
+  /* ===== 별점 제출 완료 ===== */
+.rating-complete{
+  padding:12px 6px;
+  text-align:center;
+  animation:ratingComplete .35s ease-out both;
 }
 
-.rating-complete{
-  padding: 12px 6px;
-  text-align: center;
-  animation: ratingComplete .35s ease-out both;
+.rating-complete-icon{
+  width:44px;
+  height:44px;
+  margin:0 auto 10px;
+  border-radius:50%;
+  background:#e8f8f5;
+  color:#0f9f91;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:25px;
+  font-weight:900;
 }
 
 .rating-complete h3{
-  margin: 0 0 7px !important;
-  color: #0f766e !important;
-  font-size: 16px !important;
-  font-weight: 900 !important;
+  margin:0 0 7px !important;
+  color:#0f766e !important;
+  font-size:16px !important;
+  font-weight:900 !important;
 }
 
 .rating-complete p{
-  margin: 0 !important;
-  color: #64748b !important;
-  font-size: 12.5px !important;
-  font-weight: 700 !important;
-  line-height: 1.6 !important;
+  margin:0 !important;
+  color:#64748b !important;
+  font-size:12.5px !important;
+  font-weight:700 !important;
+  line-height:1.6 !important;
 }
 
 @keyframes ratingComplete{
@@ -2205,38 +2479,114 @@ h3 .title-svg,
     transform:translateY(0);
   }
 }
-
+/* TMAP 안내 문구 */
+.tmap-note{
+  margin:-4px 0 12px;
+  text-align:center;
+  font-size:11px;
+  color:#94a3b8;
+  font-weight:600;
+  line-height:1.4;
+  word-break:keep-all;
+}
+  /* ===== 산간도로 주의 팝업 ===== */
 .mountain-road-popup{
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 40000;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:40000;
+  background:rgba(15,23,42,.48);
+  padding:0 18px;
+  box-sizing:border-box;
+  align-items:center;
+  justify-content:center;
 }
 
 .mountain-road-popup.active{
-  display: flex;
+  display:flex;
 }
 
 .mountain-road-card{
-  animation: mountainPopupAppear .28s ease-out both;
+  width:100%;
+  max-width:390px;
+  padding:22px 20px 18px;
+  border-radius:26px;
+  background:#fff;
+  box-shadow:0 24px 60px rgba(15,23,42,.28);
+  text-align:center;
+  animation:mountainPopupAppear .28s ease-out both;
 }
 
 .mountain-road-icon{
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width:54px;
+  height:54px;
+  margin:0 auto 13px;
+  border-radius:50%;
+  background:#fff4e5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.mountain-road-icon img{
+  width:27px;
+  height:27px;
+}
+
+.mountain-road-card h3{
+  margin:0;
+  color:#0f172a;
+  font-size:19px;
+  font-weight:900;
+  letter-spacing:-.4px;
+}
+
+.mountain-road-name{
+  display:inline-block;
+  margin-top:10px;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#fff4e5;
+  color:#c2410c;
+  font-size:12px;
+  font-weight:900;
 }
 
 .mountain-road-card p{
-  margin: 13px 0 0;
-  color: #475569;
-  font-size: 13.5px;
-  font-weight: 700;
-  line-height: 1.65;
-  word-break: keep-all;
+  margin:13px 0 0;
+  color:#475569;
+  font-size:13.5px;
+  font-weight:700;
+  line-height:1.65;
+  word-break:keep-all;
+}
+
+.mountain-road-list{
+  margin:14px 0 0;
+  padding:13px 14px;
+  border-radius:17px;
+  background:#f8fafc;
+  text-align:left;
+}
+
+.mountain-road-list div{
+  margin:6px 0;
+  color:#334155;
+  font-size:12.5px;
+  font-weight:750;
+  line-height:1.45;
+}
+
+.mountain-road-confirm{
+  width:100%;
+  height:48px;
+  margin-top:17px;
+  border:0;
+  border-radius:17px;
+  background:linear-gradient(135deg,#0f8f80,#14b8a6);
+  color:#fff;
+  font-size:15px;
+  font-weight:900;
 }
 
 @keyframes mountainPopupAppear{
@@ -2249,747 +2599,907 @@ h3 .title-svg,
     transform:translateY(0) scale(1);
   }
 }
+  /* ===== 기능 다이어트 후 경로분석 화면 ===== */
 
 .route-data-note{
-  word-break: keep-all;
-}
-
-.navi-section h3{
-  margin: 0 0 10px;
-  font-weight: 900;
-}
-
-.navi-section .navi-grid{
-  margin-top: 0;
-}
-
-body.route-analysis-mode .compare-head{
-  justify-content: flex-start;
-}
-
-body.route-analysis-mode .compare-head b{
-  font-size: 17px;
-}
-
-body.route-fallback-mode #map{
-  display: none !important;
-}
-
-body.route-fallback-mode .route-analysis-page{
-  top: 0 !important;
-  bottom: 68px !important;
-  border-radius: 0 !important;
-  padding: 18px 14px 105px !important;
-  background: #f8fafc;
-}
-
-body.route-fallback-mode .app-topbar{
-  display: none !important;
-}
-
-.fallback-notice-card{
-  padding: 18px;
-  margin-bottom: 12px;
-  border-radius: 22px;
-  background: #fff8e8;
-  border: 1px solid #fde7b0;
-  box-shadow: 0 8px 22px rgba(15,23,42,.06);
-}
-
-.fallback-notice-card h3{
-  margin: 0 0 8px;
-  color: #92400e;
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.fallback-notice-card p{
-  margin: 0;
-  color: #78613b;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.6;
-  word-break: keep-all;
-}
-
-.fallback-route-card{
-  padding: 17px;
-  margin-bottom: 12px;
-  border-radius: 22px;
-  background: #fff;
-  border: 1px solid #edf2f7;
-  box-shadow: 0 8px 22px rgba(15,23,42,.06);
-}
-
-.fallback-route-title{
-  margin-bottom: 13px;
-  font-size: 15px;
-  font-weight: 900;
-  color: #0f172a;
-}
-
-.fallback-region-grid{
-  display: grid;
-  grid-template-columns: 1fr 32px 1fr;
-  align-items: center;
-  gap: 7px;
-}
-
-.fallback-region-box{
-  min-width: 0;
-  padding: 13px 9px;
-  border-radius: 17px;
-  background: #f8fafc;
-  text-align: center;
-}
-
-.fallback-region-box span{
-  display: block;
-  margin-bottom: 5px;
-  color: #64748b;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.fallback-region-box b{
-  display: block;
-  color: #0f766e;
-  font-size: 14px;
-  font-weight: 900;
-  word-break: keep-all;
-}
-
-.fallback-region-arrow{
-  color: #14b8a6;
-  font-size: 21px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.fallback-info-card{
-  margin-bottom: 12px;
-  padding: 17px;
-  border-radius: 22px;
-  background: #fff;
-  border: 1px solid #edf2f7;
-  box-shadow: 0 8px 22px rgba(15,23,42,.06);
-}
-
-.fallback-info-card h3{
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 0 0 12px;
-  color: #0f172a;
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.fallback-info-item{
-  margin-top: 9px;
-  padding: 11px 12px;
-  border-radius: 15px;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1.55;
-  word-break: keep-all;
-}
-
-.fallback-cache-badge{
-  display: inline-block;
-  margin-bottom: 10px;
-  padding: 5px 9px;
-  border-radius: 999px;
-  background: #e8f8f5;
-  color: #0f766e;
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.fallback-cache-time{
-  margin-top: 10px;
-  color: #94a3b8;
-  font-size: 11px;
-  font-weight: 700;
-  text-align: right;
-}
-
-.fallback-retry-btn{
-  width: 100%;
-  height: 48px;
-  margin: 0 0 12px;
-  border: 1px solid #cdeee8;
-  border-radius: 17px;
-  background: #fff;
-  color: #0f766e;
-  font-size: 14px;
-  font-weight: 900;
-}
-
-.route-basic-grid{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 7px;
-}
-
-.route-basic-grid > div{
-  padding: 11px 12px;
-  border-radius: 14px;
-  background: #f8fafc;
-}
-
-.route-basic-grid span{
-  display: block;
-  margin-bottom: 5px;
-  color: #64748b;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.route-basic-grid b{
-  color: #0f172a;
-  font-size: 15px;
-  font-weight: 900;
-}
-
-.route-info-row{
-  padding: 11px 2px;
-  border-top: 1px solid #edf2f7;
-}
-
-.route-info-label{
-  display: block;
-  margin-bottom: 5px;
-  color: #64748b;
-  font-size: 11.5px;
-  font-weight: 800;
-}
-
-.route-info-row b{
-  display: block;
-  color: #0f172a;
-  font-size: 13.5px;
-  font-weight: 850;
-  line-height: 1.5;
-  word-break: keep-all;
-}
-
-.course-feature-box{
-  margin-top: 7px;
-  padding: 13px 14px;
-  border-radius: 16px;
-  background: #f8fafc;
-}
-
-.course-feature-box span{
-  display: block;
-  margin-bottom: 6px;
-  color: #0f766e;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.course-feature-box p{
-  margin: 0;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1.55;
-  word-break: keep-all;
-}
-
-.route-info-card.alt .course-feature-box span{
-  color: #b45309;
-}
-
-.route-road-list{
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.route-road-chip{
-  border-radius: 999px;
-  font-family: inherit;
-  font-weight: 900;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.route-road-info-icon{
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  font-family: Arial,sans-serif;
-}
-
-.route-road-arrow{
-  color: #94a3b8;
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.general-road-text{
-  color: #475569;
-  font-size: 13.5px;
-  font-weight: 850;
-}
-
-.loading-card{
-  margin: 10px 0 12px !important;
-  padding: 17px 16px !important;
-  border-radius: 20px !important;
-  background: #ffffff !important;
-  border: 1px solid #e5e9ef !important;
-  box-shadow: 0 8px 22px rgba(15,23,42,.055) !important;
-}
-
-.loading-card b{
-  color: #16202c !important;
-  font-size: 16px !important;
-  letter-spacing: -.35px;
-}
-
-.loading-card p{
-  color: #7a8594 !important;
-  font-size: 12.5px !important;
-}
-
-.loading-steps{
-  margin-top: 14px !important;
-  gap: 7px !important;
-}
-
-.loading-step{
-  height: 40px !important;
-  padding: 0 13px !important;
-  border-radius: 13px !important;
-  background: #f7f9fb !important;
-  border: 1px solid #edf0f3 !important;
-  color: #334155 !important;
-  font-size: 13px !important;
-  font-weight: 800 !important;
-  box-shadow: none !important;
-}
-
-.loading-step.done{
-  background: #f5faf9 !important;
-  border-color: #dceeea !important;
-  color: #176d64 !important;
-}
-
-.step-spinner{
-  width: 11px !important;
-  height: 11px !important;
-  border-color: #d5e4e2 !important;
-  border-top-color: #188f83 !important;
-}
-
-.step-dot{
-  width: 7px !important;
-  height: 7px !important;
-  background: #188f83 !important;
-  box-shadow: 0 0 0 3px rgba(24,143,131,.10) !important;
-}
-
-.compare-detail-new.always-open{
-  padding: 14px !important;
-  margin: 10px 0 !important;
-  border-radius: 20px !important;
-}
-
-.compare-title{
-  margin-bottom: 10px !important;
-  font-size: 16px !important;
-}
-
-.route-info-cards{
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 9px !important;
-}
-
-.route-info-card{
-  padding: 13px 13px 12px !important;
-  border-radius: 17px !important;
-  background: #fff !important;
-}
-
-body.route-analysis-mode .compare-mini.recommend{
-  border: 1px solid #d8e8e5 !important;
-  background: #fff !important;
-}
-
-body.route-analysis-mode .compare-mini.alt{
-  border: 1px solid #e2e7ec !important;
-  background: #fff !important;
-}
-
-.compact-course-head{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 9px;
-}
-
-.compact-course-head > b{
-  color: #16202c;
-  font-size: 17px;
-  font-weight: 900;
-}
-
-.compact-course-head > strong{
-  color: #176d64;
-  font-size: 15px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.compact-course-head > strong span{
-  margin: 0 3px;
-  color: #a0a8b3;
-}
-
-.compact-route-row{
-  padding: 9px 0;
-  border-top: 1px solid #edf0f3;
-}
-
-.compact-route-row > span{
-  display: block;
-  margin-bottom: 6px;
-  color: #7b8491;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.compact-double-grid{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 9px 0;
-  border-top: 1px solid #edf0f3;
-}
-
-.compact-info-box{
-  min-width: 0;
-}
-
-.compact-info-box > span{
-  display: block;
-  margin-bottom: 4px;
-  color: #7b8491;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.compact-info-box > b{
-  display: block;
-  color: #1f2937;
-  font-size: 12.5px;
-  font-weight: 850;
-  line-height: 1.4;
-  word-break: keep-all;
-}
-
-.compact-feature{
-  padding: 9px 11px;
-  border-radius: 12px;
-}
-
-.compact-feature > span{
-  display: block;
-  margin-bottom: 4px;
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.compact-feature > p{
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  margin: 0;
-  color: #475569;
-  font-size: 12.5px;
-  font-weight: 700;
-  line-height: 1.45;
-  word-break: keep-all;
-}
-
-.route-road-list{
-  gap: 5px !important;
-}
-
-.route-road-chip{
-  min-height: 27px !important;
-  padding: 4px 8px 4px 9px !important;
-  border-color: #d7e8e5 !important;
-  font-size: 11.5px !important;
-}
-
-.route-road-info-icon{
-  width: 14px !important;
-  height: 14px !important;
-  font-size: 9px !important;
-}
-
-.route-data-note{
-  margin-top: 9px !important;
-  padding-top: 8px !important;
+  margin-top:13px;
+  padding-top:11px;
+  border-top:1px solid #edf2f7;
+  color:#64748b;
+  font-size:11.5px;
+  font-weight:700;
+  line-height:1.55;
+  word-break:keep-all;
 }
 
 .navi-section{
-  margin: 10px 0 !important;
-  padding: 14px !important;
-  border-radius: 20px !important;
+  margin:12px 0;
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #edf2f7;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
 }
 
 .navi-section h3{
-  margin-bottom: 9px !important;
-  font-size: 15px !important;
+  margin:0 0 10px;
+  color:#0f172a;
+  font-size:16px;
+  font-weight:900;
 }
 
-.navi-grid.final-navi{
-  gap: 7px !important;
+.navi-section .navi-grid{
+  margin-top:0;
 }
 
-.navi-btn{
-  height: 50px !important;
-  border-radius: 15px !important;
+body.route-analysis-mode .compare-mini.recommend{
+  border:1px solid #99e2d8;
+  background:#f3fffd;
+}
+
+body.route-analysis-mode .compare-mini.alt{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+}
+
+body.route-analysis-mode .compare-head{
+  justify-content:flex-start;
+}
+
+body.route-analysis-mode .compare-head b{
+  font-size:17px;
 }
 
 body.route-analysis-mode .info-split-col.tip{
-  margin-top: 10px !important;
-  padding: 14px !important;
-  border-radius: 20px !important;
+  margin-top:12px;
+}
+  /* ===== ORS 실패 시 지도 없는 비상 안내 화면 ===== */
+
+body.route-fallback-mode #map{
+  display:none !important;
+}
+
+body.route-fallback-mode .route-analysis-page{
+  top:0 !important;
+  bottom:68px !important;
+  border-radius:0 !important;
+  padding:18px 14px 105px !important;
+  background:#f8fafc;
+}
+
+body.route-fallback-mode .app-topbar{
+  display:none !important;
+}
+
+.fallback-notice-card{
+  padding:18px;
+  margin-bottom:12px;
+  border-radius:22px;
+  background:#fff8e8;
+  border:1px solid #fde7b0;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.fallback-notice-card h3{
+  margin:0 0 8px;
+  color:#92400e;
+  font-size:18px;
+  font-weight:900;
+}
+
+.fallback-notice-card p{
+  margin:0;
+  color:#78613b;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.6;
+  word-break:keep-all;
+}
+
+.fallback-route-card{
+  padding:17px;
+  margin-bottom:12px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #edf2f7;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.fallback-route-title{
+  margin-bottom:13px;
+  font-size:15px;
+  font-weight:900;
+  color:#0f172a;
+}
+
+.fallback-region-grid{
+  display:grid;
+  grid-template-columns:1fr 32px 1fr;
+  align-items:center;
+  gap:7px;
+}
+
+.fallback-region-box{
+  min-width:0;
+  padding:13px 9px;
+  border-radius:17px;
+  background:#f8fafc;
+  text-align:center;
+}
+
+.fallback-region-box span{
+  display:block;
+  margin-bottom:5px;
+  color:#64748b;
+  font-size:11px;
+  font-weight:800;
+}
+
+.fallback-region-box b{
+  display:block;
+  color:#0f766e;
+  font-size:14px;
+  font-weight:900;
+  word-break:keep-all;
+}
+
+.fallback-region-arrow{
+  color:#14b8a6;
+  font-size:21px;
+  font-weight:900;
+  text-align:center;
+}
+
+.fallback-info-card{
+  margin-bottom:12px;
+  padding:17px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #edf2f7;
+  box-shadow:0 8px 22px rgba(15,23,42,.06);
+}
+
+.fallback-info-card h3{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:0 0 12px;
+  color:#0f172a;
+  font-size:16px;
+  font-weight:900;
+}
+
+.fallback-info-item{
+  margin-top:9px;
+  padding:11px 12px;
+  border-radius:15px;
+  background:#f8fafc;
+  color:#334155;
+  font-size:13px;
+  font-weight:750;
+  line-height:1.55;
+  word-break:keep-all;
+}
+
+.fallback-cache-badge{
+  display:inline-block;
+  margin-bottom:10px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#e8f8f5;
+  color:#0f766e;
+  font-size:11px;
+  font-weight:900;
+}
+
+.fallback-cache-time{
+  margin-top:10px;
+  color:#94a3b8;
+  font-size:11px;
+  font-weight:700;
+  text-align:right;
+}
+
+.fallback-retry-btn{
+  width:100%;
+  height:48px;
+  margin:0 0 12px;
+  border:1px solid #cdeee8;
+  border-radius:17px;
+  background:#fff;
+  color:#0f766e;
+  font-size:14px;
+  font-weight:900;
+}
+  /* ===== 코스별 주요 정보 카드 ===== */
+
+.route-info-cards{
+  grid-template-columns:1fr;
+  gap:12px;
+}
+
+.route-info-card{
+  padding:16px !important;
+}
+
+.route-basic-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:7px;
+}
+
+.route-basic-grid > div{
+  padding:11px 12px;
+  border-radius:14px;
+  background:#f8fafc;
+}
+
+.route-basic-grid span{
+  display:block;
+  margin-bottom:5px;
+  color:#64748b;
+  font-size:11px;
+  font-weight:800;
+}
+
+.route-basic-grid b{
+  color:#0f172a;
+  font-size:15px;
+  font-weight:900;
+}
+
+.route-info-row{
+  padding:11px 2px;
+  border-top:1px solid #edf2f7;
+}
+
+.route-info-label{
+  display:block;
+  margin-bottom:5px;
+  color:#64748b;
+  font-size:11.5px;
+  font-weight:800;
+}
+
+.route-info-row b{
+  display:block;
+  color:#0f172a;
+  font-size:13.5px;
+  font-weight:850;
+  line-height:1.5;
+  word-break:keep-all;
+}
+
+.course-feature-box{
+  margin-top:7px;
+  padding:13px 14px;
+  border-radius:16px;
+  background:#f8fafc;
+}
+
+.course-feature-box span{
+  display:block;
+  margin-bottom:6px;
+  color:#0f766e;
+  font-size:12px;
+  font-weight:900;
+}
+
+.course-feature-box p{
+  margin:0;
+  color:#334155;
+  font-size:13px;
+  font-weight:750;
+  line-height:1.55;
+  word-break:keep-all;
+}
+
+.route-info-card.alt .course-feature-box span{
+  color:#b45309;
+}
+  /* ===== 주요 통과도로 버튼 ===== */
+
+.route-road-list{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.route-road-chip{
+  min-height:32px;
+  padding:6px 9px 6px 11px;
+  border:1px solid #cdeee8;
+  border-radius:999px;
+  background:#f0fdfa;
+  color:#0f766e;
+  font-family:inherit;
+  font-size:12.5px;
+  font-weight:900;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+}
+
+.route-road-info-icon{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:#0f9f91;
+  color:#fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  font-weight:900;
+  font-family:Arial,sans-serif;
+}
+
+.route-road-arrow{
+  color:#94a3b8;
+  font-size:13px;
+  font-weight:900;
+}
+
+.general-road-text{
+  color:#475569;
+  font-size:13.5px;
+  font-weight:850;
+}
+  /* ===== 2026 압축형 결과화면 ===== */
+
+/* 로딩화면 */
+.loading-card{
+  margin:10px 0 12px !important;
+  padding:17px 16px !important;
+  border-radius:20px !important;
+  background:#ffffff !important;
+  border:1px solid #e5e9ef !important;
+  box-shadow:0 8px 22px rgba(15,23,42,.055) !important;
+}
+
+.loading-card b{
+  color:#16202c !important;
+  font-size:16px !important;
+  letter-spacing:-.35px;
+}
+
+.loading-card p{
+  color:#7a8594 !important;
+  font-size:12.5px !important;
+}
+
+.loading-steps{
+  margin-top:14px !important;
+  gap:7px !important;
+}
+
+.loading-step{
+  height:40px !important;
+  padding:0 13px !important;
+  border-radius:13px !important;
+  background:#f7f9fb !important;
+  border:1px solid #edf0f3 !important;
+  color:#334155 !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  box-shadow:none !important;
+}
+
+.loading-step.done{
+  background:#f5faf9 !important;
+  border-color:#dceeea !important;
+  color:#176d64 !important;
+}
+
+.step-spinner{
+  width:11px !important;
+  height:11px !important;
+  border-color:#d5e4e2 !important;
+  border-top-color:#188f83 !important;
+}
+
+.step-dot{
+  width:7px !important;
+  height:7px !important;
+  background:#188f83 !important;
+  box-shadow:0 0 0 3px rgba(24,143,131,.10) !important;
+}
+
+/* 코스별 주요정보 전체 카드 */
+.compare-detail-new.always-open{
+  padding:14px !important;
+  margin:10px 0 !important;
+  border-radius:20px !important;
+}
+
+.compare-title{
+  margin-bottom:10px !important;
+  font-size:16px !important;
+}
+
+/* 1·2코스 세로 배치 */
+.route-info-cards{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  gap:9px !important;
+}
+
+/* 코스 카드 */
+.route-info-card{
+  padding:13px 13px 12px !important;
+  border-radius:17px !important;
+  background:#fff !important;
+}
+
+body.route-analysis-mode .compare-mini.recommend{
+  border:1px solid #d8e8e5 !important;
+  background:#fff !important;
+}
+
+body.route-analysis-mode .compare-mini.alt{
+  border:1px solid #e2e7ec !important;
+  background:#fff !important;
+}
+
+/* 코스 제목 + 거리·시간 */
+.compact-course-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:9px;
+}
+
+.compact-course-head > b{
+  color:#16202c;
+  font-size:17px;
+  font-weight:900;
+}
+
+.compact-course-head > strong{
+  color:#176d64;
+  font-size:15px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.compact-course-head > strong span{
+  margin:0 3px;
+  color:#a0a8b3;
+}
+
+/* 주요도로 한 줄 */
+.compact-route-row{
+  padding:9px 0;
+  border-top:1px solid #edf0f3;
+}
+
+.compact-route-row > span{
+  display:block;
+  margin-bottom:6px;
+  color:#7b8491;
+  font-size:11px;
+  font-weight:800;
+}
+
+/* 사고이력 + 주의도로 한 줄 */
+.compact-double-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  padding:9px 0;
+  border-top:1px solid #edf0f3;
+}
+
+.compact-info-box{
+  min-width:0;
+}
+
+.compact-info-box > span{
+  display:block;
+  margin-bottom:4px;
+  color:#7b8491;
+  font-size:11px;
+  font-weight:800;
+}
+
+.compact-info-box > b{
+  display:block;
+  color:#1f2937;
+  font-size:12.5px;
+  font-weight:850;
+  line-height:1.4;
+  word-break:keep-all;
+}
+
+/* 특징 2줄 */
+.compact-feature{
+  padding:9px 11px;
+  border-radius:12px;
+  background:#f7f9fb;
+}
+
+.compact-feature > span{
+  display:block;
+  margin-bottom:4px;
+  color:#176d64;
+  font-size:11px;
+  font-weight:900;
+}
+
+.compact-feature > p{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  margin:0;
+  color:#475569;
+  font-size:12.5px;
+  font-weight:700;
+  line-height:1.45;
+  word-break:keep-all;
+}
+
+/* 주요도로 칩 축소 */
+.route-road-list{
+  gap:5px !important;
+}
+
+.route-road-chip{
+  min-height:27px !important;
+  padding:4px 8px 4px 9px !important;
+  border-color:#d7e8e5 !important;
+  background:#f6fbfa !important;
+  color:#176d64 !important;
+  font-size:11.5px !important;
+}
+
+.route-road-info-icon{
+  width:14px !important;
+  height:14px !important;
+  font-size:9px !important;
+  background:#367f77 !important;
+}
+
+/* 안내문 축소 */
+.route-data-note{
+  margin-top:9px !important;
+  padding-top:8px !important;
+  font-size:10.5px !important;
+  line-height:1.45 !important;
+}
+
+/* 내비게이션 */
+.navi-section{
+  margin:10px 0 !important;
+  padding:14px !important;
+  border-radius:20px !important;
+}
+
+.navi-section h3{
+  margin-bottom:9px !important;
+  font-size:15px !important;
+}
+
+.navi-grid.final-navi{
+  gap:7px !important;
+}
+
+.navi-btn{
+  height:50px !important;
+  border-radius:15px !important;
+  box-shadow:0 5px 14px rgba(15,23,42,.055) !important;
+}
+
+/* 안전팁 */
+body.route-analysis-mode .info-split-col.tip{
+  margin-top:10px !important;
+  padding:14px !important;
+  border-radius:20px !important;
 }
 
 .info-split-col.tip h3{
-  margin-bottom: 9px !important;
-  color: #1f2937 !important;
-  font-size: 15px !important;
+  margin-bottom:9px !important;
+  color:#1f2937 !important;
+  font-size:15px !important;
 }
 
 .tip-list{
-  gap: 6px !important;
+  gap:6px !important;
 }
 
 .tip-item{
-  padding: 9px 10px !important;
-  border-radius: 12px !important;
-  background: #f7f9fb !important;
+  padding:9px 10px !important;
+  border-radius:12px !important;
+  background:#f7f9fb !important;
 }
 
 .tip-item div{
-  color: #475569 !important;
-  font-size: 12.5px !important;
-  line-height: 1.45 !important;
+  color:#475569 !important;
+  font-size:12.5px !important;
+  line-height:1.45 !important;
 }
 
+/* 별점은 가장 아래 */
 .result-feedback-card{
-  margin: 10px 0 0 !important;
-  padding: 14px !important;
-  border-radius: 20px !important;
+  margin:10px 0 0 !important;
+  padding:14px !important;
+  border-radius:20px !important;
 }
 
 .result-feedback-card h3{
-  font-size: 15px !important;
+  font-size:15px !important;
 }
 
 .result-feedback-card .rating-stars button{
-  font-size: 31px !important;
+  font-size:31px !important;
+}
+  /* ===== 코스 선택 인터랙션 ===== */
+
+/* 지도 경로 라벨 색상 */
+.route-label-1{
+  background:#4F6BED !important;
 }
 
+.route-label-2{
+  background:#D97757 !important;
+}
+
+/* 코스 카드를 누를 수 있다는 표시 */
 .route-info-card{
-  cursor: pointer;
-  transition: border-color .2s ease,
+  cursor:pointer;
+  transition:
+    border-color .2s ease,
     box-shadow .2s ease,
     transform .2s ease,
     background .2s ease;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color:transparent;
 }
 
+/* 기본 비선택 카드 */
+body.route-analysis-mode .route-info-card{
+  border:1px solid #e3e8ef !important;
+  background:#ffffff !important;
+  box-shadow:none !important;
+}
+
+/* 선택된 카드 */
 body.route-analysis-mode .route-info-card.selected-course{
-  border: 2px solid #4F6BED !important;
-  background: #f8f9ff !important;
-  box-shadow: 0 8px 20px rgba(79,107,237,.13) !important;
-  transform: translateY(-1px);
+  border:2px solid #4F6BED !important;
+  background:#f8f9ff !important;
+  box-shadow:
+    0 8px 20px rgba(79,107,237,.13) !important;
+  transform:translateY(-1px);
 }
 
+/* 선택 카드 왼쪽 강조선 */
 body.route-analysis-mode .route-info-card.selected-course::before{
-  content: "";
-  position: absolute;
-  top: 13px;
-  bottom: 13px;
-  left: -2px;
-  width: 4px;
-  border-radius: 999px;
-  background: #4F6BED;
+  content:"";
+  position:absolute;
+  top:13px;
+  bottom:13px;
+  left:-2px;
+  width:4px;
+  border-radius:999px;
+  background:#4F6BED;
 }
 
+/* 가상 요소 위치 기준 */
 .route-info-card{
-  position: relative;
+  position:relative;
 }
 
+/* 2코스가 선택됐을 때는 코랄 강조 */
 body.route-analysis-mode
 .route-info-card.alt.selected-course{
-  border-color: #D97757 !important;
+  border-color:#D97757 !important;
+  background:#fff9f7 !important;
+  box-shadow:
+    0 8px 20px rgba(217,119,87,.13) !important;
 }
 
 body.route-analysis-mode
 .route-info-card.alt.selected-course::before{
-  background: #D97757;
+  background:#D97757;
 }
 
-.route-info-card:active{
-  transform: scale(.992);
-}
-
-.route-label-1{
-  background: #3F4A5A !important;
-}
-
-.route-label-2{
-  background: #83758C !important;
-}
-
-body.route-analysis-mode .route-info-card{
-  border: 1px solid #e1e5ea !important;
-  background: #ffffff !important;
-  box-shadow: none !important;
-}
-
-body.route-analysis-mode
-.route-info-card.recommend.selected-course{
-  border: 2px solid #3F4A5A !important;
-  background: #f8f9fa !important;
-  box-shadow: 0 7px 18px rgba(63,74,90,.10) !important;
-}
-
-body.route-analysis-mode
-.route-info-card.alt.selected-course{
-  border: 2px solid #83758C !important;
-  background: #faf9fb !important;
-  box-shadow: 0 7px 18px rgba(131,117,140,.11) !important;
-}
-
-body.route-analysis-mode
-.route-info-card.selected-course::before{
-  display: none !important;
-}
-
+/* 거리·시간도 코스별 색상 */
 .route-info-card.recommend
 .compact-course-head > strong{
-  color: #3F4A5A !important;
+  color:#4F6BED !important;
 }
 
 .route-info-card.alt
 .compact-course-head > strong{
-  color: #83758C !important;
+  color:#D97757 !important;
 }
 
+/* 터치 순간 반응 */
+.route-info-card:active{
+  transform:scale(.992);
+}
+  /* ===== 코스 결과 색상 최종 정리 ===== */
+
+/* 지도 위 코스 라벨 */
+.route-label-1{
+  background:#3F4A5A !important;
+}
+
+.route-label-2{
+  background:#83758C !important;
+}
+
+/* 코스 카드 기본 */
+body.route-analysis-mode .route-info-card{
+  border:1px solid #e1e5ea !important;
+  background:#ffffff !important;
+  box-shadow:none !important;
+}
+
+/* 1코스 선택 */
+body.route-analysis-mode
+.route-info-card.recommend.selected-course{
+  border:2px solid #3F4A5A !important;
+  background:#f8f9fa !important;
+  box-shadow:0 7px 18px rgba(63,74,90,.10) !important;
+}
+
+/* 2코스 선택 */
+body.route-analysis-mode
+.route-info-card.alt.selected-course{
+  border:2px solid #83758C !important;
+  background:#faf9fb !important;
+  box-shadow:0 7px 18px rgba(131,117,140,.11) !important;
+}
+
+/* 왼쪽 컬러선은 삭제 */
+body.route-analysis-mode
+.route-info-card.selected-course::before{
+  display:none !important;
+}
+
+/* 거리·시간 */
+.route-info-card.recommend
+.compact-course-head > strong{
+  color:#3F4A5A !important;
+}
+
+.route-info-card.alt
+.compact-course-head > strong{
+  color:#83758C !important;
+}
+
+/* 주요도로 칩 */
 .route-road-chip{
-  border: 1px solid #d9dee5 !important;
-  background: #f5f6f8 !important;
-  color: #3f4752 !important;
+  border:1px solid #d9dee5 !important;
+  background:#f5f6f8 !important;
+  color:#3f4752 !important;
 }
 
+/* 주요도로 i 아이콘 */
 .route-road-info-icon{
-  background: #6b7480 !important;
-  color: #ffffff !important;
+  background:#6b7480 !important;
+  color:#ffffff !important;
 }
 
+/* 특징 박스 */
 .compact-feature{
-  background: #f5f6f8 !important;
+  background:#f5f6f8 !important;
 }
 
+/* 특징 제목 초록색 제거 */
 .compact-feature > span{
-  color: #525b67 !important;
+  color:#525b67 !important;
 }
 
+/* 사고이력·주의도로 제목 */
 .compact-info-box > span,
 .compact-route-row > span{
-  color: #7a8491 !important;
+  color:#7a8491 !important;
 }
 
+/* 코스 전체를 감싸는 바깥 박스 */
 .compare-detail-new.always-open{
-  background: #ffffff !important;
-  border: 1px solid #e6e9ed !important;
-  box-shadow: 0 8px 22px rgba(15,23,42,.055) !important;
+  background:#ffffff !important;
+  border:1px solid #e6e9ed !important;
+  box-shadow:0 8px 22px rgba(15,23,42,.055) !important;
 }
-
+  /* 사고이력 참고문구를 위 카드와 자연스럽게 연결 */
 .route-data-note{
-  margin: 10px 0 0 !important;
-  padding: 11px 12px !important;
-  border-top: 0 !important;
-  border-radius: 12px !important;
-  background: #f5f6f8 !important;
-  color: #6b7480 !important;
-  font-size: 10.5px !important;
-  font-weight: 650 !important;
-  line-height: 1.5 !important;
+  margin:10px 0 0 !important;
+  padding:11px 12px !important;
+  border-top:0 !important;
+  border-radius:12px !important;
+  background:#f5f6f8 !important;
+  color:#6b7480 !important;
+  font-size:10.5px !important;
+  font-weight:650 !important;
+  line-height:1.5 !important;
 }
-
-.navi-section{
-  background: #ffffff !important;
-  border: 1px solid #e6e9ed !important;
-  box-shadow: 0 8px 22px rgba(15,23,42,.055) !important;
+  .navi-section{
+  background:#ffffff !important;
+  border:1px solid #e6e9ed !important;
+  box-shadow:0 8px 22px rgba(15,23,42,.055) !important;
 }
 
 .navi-section h3{
-  color: #202733 !important;
+  color:#202733 !important;
 }
 
 .navi-btn{
-  border: 1px solid #eceff2 !important;
-  background: #fafbfc !important;
-  box-shadow: none !important;
+  border:1px solid #eceff2 !important;
+  background:#fafbfc !important;
+  box-shadow:none !important;
 }
 
 .tmap-note{
-  margin: 10px 0 0 !important;
-  padding: 11px 12px !important;
-  border: 0 !important;
-  border-radius: 12px !important;
-  background: #f5f6f8 !important;
-  color: #6b7480 !important;
-  font-size: 10.5px !important;
-  font-weight: 650 !important;
-  line-height: 1.5 !important;
-  text-align: left !important;
-  word-break: keep-all !important;
+  color:#8a939f !important;
+}
+  /* ===== 내비게이션 안내문·평가 완료 디자인 수정 ===== */
+
+/* 1. 내비게이션 안내문을 위 사고이력 안내문과 같은 회색 박스로 */
+.tmap-note{
+  margin:10px 0 0 !important;
+  padding:11px 12px !important;
+  border:0 !important;
+  border-radius:12px !important;
+  background:#f5f6f8 !important;
+
+  color:#6b7480 !important;
+  font-size:10.5px !important;
+  font-weight:650 !important;
+  line-height:1.5 !important;
+
+  text-align:left !important;
+  word-break:keep-all !important;
 }
 
+
+/* 2. 평가 완료 체크 동그라미를 회색 라인 형태로 */
 .rating-complete-icon{
-  width: 44px !important;
-  height: 44px !important;
-  margin: 0 auto 12px !important;
-  border: 1.5px solid #d9dee5 !important;
-  border-radius: 50% !important;
-  background: #ffffff !important;
-  color: #6b7480 !important;
-  font-size: 23px !important;
-  font-weight: 800 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
+  width:44px !important;
+  height:44px !important;
+  margin:0 auto 12px !important;
+
+  border:1.5px solid #d9dee5 !important;
+  border-radius:50% !important;
+  background:#ffffff !important;
+
+  color:#6b7480 !important;
+  font-size:23px !important;
+  font-weight:800 !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+}
+  /* ===== 홈 화면 2026 리디자인 ===== */
+
+/* 홈 배경 */
+body:not(.route-active):not(.route-analysis-mode)
+.panel{
+  padding:12px 14px 96px;
+  background:
+    linear-gradient(
+      180deg,
+      #f7fafc 0%,
+      #ffffff 70%
+    );
 }
 
+/* 메인 배너 */
 .hero-banner{
-  height: 280px !important;
-  border-radius: 24px !important;
-  box-shadow: 0 14px 30px rgba(15,23,42,.13) !important;
-  background: linear-gradient(
+  height:280px !important;
+  border-radius:24px !important;
+  box-shadow:
+    0 14px 30px rgba(15,23,42,.13) !important;
+
+  background:
+    linear-gradient(
       180deg,
       rgba(15,23,42,.04) 0%,
       rgba(15,23,42,.22) 38%,
@@ -2999,561 +3509,659 @@ body.route-analysis-mode
     center 58% / cover no-repeat !important;
 }
 
+/* 배너 문구 */
 .hero-text{
-  left: 22px !important;
-  right: 22px !important;
-  bottom: 20px !important;
+  left:22px !important;
+  right:22px !important;
+  bottom:20px !important;
 }
 
 .hero-title{
-  font-size: 26px !important;
-  line-height: 1.25 !important;
-  letter-spacing: -1px !important;
+  font-size:26px !important;
+  line-height:1.25 !important;
+  letter-spacing:-1px !important;
 }
 
 .hero-sub{
-  margin-top: 10px !important;
-  font-size: 14px !important;
-  line-height: 1.55 !important;
-  color: rgba(255,255,255,.92) !important;
+  margin-top:10px !important;
+  font-size:14px !important;
+  line-height:1.55 !important;
+  color:rgba(255,255,255,.92) !important;
 }
 
+/* 배너 하단 기능 */
 .hero-feature-row{
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 0;
-  margin-top: 18px;
-  padding-top: 15px;
-  border-top: 1px solid rgba(255,255,255,.24);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
+  margin-top:18px;
+  padding-top:15px;
+  border-top:
+    1px solid rgba(255,255,255,.24);
 }
 
 .hero-feature{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-width: 0;
-  color: #fff;
-  font-size: 10.5px;
-  font-weight: 750;
-  line-height: 1.35;
-  text-align: left;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-width:0;
+  color:#fff;
+  font-size:10.5px;
+  font-weight:750;
+  line-height:1.35;
+  text-align:left;
 }
 
 .hero-feature + .hero-feature{
-  border-left: 1px solid rgba(255,255,255,.22);
+  border-left:
+    1px solid rgba(255,255,255,.22);
 }
 
 .hero-feature-icon{
-  width: 29px;
-  height: 29px;
-  min-width: 29px;
-  border: 1px solid rgba(255,255,255,.56);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 900;
+  width:29px;
+  height:29px;
+  min-width:29px;
+  border:
+    1px solid rgba(255,255,255,.56);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
 }
 
+/* 입력 카드 */
 .route-input-card{
-  margin: 14px 0 0 !important;
-  padding: 18px 15px 16px !important;
-  border-radius: 24px !important;
-  border: 1px solid #e8edf2;
-  box-shadow: 0 10px 26px rgba(15,23,42,.075) !important;
+  margin:14px 0 0 !important;
+  padding:18px 15px 16px !important;
+  border-radius:24px !important;
+  border:1px solid #e8edf2;
+  box-shadow:
+    0 10px 26px rgba(15,23,42,.075) !important;
 }
 
 .route-input-head{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-  padding: 0 4px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+  padding:0 4px;
 }
 
 .route-input-title{
-  color: #17202c;
-  font-size: 17px;
-  font-weight: 900;
-  letter-spacing: -.45px;
+  color:#17202c;
+  font-size:17px;
+  font-weight:900;
+  letter-spacing:-.45px;
 }
 
 .route-input-sub{
-  margin-top: 4px;
-  color: #8a94a2;
-  font-size: 11.5px;
-  font-weight: 650;
+  margin-top:4px;
+  color:#8a94a2;
+  font-size:11.5px;
+  font-weight:650;
 }
 
 .field-label{
-  margin: 0 0 7px 5px !important;
-  color: #374151 !important;
-  font-size: 12.5px !important;
-  font-weight: 850 !important;
+  margin:0 0 7px 5px !important;
+  color:#374151 !important;
+  font-size:12.5px !important;
+  font-weight:850 !important;
 }
 
+/* 입력창 */
 .address-row{
-  height: 54px !important;
-  margin-bottom: 16px !important;
-  padding: 0 9px 0 11px !important;
-  border-radius: 18px !important;
-  border: 1px solid #e3e8ef !important;
-  box-shadow: none !important;
-  background: #fbfcfd !important;
+  height:54px !important;
+  margin-bottom:16px !important;
+  padding:0 9px 0 11px !important;
+  border-radius:18px !important;
+  border:1px solid #e3e8ef !important;
+  box-shadow:none !important;
+  background:#fbfcfd !important;
 }
 
 .address-row:focus-within{
-  border-color: #87cfc7 !important;
-  background: #fff !important;
-  box-shadow: 0 0 0 3px rgba(20,184,166,.09) !important;
+  border-color:#87cfc7 !important;
+  background:#fff !important;
+  box-shadow:
+    0 0 0 3px rgba(20,184,166,.09) !important;
 }
 
 .field-icon{
-  width: 34px !important;
-  height: 34px !important;
-  min-width: 34px !important;
-  background: #edf9f7 !important;
+  width:34px !important;
+  height:34px !important;
+  min-width:34px !important;
+  background:#edf9f7 !important;
 }
 
 .field-icon img{
-  width: 17px !important;
-  height: 17px !important;
+  width:17px !important;
+  height:17px !important;
 }
 
 .address-row input{
-  height: 52px !important;
-  line-height: 52px !important;
-  color: #253042 !important;
-  font-size: 14px !important;
-  font-weight: 750 !important;
+  height:52px !important;
+  line-height:52px !important;
+  color:#253042 !important;
+  font-size:14px !important;
+  font-weight:750 !important;
 }
 
 .location-btn{
-  height: 30px !important;
-  padding: 0 10px !important;
-  background: #edf9f7 !important;
-  color: #188f83 !important;
-  font-size: 10px !important;
+  height:30px !important;
+  padding:0 10px !important;
+  background:#edf9f7 !important;
+  color:#188f83 !important;
+  font-size:10px !important;
 }
 
 .clear-btn,
 .mini-btn{
-  width: 31px !important;
-  height: 31px !important;
-  background: #fff !important;
-  border-color: #e7ebf0 !important;
+  width:31px !important;
+  height:31px !important;
+  background:#fff !important;
+  border-color:#e7ebf0 !important;
 }
 
+/* 인기 관광지 */
 .popular-area{
-  margin-top: 14px;
-  padding: 16px;
-  border-radius: 22px;
-  background: #fff;
-  border: 1px solid #e8edf2;
-  box-shadow: 0 8px 22px rgba(15,23,42,.055);
+  margin-top:14px;
+  padding:16px;
+  border-radius:22px;
+  background:#fff;
+  border:1px solid #e8edf2;
+  box-shadow:
+    0 8px 22px rgba(15,23,42,.055);
 }
 
 .popular-head{
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 12px;
-  color: #344050;
-  font-size: 13.5px;
-  font-weight: 900;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:12px;
+  color:#344050;
+  font-size:13.5px;
+  font-weight:900;
 }
 
 .popular-pin{
-  color: #159d90;
-  font-size: 17px;
+  color:#159d90;
+  font-size:17px;
 }
 
 .popular-chip-list{
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 3px;
-  scrollbar-width: none;
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding-bottom:3px;
+  scrollbar-width:none;
 }
 
 .popular-chip-list::-webkit-scrollbar{
-  display: none;
+  display:none;
 }
 
 .popular-chip{
-  flex: 0 0 auto;
-  height: 38px;
-  padding: 0 14px;
-  border: 1px solid #e1e6eb;
-  border-radius: 14px;
-  background: #fafbfc;
-  color: #4b5563;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 850;
-  white-space: nowrap;
+  flex:0 0 auto;
+  height:38px;
+  padding:0 14px;
+  border:1px solid #e1e6eb;
+  border-radius:14px;
+  background:#fafbfc;
+  color:#4b5563;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:850;
+  white-space:nowrap;
 }
 
 .popular-chip.active{
-  border-color: #55bdb2;
-  background: #edf9f7;
-  color: #147e74;
+  border-color:#55bdb2;
+  background:#edf9f7;
+  color:#147e74;
 }
 
+/* 분석 버튼 */
 .analyze-btn{
-  width: 100% !important;
-  height: 58px !important;
-  margin: 14px 0 0 !important;
-  border-radius: 20px !important;
-  background: linear-gradient(
+  width:100% !important;
+  height:58px !important;
+  margin:14px 0 0 !important;
+  border-radius:20px !important;
+  background:
+    linear-gradient(
       135deg,
       #0f9f91,
       #18b9aa
     ) !important;
-  box-shadow: 0 12px 24px rgba(15,159,145,.22) !important;
+  box-shadow:
+    0 12px 24px rgba(15,159,145,.22) !important;
 }
 
 .analyze-main{
-  font-size: 16px !important;
-  letter-spacing: -.35px;
+  font-size:16px !important;
+  letter-spacing:-.35px;
 }
 
+/* 하단 안내 */
 .home-guide-note{
-  min-height: auto !important;
-  margin-top: 12px;
-  padding: 14px 16px !important;
-  border-radius: 18px;
-  background: transparent;
-  box-shadow: none;
+  min-height:auto !important;
+  margin-top:12px;
+  padding:14px 16px !important;
+  border-radius:18px;
+  background:transparent;
+  box-shadow:none;
 }
 
 .home-guide-note .epdo-icon{
-  width: 34px !important;
-  height: 34px !important;
-  opacity: .58;
+  width:34px !important;
+  height:34px !important;
+  opacity:.58;
 }
 
 .home-guide-note .epdo-title{
-  color: #475569;
-  font-size: 13px;
-  font-weight: 850;
+  color:#475569;
+  font-size:13px;
+  font-weight:850;
 }
 
 .home-guide-note .epdo-desc2{
-  margin-top: 4px;
-  color: #94a3b8;
-  font-size: 10.5px;
-  line-height: 1.5;
+  margin-top:4px;
+  color:#94a3b8;
+  font-size:10.5px;
+  line-height:1.5;
 }
 
-@media (max-width:390px){
+/* 작은 휴대전화 */
+@media(max-width:390px){
+
   .hero-banner{
-    height: 255px !important;
+    height:255px !important;
   }
 
   .hero-title{
-    font-size: 23px !important;
+    font-size:23px !important;
   }
 
   .hero-feature{
-    gap: 5px;
-    font-size: 9.5px;
+    gap:5px;
+    font-size:9.5px;
   }
 
   .hero-feature-icon{
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
+    width:26px;
+    height:26px;
+    min-width:26px;
   }
 
   .route-input-card{
-    padding-left: 13px !important;
-    padding-right: 13px !important;
+    padding-left:13px !important;
+    padding-right:13px !important;
   }
 }
+  /* ==================================================
+   홈 화면 한 화면 압축형 최종 적용
+   반드시 CSS 가장 마지막에 배치
+================================================== */
 
+/* 홈 화면에서만 적용 */
 body:not(.route-active):not(.route-analysis-mode)
 .panel{
-  top: 56px !important;
-  bottom: 66px !important;
-  padding: 8px 14px 12px !important;
-  box-sizing: border-box !important;
-  background: #f7f9fb !important;
-  overflow-y: auto !important;
+  top:56px !important;
+  bottom:66px !important;
+  padding:8px 14px 12px !important;
+  box-sizing:border-box !important;
+  background:#f7f9fb !important;
+  overflow-y:auto !important;
 }
 
+/* 1. 상단 사진 높이 축소 */
 body:not(.route-active):not(.route-analysis-mode)
 .hero-banner{
-  border-radius: 22px !important;
-  box-shadow: 0 9px 22px rgba(15,23,42,.11) !important;
+  height:190px !important;
+  min-height:190px !important;
+  border-radius:22px !important;
+  box-shadow:0 9px 22px rgba(15,23,42,.11) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,23,42,.04) 0%,
+      rgba(15,23,42,.24) 40%,
+      rgba(8,29,48,.90) 100%
+    ),
+    url("성산.png") center 58% / cover no-repeat !important;
 }
 
+/* 사진 안 문구 */
 body:not(.route-active):not(.route-analysis-mode)
 .hero-text{
-  left: 18px !important;
-  right: 18px !important;
+  left:18px !important;
+  right:18px !important;
+  bottom:15px !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .hero-title{
-  font-size: 20px !important;
-  line-height: 1.2 !important;
-  letter-spacing: -.65px !important;
+  font-size:20px !important;
+  line-height:1.2 !important;
+  letter-spacing:-.65px !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .hero-sub{
-  margin-top: 6px !important;
-  font-size: 11.5px !important;
-  line-height: 1.4 !important;
+  margin-top:6px !important;
+  font-size:11.5px !important;
+  line-height:1.4 !important;
+}
+
+/* 배너 아래 기능 3칸 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-feature-row{
+  margin-top:11px !important;
+  padding-top:10px !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
-.hero-feature-row{
-  margin-top: 11px !important;
-  padding-top: 10px !important;
+.hero-feature{
+  gap:5px !important;
+  font-size:9px !important;
+  line-height:1.25 !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .hero-feature-icon{
-  font-size: 11px !important;
+  width:24px !important;
+  height:24px !important;
+  min-width:24px !important;
+  font-size:11px !important;
 }
 
+/* 2. 입력 카드 압축 */
 body:not(.route-active):not(.route-analysis-mode)
 .route-input-card{
-  margin: 8px 0 0 !important;
-  padding: 13px 13px 14px !important;
-  border-radius: 20px !important;
-  border: 1px solid #e6eaf0 !important;
-  box-shadow: 0 8px 20px rgba(15,23,42,.07) !important;
+  margin:8px 0 0 !important;
+  padding:13px 13px 14px !important;
+  border-radius:20px !important;
+  border:1px solid #e6eaf0 !important;
+  box-shadow:0 8px 20px rgba(15,23,42,.07) !important;
 }
 
+/* 이동 경로 입력 제목 */
 body:not(.route-active):not(.route-analysis-mode)
 .route-input-head{
-  margin-bottom: 11px !important;
-  padding: 0 3px !important;
+  margin-bottom:11px !important;
+  padding:0 3px !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .route-input-title{
-  font-size: 14.5px !important;
-  letter-spacing: -.3px !important;
+  font-size:14.5px !important;
+  letter-spacing:-.3px !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .route-input-sub{
-  margin-top: 2px !important;
-  font-size: 9.5px !important;
+  margin-top:2px !important;
+  font-size:9.5px !important;
 }
 
+/* 출발지·목적지 라벨 */
 body:not(.route-active):not(.route-analysis-mode)
 .field-label{
-  margin: 0 0 5px 4px !important;
-  font-size: 11px !important;
-  font-weight: 800 !important;
+  margin:0 0 5px 4px !important;
+  font-size:11px !important;
+  font-weight:800 !important;
 }
 
+/* 출발지·목적지 입력칸 */
 body:not(.route-active):not(.route-analysis-mode)
 .address-row{
-  height: 44px !important;
-  margin-bottom: 10px !important;
-  padding: 0 7px 0 9px !important;
-  gap: 5px !important;
-  border-radius: 14px !important;
-  background: #fbfcfd !important;
+  height:44px !important;
+  margin-bottom:10px !important;
+  padding:0 7px 0 9px !important;
+  gap:5px !important;
+  border-radius:14px !important;
+  background:#fbfcfd !important;
 }
 
+/* 출발·목적지와 추천관광지 높이를 같게 */
 body:not(.route-active):not(.route-analysis-mode)
 .address-row input{
-  height: 42px !important;
-  line-height: 42px !important;
-  font-size: 12px !important;
+  height:42px !important;
+  line-height:42px !important;
+  font-size:12px !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .field-icon{
-  width: 28px !important;
-  height: 28px !important;
-  min-width: 28px !important;
+  width:28px !important;
+  height:28px !important;
+  min-width:28px !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .field-icon img{
-  width: 15px !important;
-  height: 15px !important;
+  width:15px !important;
+  height:15px !important;
 }
 
+/* 현재 위치 사용 */
 body:not(.route-active):not(.route-analysis-mode)
 .location-btn{
-  height: 25px !important;
-  padding: 0 8px !important;
-  font-size: 8.5px !important;
+  height:25px !important;
+  padding:0 8px !important;
+  font-size:8.5px !important;
 }
 
+/* 삭제·검색 버튼 */
 body:not(.route-active):not(.route-analysis-mode)
 .clear-btn,
 body:not(.route-active):not(.route-analysis-mode)
 .mini-btn{
-  width: 27px !important;
-  height: 27px !important;
-  min-width: 27px !important;
+  width:27px !important;
+  height:27px !important;
+  min-width:27px !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .clear-btn img,
 body:not(.route-active):not(.route-analysis-mode)
 .mini-btn img{
-  width: 14px !important;
-  height: 14px !important;
+  width:14px !important;
+  height:14px !important;
 }
 
+/* 3. 추천 관광지는 기존 select 유지 */
 body:not(.route-active):not(.route-analysis-mode)
 .popular-title{
-  margin: 0 3px 7px !important;
-  gap: 7px !important;
-  font-size: 10.5px !important;
+  margin:0 3px 7px !important;
+  gap:7px !important;
+  font-size:10.5px !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .popular-select{
-  height: 44px !important;
-  padding: 0 34px 0 13px !important;
-  border-radius: 14px !important;
-  font-size: 12px !important;
-  box-shadow: none !important;
-  background-color: #fbfcfd !important;
+  height:44px !important;
+  padding:0 34px 0 13px !important;
+  border-radius:14px !important;
+  font-size:12px !important;
+  box-shadow:none !important;
+  background-color:#fbfcfd !important;
 }
 
+/* 4. 분석 버튼 */
 body:not(.route-active):not(.route-analysis-mode)
 .analyze-btn{
-  width: 100% !important;
-  height: 54px !important;
-  margin: 9px 0 0 !important;
-  border-radius: 17px !important;
-  background: linear-gradient(
+  width:100% !important;
+  height:54px !important;
+  margin:9px 0 0 !important;
+  border-radius:17px !important;
+  background:
+    linear-gradient(
       135deg,
       #15978d 0%,
       #45b8ad 100%
     ) !important;
-  box-shadow: 0 9px 19px rgba(21,151,141,.20) !important;
+  box-shadow:0 9px 19px rgba(21,151,141,.20) !important;
 }
 
 body:not(.route-active):not(.route-analysis-mode)
 .analyze-main{
-  font-size: 15px !important;
-  font-weight: 900 !important;
+  font-size:15px !important;
+  font-weight:900 !important;
 }
 
+/* 버튼 화살표는 시안처럼 오른쪽 방향 */
 body:not(.route-active):not(.route-analysis-mode)
 .analyze-main::after{
-  content: "  ›" !important;
-  font-size: 21px !important;
-  vertical-align: -2px !important;
+  content:"  ›" !important;
+  font-size:21px !important;
+  vertical-align:-2px !important;
 }
 
+/* 5. 하단 설명은 홈에서 숨겨 한 화면 확보 */
 body:not(.route-active):not(.route-analysis-mode)
 .home-guide-note{
-  display: none !important;
+  display:none !important;
 }
 
+/* 검색 결과가 나타날 때는 정상적으로 아래로 스크롤 */
 #startResults,
 #endResults{
-  position: relative;
-  z-index: 20;
+  position:relative;
+  z-index:20;
 }
 
-@media (max-height:720px){
+/* 세로가 짧은 휴대전화 추가 압축 */
+@media(max-height:720px){
+
   body:not(.route-active):not(.route-analysis-mode)
   .hero-banner{
-    height: 170px !important;
-    min-height: 170px !important;
+    height:170px !important;
+    min-height:170px !important;
   }
 
   body:not(.route-active):not(.route-analysis-mode)
   .hero-title{
-    font-size: 18px !important;
+    font-size:18px !important;
   }
 
   body:not(.route-active):not(.route-analysis-mode)
   .hero-feature-row{
-    margin-top: 8px !important;
-    padding-top: 8px !important;
+    margin-top:8px !important;
+    padding-top:8px !important;
   }
 
   body:not(.route-active):not(.route-analysis-mode)
   .route-input-card{
-    padding-top: 11px !important;
-    padding-bottom: 12px !important;
+    padding-top:11px !important;
+    padding-bottom:12px !important;
   }
 
   body:not(.route-active):not(.route-analysis-mode)
   .route-input-head{
-    margin-bottom: 8px !important;
+    margin-bottom:8px !important;
   }
 
   body:not(.route-active):not(.route-analysis-mode)
   .address-row{
-    margin-bottom: 8px !important;
+    margin-bottom:8px !important;
   }
 
   body:not(.route-active):not(.route-analysis-mode)
   .analyze-btn{
-    height: 50px !important;
+    height:50px !important;
   }
 }
+  /* =========================================
+   홈 배너 높이 + SVG 아이콘 최종 수정
+   반드시 CSS 맨 마지막에 배치
+========================================= */
 
+/* 배너를 현재보다 살짝 높게 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-banner{
+  height:205px !important;
+  min-height:205px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,23,42,.03) 0%,
+      rgba(15,23,42,.20) 38%,
+      rgba(8,29,48,.90) 100%
+    ),
+    url("성산.png")
+    center 56% / cover no-repeat !important;
+}
+
+/* 배너 문구를 아주 조금 위로 */
 body:not(.route-active):not(.route-analysis-mode)
 .hero-text{
-  bottom: 16px !important;
+  bottom:16px !important;
 }
 
+/* SVG가 들어가는 동그라미 */
 body:not(.route-active):not(.route-analysis-mode)
 .hero-feature-icon{
-  width: 25px !important;
-  height: 25px !important;
-  min-width: 25px !important;
-  border: 1px solid rgba(255,255,255,.58) !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
+  width:25px !important;
+  height:25px !important;
+  min-width:25px !important;
+
+  border:1px solid rgba(255,255,255,.58) !important;
+  border-radius:50% !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  box-sizing:border-box !important;
 }
 
+/* SVG 크기와 흰색 처리 */
 body:not(.route-active):not(.route-analysis-mode)
 .hero-feature-icon img{
-  width: 14px !important;
-  height: 14px !important;
-  display: block !important;
-  filter: brightness(0)
+  width:14px !important;
+  height:14px !important;
+  display:block !important;
+
+  filter:
+    brightness(0)
     invert(1) !important;
-  opacity: .96 !important;
+
+  opacity:.96 !important;
 }
 
+/* 기능 안내 글자 */
 body:not(.route-active):not(.route-analysis-mode)
 .hero-feature{
-  gap: 6px !important;
-  font-size: 9.5px !important;
-  font-weight: 750 !important;
-  line-height: 1.25 !important;
+  gap:6px !important;
+  font-size:9.5px !important;
+  font-weight:750 !important;
+  line-height:1.25 !important;
 }
 
-@media (max-height:720px){
+/* 세로가 짧은 화면에서는 너무 커지지 않게 */
+@media(max-height:720px){
+
   body:not(.route-active):not(.route-analysis-mode)
   .hero-banner{
-    height: 185px !important;
-    min-height: 185px !important;
+    height:185px !important;
+    min-height:185px !important;
   }
 }
+  /* ===== 홈 배너 사진 조금 더 크게 ===== */
 
 body:not(.route-active):not(.route-analysis-mode)
 .hero-banner{
-  height: 215px !important;
-  min-height: 215px !important;
-  background: linear-gradient(
+  height:215px !important;
+  min-height:215px !important;
+
+  background:
+    linear-gradient(
       180deg,
       rgba(15,23,42,.02) 0%,
       rgba(15,23,42,.18) 38%,
@@ -3562,244 +4170,311 @@ body:not(.route-active):not(.route-analysis-mode)
     url("성산.png")
     center 52% / cover no-repeat !important;
 }
+  /* =========================================
+   주요도로 설명 전용 짧은 팝업
+========================================= */
 
+/* 도로 설명일 때는 화면 중앙 정렬 */
 .menu-popup.road-info-mode{
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px !important;
+  display:none;
+  align-items:center;
+  justify-content:center;
+
+  padding:20px !important;
 }
 
 .menu-popup.road-info-mode.active{
-  display: flex !important;
+  display:flex !important;
 }
 
+/* 팝업 전체 높이를 내용만큼만 */
 .menu-popup.road-info-mode
 .menu-popup-card{
-  width: 100% !important;
-  max-width: 390px !important;
-  height: auto !important;
-  max-height: calc(100dvh - 150px) !important;
-  border-radius: 24px !important;
-  overflow: hidden !important;
+  width:100% !important;
+  max-width:390px !important;
+
+  height:auto !important;
+  max-height:calc(100dvh - 150px) !important;
+
+  border-radius:24px !important;
+  overflow:hidden !important;
 }
 
+/* 상단 제목 영역 */
 .menu-popup.road-info-mode
 .menu-popup-head{
-  height: 56px !important;
-  min-height: 56px !important;
-  padding: 0 16px 0 18px !important;
-  font-size: 18px !important;
-  border-bottom: 1px solid #edf0f3 !important;
+  height:56px !important;
+  min-height:56px !important;
+  padding:0 16px 0 18px !important;
+
+  font-size:18px !important;
+  border-bottom:1px solid #edf0f3 !important;
 }
 
+/* 닫기 버튼 */
 .menu-popup.road-info-mode
 .menu-popup-head button{
-  width: 34px !important;
-  height: 34px !important;
-  background: #f3f6f8 !important;
-  color: #52606d !important;
-  font-size: 21px !important;
-  line-height: 1 !important;
+  width:34px !important;
+  height:34px !important;
+
+  background:#f3f6f8 !important;
+  color:#52606d !important;
+
+  font-size:21px !important;
+  line-height:1 !important;
 }
 
+/* 내용 영역 */
 .menu-popup.road-info-mode
 .menu-popup-content{
-  flex: none !important;
-  overflow-y: auto !important;
-  padding: 18px !important;
-  background: #f7f9fb !important;
+  flex:none !important;
+  overflow-y:auto !important;
+
+  padding:18px !important;
+  background:#f7f9fb !important;
 }
 
+/* 도로 설명 카드 */
 .road-info-content{
-  padding: 18px !important;
-  border: 1px solid #e7ebef;
-  border-radius: 19px;
-  background: #ffffff;
-  box-shadow: 0 7px 20px rgba(15,23,42,.055);
+  padding:18px !important;
+
+  border:1px solid #e7ebef;
+  border-radius:19px;
+
+  background:#ffffff;
+  box-shadow:0 7px 20px rgba(15,23,42,.055);
 }
 
+/* 도로 기본 설명 */
 .road-info-guide{
-  margin: 0 !important;
-  color: #475569 !important;
-  font-size: 14px !important;
-  font-weight: 700 !important;
-  line-height: 1.65 !important;
-  word-break: keep-all !important;
+  margin:0 !important;
+
+  color:#475569 !important;
+  font-size:14px !important;
+  font-weight:700 !important;
+  line-height:1.65 !important;
+
+  word-break:keep-all !important;
 }
 
+/* 특징 목록 */
 .road-info-feature-list{
-  margin-top: 13px;
-  padding-top: 11px;
-  border-top: 1px solid #edf0f3;
+  margin-top:13px;
+  padding-top:11px;
+
+  border-top:1px solid #edf0f3;
 }
 
 .road-info-feature{
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  margin-top: 8px;
+  display:flex;
+  align-items:flex-start;
+  gap:7px;
+
+  margin-top:8px;
 }
 
 .road-info-feature:first-child{
-  margin-top: 0;
+  margin-top:0;
 }
 
 .road-info-feature > span{
-  flex: 0 0 auto;
-  color: #6b7480;
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1.55;
+  flex:0 0 auto;
+
+  color:#6b7480;
+  font-size:14px;
+  font-weight:900;
+  line-height:1.55;
 }
 
 .road-info-feature > p{
-  margin: 0 !important;
-  color: #475569 !important;
-  font-size: 13.5px !important;
-  font-weight: 700 !important;
-  line-height: 1.55 !important;
-  word-break: keep-all !important;
-}
+  margin:0 !important;
 
+  color:#475569 !important;
+  font-size:13.5px !important;
+  font-weight:700 !important;
+  line-height:1.55 !important;
+
+  word-break:keep-all !important;
+}
+  /* 도로 설명 팝업 제목 아이콘 */
 .road-popup-title{
-  display: flex;
-  align-items: center;
-  gap: 9px;
+  display:flex;
+  align-items:center;
+  gap:9px;
 }
 
 .road-popup-title img{
-  width: 21px;
-  height: 21px;
-  object-fit: contain;
-  opacity: .78;
+  width:21px;
+  height:21px;
+  object-fit:contain;
+  opacity:.78;
 }
+  /* =========================================
+   산간도로 운전 주의 팝업 압축형 최종 디자인
+========================================= */
 
 .mountain-road-popup{
-  padding: 20px !important;
-  background: rgba(15,23,42,.44) !important;
+  padding:20px !important;
+  background:rgba(15,23,42,.44) !important;
 }
 
+/* 전체 팝업 */
 .mountain-road-card{
-  width: 100% !important;
-  max-width: 370px !important;
-  padding: 20px 18px 17px !important;
-  border-radius: 24px !important;
-  background: #ffffff !important;
-  box-shadow: 0 20px 50px rgba(15,23,42,.24) !important;
-  text-align: center !important;
-  box-sizing: border-box !important;
+  width:100% !important;
+  max-width:370px !important;
+
+  padding:20px 18px 17px !important;
+  border-radius:24px !important;
+
+  background:#ffffff !important;
+  box-shadow:
+    0 20px 50px rgba(15,23,42,.24) !important;
+
+  text-align:center !important;
+  box-sizing:border-box !important;
 }
 
+/* 상단 경고 아이콘 */
 .mountain-road-icon{
-  width: 46px !important;
-  height: 46px !important;
-  margin: 0 auto 10px !important;
-  border-radius: 50% !important;
-  background: #fff6ea !important;
+  width:46px !important;
+  height:46px !important;
+  margin:0 auto 10px !important;
+
+  border-radius:50% !important;
+  background:#fff6ea !important;
 }
 
 .mountain-road-icon img{
-  width: 23px !important;
-  height: 23px !important;
+  width:23px !important;
+  height:23px !important;
 }
 
+/* 제목 */
 .mountain-road-card h3{
-  margin: 0 !important;
-  color: #17202c !important;
-  font-size: 18px !important;
-  font-weight: 900 !important;
-  letter-spacing: -.4px !important;
+  margin:0 !important;
+
+  color:#17202c !important;
+  font-size:18px !important;
+  font-weight:900 !important;
+  letter-spacing:-.4px !important;
 }
 
+/* 포함 도로 표시 */
 .mountain-road-name{
-  display: inline-block !important;
-  margin-top: 9px !important;
-  padding: 6px 11px !important;
-  border-radius: 999px !important;
-  background: #fff2df !important;
-  color: #b45309 !important;
-  font-size: 11.5px !important;
-  font-weight: 900 !important;
-  line-height: 1.35 !important;
+  display:inline-block !important;
+
+  margin-top:9px !important;
+  padding:6px 11px !important;
+
+  border-radius:999px !important;
+  background:#fff2df !important;
+
+  color:#b45309 !important;
+  font-size:11.5px !important;
+  font-weight:900 !important;
+
+  line-height:1.35 !important;
 }
 
+/* 설명 문구 */
 .mountain-road-card > p{
-  margin: 12px 2px 0 !important;
-  color: #536171 !important;
-  font-size: 12.5px !important;
-  font-weight: 700 !important;
-  line-height: 1.55 !important;
-  word-break: keep-all !important;
+  margin:12px 2px 0 !important;
+
+  color:#536171 !important;
+  font-size:12.5px !important;
+  font-weight:700 !important;
+  line-height:1.55 !important;
+
+  word-break:keep-all !important;
 }
 
+/* 주의사항 박스 */
 .mountain-road-list{
-  margin: 13px 0 0 !important;
-  padding: 12px 13px !important;
-  border: 1px solid #edf0f3 !important;
-  border-radius: 16px !important;
-  background: #f7f9fb !important;
-  text-align: left !important;
+  margin:13px 0 0 !important;
+  padding:12px 13px !important;
+
+  border:1px solid #edf0f3 !important;
+  border-radius:16px !important;
+
+  background:#f7f9fb !important;
+  text-align:left !important;
 }
 
+/* 주의사항 한 줄 */
 .mountain-road-list div{
-  position: relative;
-  margin: 0 !important;
-  padding: 6px 0 6px 14px !important;
-  color: #425063 !important;
-  font-weight: 750 !important;
-  line-height: 1.45 !important;
-  word-break: keep-all !important;
+  position:relative;
+
+  margin:0 !important;
+  padding:6px 0 6px 14px !important;
+
+  color:#425063 !important;
+  font-size:12px !important;
+  font-weight:750 !important;
+  line-height:1.45 !important;
+
+  word-break:keep-all !important;
 }
 
+/* 기존 문자 점 대신 작은 원 */
 .mountain-road-list div::before{
-  content: "";
-  position: absolute;
-  top: 13px;
-  left: 1px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #7b8794;
+  content:"";
+  position:absolute;
+  top:13px;
+  left:1px;
+
+  width:5px;
+  height:5px;
+  border-radius:50%;
+
+  background:#7b8794;
 }
 
+/* 기존 텍스트의 •는 안 보이게 처리 */
 .mountain-road-list div{
-  font-size: 0 !important;
+  font-size:0 !important;
 }
 
 .mountain-road-list div::after{
-  font-size: 12px !important;
-  font-weight: 750 !important;
-  line-height: 1.45 !important;
+  font-size:12px !important;
+  font-weight:750 !important;
+  line-height:1.45 !important;
 }
 
+/* 각 문장 다시 표시 */
 .mountain-road-list div:nth-child(1)::after{
-  content: "급커브와 급경사 구간에서 충분히 감속하세요.";
+  content:"급커브와 급경사 구간에서 충분히 감속하세요.";
 }
 
 .mountain-road-list div:nth-child(2)::after{
-  content: "안개·비·결빙 등 갑작스러운 기상변화에 주의하세요.";
+  content:"안개·비·결빙 등 갑작스러운 기상변화에 주의하세요.";
 }
 
 .mountain-road-list div:nth-child(3)::after{
-  content: "내리막에서는 풋브레이크와 엔진브레이크를 함께 사용하세요.";
+  content:"내리막에서는 풋브레이크와 엔진브레이크를 함께 사용하세요.";
 }
 
+/* 확인 버튼 */
 .mountain-road-confirm{
-  width: 100% !important;
-  height: 46px !important;
-  margin-top: 14px !important;
-  border: 0 !important;
-  border-radius: 16px !important;
-  background: linear-gradient(
+  width:100% !important;
+  height:46px !important;
+  margin-top:14px !important;
+
+  border:0 !important;
+  border-radius:16px !important;
+
+  background:
+    linear-gradient(
       135deg,
       #15978d 0%,
       #35b5aa 100%
     ) !important;
-  color: #ffffff !important;
-  font-size: 14px !important;
-  font-weight: 900 !important;
-  box-shadow: 0 8px 18px rgba(21,151,141,.18) !important;
+
+  color:#ffffff !important;
+  font-size:14px !important;
+  font-weight:900 !important;
+
+  box-shadow:
+    0 8px 18px rgba(21,151,141,.18) !important;
 }
 </style>
 </head>
@@ -4253,8 +4928,8 @@ body:not(.route-active):not(.route-analysis-mode)
 
 <script>
   const orsApiKeys = [
-  "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImVkN2QwYzg1M2JlNjRhMjliZWY0ZGUxYTBhMGMzM2Q0IiwiaCI6Im11cm11cjY0In0=",
-  "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRiMzFkNmI2YzExODQxNWQ4MmI2YmQwNTdhYTIyYjY4IiwiaCI6Im11cm11cjY0In0="
+  "삭제",
+  "삭제"
 ];
   const feedbackApiUrl = "https://script.google.com/macros/s/AKfycbyV547EPHHqmzJXWAYaaLf6EDwUGG9Hr-VlM5RV_zQpoyvHxhRQv6HvxMmgisRkdfTO/exec";
   const adminPassword = "JSM2026";
@@ -4265,8 +4940,8 @@ const isAdmin =
 if(isAdmin){
   document.body.classList.add("admin-mode");
 }
-  const kakaoKey = "0afebb6a8bf4c82114b49b25efea0399";
-  const kakaoJsKey = "c244e1e25b12c9b2a6c68f6af9116b5b";
+  const kakaoKey = "삭제";
+  const kakaoJsKey = "삭제";
 if(window.Kakao){
   Kakao.init(kakaoJsKey);
 }
@@ -8810,3 +9485,6 @@ function closeMenuPopup(){
 </script>
 </body>
 </html>
+
+
+
