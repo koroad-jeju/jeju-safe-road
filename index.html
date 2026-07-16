@@ -5017,7 +5017,7 @@ async function requestOrsRoute(body){
   alert("목적지를 검색하거나 인기 관광지를 선택해주세요.");
   return;
 }
-  if(routeLayer){
+
 if(routeLayer){
   map.removeLayer(routeLayer);
 }
@@ -6490,7 +6490,7 @@ function getRouteRoadHtml(route){
       <button
         type="button"
         class="route-road-chip"
-        onclick="showRoadInfo('${road.name}')">
+     onclick="event.stopPropagation(); showRoadInfo('${road.name}')">
         ${road.name}
         <span class="route-road-info-icon">i</span>
       </button>
@@ -6697,17 +6697,37 @@ function makeCourseFeature(route){
 
   function makeRouteInfoCard(route, courseNumber, cardClass){
   if(!route){
-return `
-  <div
-    class="compare-mini route-info-card ${cardClass} ${
-      courseNumber === 1 ? "selected-course" : ""
-    }"
-    data-route-index="${courseNumber - 1}"
-    role="button"
-    tabindex="0"
-    onclick="selectRouteCourse(${courseNumber - 1})">
+    return `
+      <div class="compare-mini route-info-card ${cardClass}">
+        <div class="compact-course-head">
+          <b>${courseNumber}코스</b>
+        </div>
 
-    <div class="compact-course-head">
+        <div class="compact-empty">
+          경로 정보가 없습니다.
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div
+      class="compare-mini route-info-card ${cardClass} ${
+        courseNumber === 1 ? "selected-course" : ""
+      }"
+      data-route-index="${courseNumber - 1}"
+      role="button"
+      tabindex="0"
+      onclick="selectRouteCourse(${courseNumber - 1})"
+      onkeydown="
+        if(event.key === 'Enter' || event.key === ' '){
+          event.preventDefault();
+          selectRouteCourse(${courseNumber - 1});
+        }
+      "
+    >
+
+      <div class="compact-course-head">
         <b>${courseNumber}코스</b>
 
         <strong>
