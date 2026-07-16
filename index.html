@@ -4076,6 +4076,83 @@ body:not(.route-active):not(.route-analysis-mode)
     height:50px !important;
   }
 }
+  /* =========================================
+   홈 배너 높이 + SVG 아이콘 최종 수정
+   반드시 CSS 맨 마지막에 배치
+========================================= */
+
+/* 배너를 현재보다 살짝 높게 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-banner{
+  height:205px !important;
+  min-height:205px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,23,42,.03) 0%,
+      rgba(15,23,42,.20) 38%,
+      rgba(8,29,48,.90) 100%
+    ),
+    url("성산.png")
+    center 56% / cover no-repeat !important;
+}
+
+/* 배너 문구를 아주 조금 위로 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-text{
+  bottom:16px !important;
+}
+
+/* SVG가 들어가는 동그라미 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-feature-icon{
+  width:25px !important;
+  height:25px !important;
+  min-width:25px !important;
+
+  border:1px solid rgba(255,255,255,.58) !important;
+  border-radius:50% !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  box-sizing:border-box !important;
+}
+
+/* SVG 크기와 흰색 처리 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-feature-icon img{
+  width:14px !important;
+  height:14px !important;
+  display:block !important;
+
+  filter:
+    brightness(0)
+    invert(1) !important;
+
+  opacity:.96 !important;
+}
+
+/* 기능 안내 글자 */
+body:not(.route-active):not(.route-analysis-mode)
+.hero-feature{
+  gap:6px !important;
+  font-size:9.5px !important;
+  font-weight:750 !important;
+  line-height:1.25 !important;
+}
+
+/* 세로가 짧은 화면에서는 너무 커지지 않게 */
+@media(max-height:720px){
+
+  body:not(.route-active):not(.route-analysis-mode)
+  .hero-banner{
+    height:185px !important;
+    min-height:185px !important;
+  }
+}
 </style>
 </head>
 
@@ -4202,22 +4279,42 @@ body:not(.route-active):not(.route-analysis-mode)
       주요 통과도로와 사고이력을 안내합니다.
     </div>
 
-    <div class="hero-feature-row">
-      <div class="hero-feature">
-        <span class="hero-feature-icon">✓</span>
-        <span>사고이력<br>확인</span>
-      </div>
+<div class="hero-feature-row">
 
-      <div class="hero-feature">
-        <span class="hero-feature-icon">↝</span>
-        <span>주요도로<br>안내</span>
-      </div>
+  <div class="hero-feature">
+    <span class="hero-feature-icon">
+      <img src="shield-check.svg" alt="">
+    </span>
 
-      <div class="hero-feature">
-        <span class="hero-feature-icon">!</span>
-        <span>도로특성<br>확인</span>
-      </div>
-    </div>
+    <span>
+      사고이력<br>
+      확인
+    </span>
+  </div>
+
+  <div class="hero-feature">
+    <span class="hero-feature-icon">
+      <img src="route.svg" alt="">
+    </span>
+
+    <span>
+      주요도로<br>
+      안내
+    </span>
+  </div>
+
+  <div class="hero-feature">
+    <span class="hero-feature-icon">
+      <img src="alert-triangle.svg" alt="">
+    </span>
+
+    <span>
+      도로특성<br>
+      확인
+    </span>
+  </div>
+
+</div>
   </div>
 </div>
 
