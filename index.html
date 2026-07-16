@@ -4630,8 +4630,7 @@ async function requestOrsRoute(body){
     lastErrorText
   );
 }
-  throw new Error("ORS 전체 실패 / 상태:" + (lastStatus || "-") + " / " + lastErrorText);
-}
+ 
   async function drawRoutes(){
     if(!customEnd){
   alert("목적지를 검색하거나 인기 관광지를 선택해주세요.");
