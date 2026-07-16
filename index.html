@@ -2994,8 +2994,8 @@ body.route-fallback-mode .app-topbar{
   <img src="chart-bar.svg" alt="">
 </div>
         <div class="side-menu-text">
-          <b>EPDO 위험도</b>
-          <span>위험점수 계산 방식</span>
+<b>사고정보 안내</b>
+<span>사고 심각도 표시 기준</span>
         </div>
       </div>
      <div class="side-arrow">
@@ -7679,26 +7679,27 @@ setTimeout(() => {
 }, 300);
   }
 
-  if(type === "epdo"){
-    title.innerText = "EPDO 위험도";
+if(type === "epdo"){
+  title.innerText = "사고정보 안내";
 
-content.innerHTML = `
-  <div class="risk-info-card">
-    <h3>EPDO 위험도 분석</h3>
-    <p>
-      EPDO는 사고의 심각도를 점수화한 지표입니다.
-      사망·중상사고일수록 더 높은 점수가 부여됩니다.
-    </p>
-    <p>
-  이 서비스는 사고데이터와 사고 심각도를 분석해
-  이동 경로 주변의 사고정보를 비교하여 제공합니다.
-</p>
-  </div>
+  content.innerHTML = `
+    <div class="risk-info-card">
+      <h3>사고 심각도 표시 기준</h3>
 
-`;
+      <p>
+        사고 위험 지도에서는 사고 피해 정도에 따라
+        사고지점의 색상을 구분해 표시합니다.
+      </p>
 
-    popup.classList.add("active");
-  }
+      <p>
+        경로분석 화면에서는 경로 주변에서 확인된
+        중상 이상 사고이력을 참고정보로 제공합니다.
+      </p>
+    </div>
+  `;
+
+  popup.classList.add("active");
+}
 
   if(type === "notice"){
     title.innerText = "공지사항";
