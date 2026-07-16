@@ -4310,14 +4310,20 @@ function buildRegionFallbackHtml(){
       ${lastEnd.name}
     </div>
 
-    <div class="fallback-notice-card">
-      <h3>실시간 경로 연결이 원활하지 않습니다</h3>
+<div class="route-fallback-card">
 
-      <p>
-        현재 실시간 경로를 불러오지 못해
-        목적지 권역을 기준으로 안전정보를 안내합니다.
-      </p>
-    </div>
+    <img src="road.svg" class="fallback-icon">
+
+    <h3>
+    실시간 경로를 일시적으로 불러오지 못했습니다.
+    </h3>
+
+    <p>
+    최근 분석 결과 또는
+    목적지 주변 안전정보를 제공합니다.
+    </p>
+
+</div>
 
     <div class="fallback-route-card">
       <div class="fallback-route-title">
@@ -4775,10 +4781,6 @@ routes = filterMeaningfulAlternativeRoutes(routes);
 console.log("최종 표시 경로 개수:", routes.length);
 console.log("ORS 전체 응답:", data);
 
-    const routeRisks = routes.map(route => {
-      const coords = route.geometry.coordinates.map(c => [c[1], c[0]]);
-      return analyzeRouteRisk(coords);
-    });
 const routeAccidentAnalyses = routes.map(route => {
   const coords = route.geometry.coordinates.map(
     coordinate => [coordinate[1], coordinate[0]]
@@ -4815,10 +4817,14 @@ routes.forEach((route,index)=>{
       60
     );
 
-  const risk = routeRisks[index];
-
   const accidentAnalysis =
     routeAccidentAnalyses[index];
+
+  const risk = {
+  score:0,
+  totalCount:accidentAnalysis.totalCount || 0,
+  totalEpdo:0
+};
 
 /*
   ORS가 반환한 전체 도로 목록
