@@ -3171,10 +3171,11 @@ body.route-fallback-mode .app-topbar{
 <div id="riskMapPage" class="risk-map-page">
 
   <div class="risk-map-title">사고 위험 지도</div>
-  <div class="risk-map-sub">
-    2025년 렌터카 사고 데이터 기반으로 사고 위치와 사고 심각도 표시
-    <br>빨간색일수록 사고 심각도가 높은 구간
-  </div>
+<div class="risk-map-sub">
+  2023~2025년 제주 렌터카 사고 1,291건을 기반으로
+  사고 위치와 사고 심각도를 표시합니다.
+  <br>빨간색일수록 사고 심각도가 높은 지점입니다.
+</div>
 
   <div class="risk-map-card">
     <div id="riskMiniMap"></div>
@@ -3199,29 +3200,23 @@ body.route-fallback-mode .app-topbar{
 </h3>
       <div class="risk-question">어떤 사고 유형이 주로 확인되었나요?</div>
 
-      <div class="type-row">
-        <span>🚗 차대차</span>
-        <div><i style="width:62%; background:#ef4444;"></i></div>
-        <b>62.2%</b>
-      </div>
+<div class="type-row">
+  <span>🚗 차대차</span>
+  <div><i style="width:76.5%; background:#ef4444;"></i></div>
+  <b>76.5%</b>
+</div>
 
-      <div class="type-row">
-        <span>🚙 차량 단독</span>
-        <div><i style="width:18%; background:#f97316;"></i></div>
-        <b>18.1%</b>
-      </div>
+<div class="type-row">
+  <span>🚶 차대사람</span>
+  <div><i style="width:16.7%; background:#facc15;"></i></div>
+  <b>16.7%</b>
+</div>
 
-      <div class="type-row">
-        <span>🚶 차대사람</span>
-        <div><i style="width:13%; background:#facc15;"></i></div>
-        <b>13.4%</b>
-      </div>
-
-      <div class="type-row">
-        <span>기타</span>
-        <div><i style="width:6%; background:#10b981;"></i></div>
-        <b>6.3%</b>
-      </div>
+<div class="type-row">
+  <span>🚙 차량단독</span>
+  <div><i style="width:6.8%; background:#f97316;"></i></div>
+  <b>6.8%</b>
+</div>
     </div>
 
     <div class="risk-info-card">
@@ -3236,13 +3231,13 @@ body.route-fallback-mode .app-topbar{
     </div>
 
 <div class="risk-info-card">
- <h3>
-<img src="chart-bar.svg" class="title-svg">
-2025년 렌터카 사고 특성
+<h3>
+  <img src="chart-bar.svg" class="title-svg">
+  2023~2025년 렌터카 사고 현황
 </h3>
 
-  <div class="stat-grid four">
-    <div><b>447건</b><span>총 사고</span></div>
+<div class="stat-grid four">
+  <div><b id="totalAccidentCount">-</b><span>총 사고</span></div>
     <div><b id="deathCount">-</b><span>사망</span></div>
     <div><b id="seriousCount">-</b><span>중상</span></div>
     <div><b id="minorCount">-</b><span>경상</span></div>
@@ -3355,7 +3350,7 @@ body.route-fallback-mode .app-topbar{
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
-<script src="accidents.js"></script>
+<script src="accidents.js?v=20260716"></script>
   <script src="traffic_points.js"></script>
 
 <script>
@@ -7354,32 +7349,100 @@ function initRiskMiniMapPopup(){
 function updateAccidentStatsPopup(content){
   if(!Array.isArray(accidentData)) return;
 
-  const death = accidentData.filter(a => (a.severity || "").includes("사망")).length;
-  const serious = accidentData.filter(a => (a.severity || "").includes("중상")).length;
-  const minor = accidentData.filter(a => (a.severity || "").includes("경상")).length;
+  const total = accidentData.length;
 
-  const deathEl = content.querySelector("#deathCount");
-  const seriousEl = content.querySelector("#seriousCount");
-  const minorEl = content.querySelector("#minorCount");
+  const death = accidentData.filter(
+    accident =>
+      (accident.severity || "").includes("사망")
+  ).length;
 
-  if(deathEl) deathEl.textContent = death + "건";
-  if(seriousEl) seriousEl.textContent = serious + "건";
-  if(minorEl) minorEl.textContent = minor + "건";
+  const serious = accidentData.filter(
+    accident =>
+      (accident.severity || "").includes("중상")
+  ).length;
+
+  const minor = accidentData.filter(
+    accident =>
+      (accident.severity || "").includes("경상")
+  ).length;
+
+  const totalEl =
+    content.querySelector("#totalAccidentCount");
+
+  const deathEl =
+    content.querySelector("#deathCount");
+
+  const seriousEl =
+    content.querySelector("#seriousCount");
+
+  const minorEl =
+    content.querySelector("#minorCount");
+
+  if(totalEl){
+    totalEl.textContent =
+      total.toLocaleString() + "건";
+  }
+
+  if(deathEl){
+    deathEl.textContent = death + "건";
+  }
+
+  if(seriousEl){
+    seriousEl.textContent = serious + "건";
+  }
+
+  if(minorEl){
+    minorEl.textContent = minor + "건";
+  }
 }
-  function updateAccidentStats(){
+function updateAccidentStats(){
   if(!Array.isArray(accidentData)) return;
 
-  const death = accidentData.filter(a => (a.severity || "").includes("사망")).length;
-  const serious = accidentData.filter(a => (a.severity || "").includes("중상")).length;
-  const minor = accidentData.filter(a => (a.severity || "").includes("경상")).length;
+  const total = accidentData.length;
 
-  const deathEl = document.getElementById("deathCount");
-  const seriousEl = document.getElementById("seriousCount");
-  const minorEl = document.getElementById("minorCount");
+  const death = accidentData.filter(
+    accident =>
+      (accident.severity || "").includes("사망")
+  ).length;
 
-  if(deathEl) deathEl.textContent = death + "건";
-  if(seriousEl) seriousEl.textContent = serious + "건";
-  if(minorEl) minorEl.textContent = minor + "건";
+  const serious = accidentData.filter(
+    accident =>
+      (accident.severity || "").includes("중상")
+  ).length;
+
+  const minor = accidentData.filter(
+    accident =>
+      (accident.severity || "").includes("경상")
+  ).length;
+
+  const totalEl =
+    document.getElementById("totalAccidentCount");
+
+  const deathEl =
+    document.getElementById("deathCount");
+
+  const seriousEl =
+    document.getElementById("seriousCount");
+
+  const minorEl =
+    document.getElementById("minorCount");
+
+  if(totalEl){
+    totalEl.textContent =
+      total.toLocaleString() + "건";
+  }
+
+  if(deathEl){
+    deathEl.textContent = death + "건";
+  }
+
+  if(seriousEl){
+    seriousEl.textContent = serious + "건";
+  }
+
+  if(minorEl){
+    minorEl.textContent = minor + "건";
+  }
 }
 function showRiskMap(){
 
