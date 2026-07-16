@@ -4296,6 +4296,186 @@ body:not(.route-active):not(.route-analysis-mode)
 
   word-break:keep-all !important;
 }
+  /* 도로 설명 팝업 제목 아이콘 */
+.road-popup-title{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+.road-popup-title img{
+  width:21px;
+  height:21px;
+  object-fit:contain;
+  opacity:.78;
+}
+  /* =========================================
+   산간도로 운전 주의 팝업 압축형 최종 디자인
+========================================= */
+
+.mountain-road-popup{
+  padding:20px !important;
+  background:rgba(15,23,42,.44) !important;
+}
+
+/* 전체 팝업 */
+.mountain-road-card{
+  width:100% !important;
+  max-width:370px !important;
+
+  padding:20px 18px 17px !important;
+  border-radius:24px !important;
+
+  background:#ffffff !important;
+  box-shadow:
+    0 20px 50px rgba(15,23,42,.24) !important;
+
+  text-align:center !important;
+  box-sizing:border-box !important;
+}
+
+/* 상단 경고 아이콘 */
+.mountain-road-icon{
+  width:46px !important;
+  height:46px !important;
+  margin:0 auto 10px !important;
+
+  border-radius:50% !important;
+  background:#fff6ea !important;
+}
+
+.mountain-road-icon img{
+  width:23px !important;
+  height:23px !important;
+}
+
+/* 제목 */
+.mountain-road-card h3{
+  margin:0 !important;
+
+  color:#17202c !important;
+  font-size:18px !important;
+  font-weight:900 !important;
+  letter-spacing:-.4px !important;
+}
+
+/* 포함 도로 표시 */
+.mountain-road-name{
+  display:inline-block !important;
+
+  margin-top:9px !important;
+  padding:6px 11px !important;
+
+  border-radius:999px !important;
+  background:#fff2df !important;
+
+  color:#b45309 !important;
+  font-size:11.5px !important;
+  font-weight:900 !important;
+
+  line-height:1.35 !important;
+}
+
+/* 설명 문구 */
+.mountain-road-card > p{
+  margin:12px 2px 0 !important;
+
+  color:#536171 !important;
+  font-size:12.5px !important;
+  font-weight:700 !important;
+  line-height:1.55 !important;
+
+  word-break:keep-all !important;
+}
+
+/* 주의사항 박스 */
+.mountain-road-list{
+  margin:13px 0 0 !important;
+  padding:12px 13px !important;
+
+  border:1px solid #edf0f3 !important;
+  border-radius:16px !important;
+
+  background:#f7f9fb !important;
+  text-align:left !important;
+}
+
+/* 주의사항 한 줄 */
+.mountain-road-list div{
+  position:relative;
+
+  margin:0 !important;
+  padding:6px 0 6px 14px !important;
+
+  color:#425063 !important;
+  font-size:12px !important;
+  font-weight:750 !important;
+  line-height:1.45 !important;
+
+  word-break:keep-all !important;
+}
+
+/* 기존 문자 점 대신 작은 원 */
+.mountain-road-list div::before{
+  content:"";
+  position:absolute;
+  top:13px;
+  left:1px;
+
+  width:5px;
+  height:5px;
+  border-radius:50%;
+
+  background:#7b8794;
+}
+
+/* 기존 텍스트의 •는 안 보이게 처리 */
+.mountain-road-list div{
+  font-size:0 !important;
+}
+
+.mountain-road-list div::after{
+  font-size:12px !important;
+  font-weight:750 !important;
+  line-height:1.45 !important;
+}
+
+/* 각 문장 다시 표시 */
+.mountain-road-list div:nth-child(1)::after{
+  content:"급커브와 급경사 구간에서 충분히 감속하세요.";
+}
+
+.mountain-road-list div:nth-child(2)::after{
+  content:"안개·비·결빙 등 갑작스러운 기상변화에 주의하세요.";
+}
+
+.mountain-road-list div:nth-child(3)::after{
+  content:"내리막에서는 풋브레이크와 엔진브레이크를 함께 사용하세요.";
+}
+
+/* 확인 버튼 */
+.mountain-road-confirm{
+  width:100% !important;
+  height:46px !important;
+  margin-top:14px !important;
+
+  border:0 !important;
+  border-radius:16px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #15978d 0%,
+      #35b5aa 100%
+    ) !important;
+
+  color:#ffffff !important;
+  font-size:14px !important;
+  font-weight:900 !important;
+
+  box-shadow:
+    0 8px 18px rgba(21,151,141,.18) !important;
+}
 </style>
 </head>
 
@@ -7543,7 +7723,12 @@ function getRouteRoadHtml(route){
   */
   popup.classList.add("road-info-mode");
 
-  title.textContent = profile.name;
+  title.innerHTML = `
+  <span class="road-popup-title">
+    <img src="road.svg" alt="">
+    <span>${profile.name}</span>
+  </span>
+`;
 
   content.innerHTML = `
     <div class="road-info-content">
