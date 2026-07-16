@@ -4153,6 +4153,149 @@ body:not(.route-active):not(.route-analysis-mode)
     min-height:185px !important;
   }
 }
+  /* ===== 홈 배너 사진 조금 더 크게 ===== */
+
+body:not(.route-active):not(.route-analysis-mode)
+.hero-banner{
+  height:215px !important;
+  min-height:215px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,23,42,.02) 0%,
+      rgba(15,23,42,.18) 38%,
+      rgba(8,29,48,.88) 100%
+    ),
+    url("성산.png")
+    center 52% / cover no-repeat !important;
+}
+  /* =========================================
+   주요도로 설명 전용 짧은 팝업
+========================================= */
+
+/* 도로 설명일 때는 화면 중앙 정렬 */
+.menu-popup.road-info-mode{
+  display:none;
+  align-items:center;
+  justify-content:center;
+
+  padding:20px !important;
+}
+
+.menu-popup.road-info-mode.active{
+  display:flex !important;
+}
+
+/* 팝업 전체 높이를 내용만큼만 */
+.menu-popup.road-info-mode
+.menu-popup-card{
+  width:100% !important;
+  max-width:390px !important;
+
+  height:auto !important;
+  max-height:calc(100dvh - 150px) !important;
+
+  border-radius:24px !important;
+  overflow:hidden !important;
+}
+
+/* 상단 제목 영역 */
+.menu-popup.road-info-mode
+.menu-popup-head{
+  height:56px !important;
+  min-height:56px !important;
+  padding:0 16px 0 18px !important;
+
+  font-size:18px !important;
+  border-bottom:1px solid #edf0f3 !important;
+}
+
+/* 닫기 버튼 */
+.menu-popup.road-info-mode
+.menu-popup-head button{
+  width:34px !important;
+  height:34px !important;
+
+  background:#f3f6f8 !important;
+  color:#52606d !important;
+
+  font-size:21px !important;
+  line-height:1 !important;
+}
+
+/* 내용 영역 */
+.menu-popup.road-info-mode
+.menu-popup-content{
+  flex:none !important;
+  overflow-y:auto !important;
+
+  padding:18px !important;
+  background:#f7f9fb !important;
+}
+
+/* 도로 설명 카드 */
+.road-info-content{
+  padding:18px !important;
+
+  border:1px solid #e7ebef;
+  border-radius:19px;
+
+  background:#ffffff;
+  box-shadow:0 7px 20px rgba(15,23,42,.055);
+}
+
+/* 도로 기본 설명 */
+.road-info-guide{
+  margin:0 !important;
+
+  color:#475569 !important;
+  font-size:14px !important;
+  font-weight:700 !important;
+  line-height:1.65 !important;
+
+  word-break:keep-all !important;
+}
+
+/* 특징 목록 */
+.road-info-feature-list{
+  margin-top:13px;
+  padding-top:11px;
+
+  border-top:1px solid #edf0f3;
+}
+
+.road-info-feature{
+  display:flex;
+  align-items:flex-start;
+  gap:7px;
+
+  margin-top:8px;
+}
+
+.road-info-feature:first-child{
+  margin-top:0;
+}
+
+.road-info-feature > span{
+  flex:0 0 auto;
+
+  color:#6b7480;
+  font-size:14px;
+  font-weight:900;
+  line-height:1.55;
+}
+
+.road-info-feature > p{
+  margin:0 !important;
+
+  color:#475569 !important;
+  font-size:13.5px !important;
+  font-weight:700 !important;
+  line-height:1.55 !important;
+
+  word-break:keep-all !important;
+}
 </style>
 </head>
 
@@ -7395,19 +7538,29 @@ function getRouteRoadHtml(route){
   const content =
     document.getElementById("menuPopupContent");
 
+  /*
+    도로 설명 전용 짧은 팝업 적용
+  */
+  popup.classList.add("road-info-mode");
+
   title.textContent = profile.name;
 
   content.innerHTML = `
-    <div class="risk-info-card">
-      <h3>${profile.name}</h3>
+    <div class="road-info-content">
 
-      <p>${profile.guide}</p>
+      <p class="road-info-guide">
+        ${profile.guide}
+      </p>
 
-      <div class="feature-list">
+      <div class="road-info-feature-list">
         ${profile.features.map(feature => `
-          <p>• ${feature}</p>
+          <div class="road-info-feature">
+            <span>•</span>
+            <p>${feature}</p>
+          </div>
         `).join("")}
       </div>
+
     </div>
   `;
 
@@ -9073,6 +9226,12 @@ function openMenuPopup(type){
   const title = document.getElementById("menuPopupTitle");
   const content = document.getElementById("menuPopupContent");
 
+  /*
+    위험지도·사고정보·공지사항에서는
+    도로 설명 전용 스타일 제거
+  */
+  popup.classList.remove("road-info-mode");
+
   if(type === "risk"){
     title.innerText = "사고 위험 지도";
     content.innerHTML = document.getElementById("riskMapPage").innerHTML;
@@ -9130,7 +9289,13 @@ if(type === "epdo"){
 }
 
 function closeMenuPopup(){
-  document.getElementById("menuPopup").classList.remove("active");
+  const popup =
+    document.getElementById("menuPopup");
+
+  popup.classList.remove(
+    "active",
+    "road-info-mode"
+  );
 }
 </script>
 </body>
