@@ -4503,7 +4503,31 @@ if(address){
     signal: controller.signal
   }).finally(() => clearTimeout(timer));
 }
+function completeLoadingSteps(){
+  const loadingSteps = [
+    ["step1", "주요 통과도로 확인 완료"],
+    ["step2", "사고이력 분석 완료"],
+    ["step3", "도로 특성 분석 완료"],
+    ["step4", "안전운전 정보 정리 완료"]
+  ];
 
+  loadingSteps.forEach(([id, text]) => {
+    const step =
+      document.getElementById(id);
+
+    if(!step){
+      return;
+    }
+
+    step.className =
+      "loading-step done";
+
+    step.innerHTML = `
+      <span class="step-dot"></span>
+      <span>${text}</span>
+    `;
+  });
+}
 async function requestOrsRoute(body){
   let lastStatus = "";
   let lastErrorText = "";
@@ -4513,8 +4537,43 @@ async function requestOrsRoute(body){
     "https://api.openrouteservice.org/v2/directions/driving-car/geojson"
   ];
 
+  const overallStartTime = Date.now();
+
+  /*
+    ORS 전체 시도는 최대 12초까지만 진행
+  */
+  const OVERALL_TIMEOUT_MS = 12000;
+
+  /*
+    개별 요청은 최대 4.5초
+  */
+  const SINGLE_REQUEST_TIMEOUT_MS = 4500;
+
   for(const url of orsUrls){
     for(const key of orsApiKeys){
+
+      const elapsedTime =
+        Date.now() - overallStartTime;
+
+      /*
+        이미 전체 제한시간을 넘었다면
+        더 이상 다음 서버나 키를 시도하지 않음
+      */
+      if(elapsedTime >= OVERALL_TIMEOUT_MS){
+        throw new Error(
+          "ORS 전체 요청 시간 초과"
+        );
+      }
+
+      const remainingTime =
+        OVERALL_TIMEOUT_MS - elapsedTime;
+
+      const currentTimeout =
+        Math.min(
+          SINGLE_REQUEST_TIMEOUT_MS,
+          remainingTime
+        );
+
       try{
         const response = await fetchWithTimeout(
           url,
@@ -4526,28 +4585,51 @@ async function requestOrsRoute(body){
             },
             body:JSON.stringify(body)
           },
-          8000
+          currentTimeout
         );
 
         if(response.ok){
-          console.log("ORS 성공:", url);
+          console.log(
+            "ORS 성공:",
+            url
+          );
+
           return response;
         }
 
         lastStatus = response.status;
-        lastErrorText = await response.text();
-        console.error("ORS 실패:", url, response.status, lastErrorText);
+        lastErrorText =
+          await response.text();
 
-      }catch(err){
-        lastErrorText = err.name === "AbortError"
-          ? "요청 시간 초과"
-          : err.message;
+        console.error(
+          "ORS 실패:",
+          url,
+          response.status,
+          lastErrorText
+        );
 
-        console.error("ORS 요청 오류:", url, lastErrorText);
+      }catch(error){
+        lastErrorText =
+          error.name === "AbortError"
+            ? "요청 시간 초과"
+            : error.message;
+
+        console.error(
+          "ORS 요청 오류:",
+          url,
+          lastErrorText
+        );
       }
     }
   }
 
+  throw new Error(
+    "ORS 전체 실패 / 상태:" +
+    (lastStatus || "-") +
+    " / " +
+    lastErrorText
+  );
+}
   throw new Error("ORS 전체 실패 / 상태:" + (lastStatus || "-") + " / " + lastErrorText);
 }
   async function drawRoutes(){
@@ -4645,49 +4727,6 @@ lastEnd = {
 
     document.querySelector(".panel").classList.add("route-mode");
     document.body.classList.add("route-active");
-   setTimeout(()=>{
-  const s=document.getElementById("step1");
-  if(s){
-    s.className="loading-step done";
-    s.innerHTML=`
-      <span class="step-dot"></span>
-      <span>주요 통과도로 확인 완료</span>
-    `;
-  }
-},350);
-
-setTimeout(()=>{
-  const s=document.getElementById("step2");
-  if(s){
-    s.className="loading-step done";
-    s.innerHTML=`
-      <span class="step-dot"></span>
-      <span>사고이력 분석 완료</span>
-    `;
-  }
-},700);
-
-setTimeout(()=>{
-  const s=document.getElementById("step3");
-  if(s){
-    s.className="loading-step done";
-    s.innerHTML=`
-      <span class="step-dot"></span>
-      <span>도로 특성 분석 완료</span>
-    `;
-  }
-},1050);
-
-setTimeout(()=>{
-  const s=document.getElementById("step4");
-  if(s){
-    s.className="loading-step done";
-    s.innerHTML=`
-      <span class="step-dot"></span>
-      <span>안전운전 정보 정리 완료</span>
-    `;
-  }
-},1400);
 
   const body = {
   coordinates:[
@@ -4722,6 +4761,7 @@ try{
 }
     clearTimeout(slowLoadingTimer);
     const data = await response.json();
+    completeLoadingSteps();
     document.body.classList.remove("route-fallback-mode");
 
     if(!data.features || data.features.length===0){
