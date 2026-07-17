@@ -111,20 +111,6 @@ body.route-analysis-mode #map{
   box-shadow:none;
 }
 
-.drag-handle,
-.header-box{
-  display:none;
-}
-
-.drag-handle{
-  width:48px;
-  height:5px;
-  border-radius:999px;
-  background:#d9dee7;
-  opacity:.75;
-  margin:0 auto 10px;
-}
-
 /* ===== 지도/경로 라벨 ===== */
 
 .tour-label-marker,
@@ -161,10 +147,6 @@ body.route-active .panel{
   box-shadow:0 -10px 28px rgba(15,23,42,.08);
 }
 
-body.route-active .drag-handle{
-  display:block;
-}
-
 body.route-active .bottom-nav{
   display:grid;
 }
@@ -188,76 +170,6 @@ body.route-active .bottom-nav{
   border-radius:22px;
   box-shadow:0 8px 24px rgba(15,23,42,.07);
   border:1px solid #edf2f7;
-}
-
-.result-main-grid{
-  display:grid;
-  grid-template-columns:1.3fr .85fr .85fr;
-  align-items:center;
-  gap:10px;
-}
-
-.result-course{
-  display:flex;
-  gap:12px;
-  align-items:center;
-}
-
-.result-shield{
-  width:34px;
-  height:34px;
-  border-radius:50%;
-  background:#e8f8f5;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:17px;
-}
-
-.result-title{
-  font-size:18px;
-  font-weight:700;
-  color:#0f766e;
-  letter-spacing:-0.5px;
-}
-
-.result-sub{
-  margin-top:8px;
-  font-size:12px;
-  font-weight:750;
-  color:#334155;
-  line-height:1.45;
-}
-
-.result-sub b{
-  display:block;
-  margin-top:3px;
-  font-size:15px;
-  font-weight:700;
-  color:#0f766e;
-}
-
-.result-metric{
-  text-align:center;
-  border-left:1px solid #e5e7eb;
-}
-
-.result-metric-icon{
-  width:34px;
-  height:34px;
-  margin:0 auto 7px;
-  border-radius:50%;
-  background:#e8f8f5;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:17px;
-}
-
-.result-metric span{
-  font-size:12px;
-  color:#64748b;
-  font-weight:800;
 }
 
 /* ===== 네비 버튼 ===== */
@@ -351,20 +263,7 @@ body.route-active .bottom-nav{
 }
 
 /* ===== 경로 상세 비교 ===== */
-
-
-.compare-detail-new summary{
-  cursor:pointer;
-  list-style:none;
-  font-size:16px;
-  font-weight:700;
-  color:#0f172a;
-}
-
-.compare-detail-new summary::-webkit-details-marker{
-  display:none;
-}
-
+  
 .compare-mini.recommend{
   border-color:#7dd3c7;
   background:#f3fffd;
@@ -380,14 +279,6 @@ body.route-active .bottom-nav{
 
 .compare-head b{
   font-size:18px;
-}
-
-.compare-mini.recommend .compare-row2 b{
-  color:#0f766e;
-}
-
-.compare-mini.alt .risk-score b{
-  color:#e04f1a;
 }
 
 /* ===== 하단 메뉴 ===== */
@@ -471,38 +362,7 @@ body.risk-map-mode .risk-map-page{
   color:#64748b;
   line-height:1.45;
 }
-
-
-/* ===== 지도 팝업 ===== */
-.region-popup{
-  min-width:190px;
-  font-family:'Pretendard','SUIT',sans-serif;
-}
-
-.region-popup-title{
-  font-size:16px;
-  font-weight:900;
-  color:#0f172a;
-  margin-bottom:7px;
-}
-
-.region-popup-level{
-  display:inline-block;
-  margin-bottom:9px;
-  padding:5px 10px;
-  border-radius:999px;
-  background:#f1f5f9;
-  color:#0f766e;
-  font-size:12px;
-  font-weight:900;
-}
-
-.region-popup-text{
-  font-size:13px;
-  line-height:1.55;
-  color:#334155;
-}
-
+  
 /* ===== 안내수칙 페이지 ===== */
 .safety-guide-page{
   display:none;
@@ -844,20 +704,6 @@ body.safety-guide-mode .risk-map-page{
   color:#64748b;
 }
 
-  .result-appear{
-  animation: resultAppear .42s ease-out both;
-}
-
-@keyframes resultAppear{
-  from{
-    opacity:0;
-    transform:translateY(14px);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0);
-  }
-}
   .tip-item div{
   flex:1;
   font-size:13px;
@@ -1381,14 +1227,7 @@ body{
     line-height:1.6;
     color:#64748b;
 }
-  .result-shield img{
-    width:20px;
-    height:20px;
-}
-  .result-metric-icon img{
-    width:18px;
-    height:18px;
-}
+
   .title-svg{
     width:18px;
     height:18px;
@@ -1472,20 +1311,6 @@ h3 .title-svg,
 
 .step-dot{
     display:none;
-}
-  /* 경로 상세 분석 버튼 - 연한 iOS 스타일 */
-.analysis-link-btn{
-  margin:10px 0 12px !important;
-  width:100% !important;
-  height:48px !important;
-  border:1px solid #cdeee8 !important;
-  border-radius:18px !important;
-  background:#ffffff !important;
-  color:#0f766e !important;
-  font-size:15px !important;
-  font-weight:900 !important;
-  letter-spacing:-0.3px !important;
-  box-shadow:0 6px 16px rgba(15,23,42,.045) !important;
 }
 
 /* 로딩 카드 전체 축소 */
@@ -1577,42 +1402,6 @@ h3 .title-svg,
   background:#14b8a6;
 }
 
-/* 3. AI 안전브리핑 칸 축소 */
-.analysis-main-card{
-  padding:15px 17px !important;
-  border-radius:22px !important;
-}
-
-.analysis-main-card h3{
-  margin:0 0 8px !important;
-  font-size:18px !important;
-}
-
-.analysis-point{
-  padding:8px 0 !important;
-  gap:10px !important;
-}
-
-.analysis-icon{
-  width:36px !important;
-  height:36px !important;
-  min-width:36px !important;
-}
-
-.analysis-icon img{
-  width:18px !important;
-  height:18px !important;
-}
-
-.analysis-text b{
-  margin-bottom:3px !important;
-  font-size:15px !important;
-}
-
-.analysis-text span{
-  font-size:14px !important;
-  line-height:1.45 !important;
-}
   /* ===== 햄버거 사이드 메뉴 ===== */
 
 .app-topbar::before{
@@ -1882,23 +1671,6 @@ h3 .title-svg,
 /* 경로분석 페이지 여백 */
 .route-analysis-page{
   padding:14px 14px 110px !important;
-}
-
-/* 위험점수 안내 흰색 카드 */
-.risk-score-guide{
-  background:#fff !important;
-  padding:18px !important;
-}
-
-.risk-score-guide h3{
-  font-size:17px !important;
-  margin-bottom:12px !important;
-}
-
-.risk-score-guide p{
-  font-size:13.5px !important;
-  line-height:1.65 !important;
-  margin:10px 0 !important;
 }
 
 /* 경로 상세 비교 카드 */
@@ -2399,82 +2171,6 @@ body.route-fallback-mode .app-topbar{
   padding:16px !important;
 }
 
-.route-basic-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-  margin-bottom:7px;
-}
-
-.route-basic-grid > div{
-  padding:11px 12px;
-  border-radius:14px;
-  background:#f8fafc;
-}
-
-.route-basic-grid span{
-  display:block;
-  margin-bottom:5px;
-  color:#64748b;
-  font-size:11px;
-  font-weight:800;
-}
-
-.route-basic-grid b{
-  color:#0f172a;
-  font-size:15px;
-  font-weight:900;
-}
-
-.route-info-row{
-  padding:11px 2px;
-  border-top:1px solid #edf2f7;
-}
-
-.route-info-label{
-  display:block;
-  margin-bottom:5px;
-  color:#64748b;
-  font-size:11.5px;
-  font-weight:800;
-}
-
-.route-info-row b{
-  display:block;
-  color:#0f172a;
-  font-size:13.5px;
-  font-weight:850;
-  line-height:1.5;
-  word-break:keep-all;
-}
-
-.course-feature-box{
-  margin-top:7px;
-  padding:13px 14px;
-  border-radius:16px;
-  background:#f8fafc;
-}
-
-.course-feature-box span{
-  display:block;
-  margin-bottom:6px;
-  color:#0f766e;
-  font-size:12px;
-  font-weight:900;
-}
-
-.course-feature-box p{
-  margin:0;
-  color:#334155;
-  font-size:13px;
-  font-weight:750;
-  line-height:1.55;
-  word-break:keep-all;
-}
-
-.route-info-card.alt .course-feature-box span{
-  color:#b45309;
-}
   /* ===== 주요 통과도로 버튼 ===== */
 
 .route-road-list{
@@ -3180,64 +2876,6 @@ body:not(.route-active):not(.route-analysis-mode)
   height:31px !important;
   background:#fff !important;
   border-color:#e7ebf0 !important;
-}
-
-/* 인기 관광지 */
-.popular-area{
-  margin-top:14px;
-  padding:16px;
-  border-radius:22px;
-  background:#fff;
-  border:1px solid #e8edf2;
-  box-shadow:
-    0 8px 22px rgba(15,23,42,.055);
-}
-
-.popular-head{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  margin-bottom:12px;
-  color:#344050;
-  font-size:13.5px;
-  font-weight:900;
-}
-
-.popular-pin{
-  color:#159d90;
-  font-size:17px;
-}
-
-.popular-chip-list{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-  padding-bottom:3px;
-  scrollbar-width:none;
-}
-
-.popular-chip-list::-webkit-scrollbar{
-  display:none;
-}
-
-.popular-chip{
-  flex:0 0 auto;
-  height:38px;
-  padding:0 14px;
-  border:1px solid #e1e6eb;
-  border-radius:14px;
-  background:#fafbfc;
-  color:#4b5563;
-  font-family:inherit;
-  font-size:12px;
-  font-weight:850;
-  white-space:nowrap;
-}
-
-.popular-chip.active{
-  border-color:#55bdb2;
-  background:#edf9f7;
-  color:#147e74;
 }
 
 /* 분석 버튼 */
