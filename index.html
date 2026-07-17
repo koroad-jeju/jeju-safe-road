@@ -71,13 +71,9 @@ body.route-analysis-mode #map{
   top:0;
   left:0;
   right:0;
-  height:64px;
   z-index:10000;
-  background:#fff;
   display:flex;
   align-items:center;
-  justify-content:center;
-  padding:0 18px;
   box-sizing:border-box;
 }
  
@@ -99,21 +95,16 @@ body.route-analysis-mode #map{
 /* ===== 메인 패널 ===== */
 .panel{
   position:fixed;
-  top:64px;
   left:0;
   right:0;
   bottom:0;
   z-index:9999;
-  background:#fff;
   border-radius:0;
-  padding:10px 14px 92px;
   overflow-y:auto;
   box-shadow:none;
 }
-
 /* ===== 지도/경로 라벨 ===== */
 
-.tour-label-marker,
 .route-label-marker{
   background:transparent !important;
   border:none !important;
@@ -313,12 +304,7 @@ body.route-active .bottom-nav{
   font-size:11px;
   font-weight:800;
 }
-
-.bottom-item span{
-  display:none;
-}
-
-
+  
 .bottom-item.active{
   color:#13a89a;
 }
@@ -426,12 +412,7 @@ body.safety-guide-mode .risk-map-page{
 }
 
 /* ===== 작은 화면 보정 ===== */
-@media(max-width:420px){
-  .result-main-grid{
-    grid-template-columns:1.35fr .8fr .8fr;
-    gap:6px;
-  }
-}
+
   .guide-image-card{
   margin-top:16px;
   border-radius:22px;
@@ -951,18 +932,7 @@ body{
 
 /* 메인 이미지 */
 .hero-banner{
-  height:205px;
-  border-radius:16px 16px 26px 26px;
   overflow:hidden;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15,23,42,.05) 0%,
-      rgba(15,23,42,.25) 42%,
-      rgba(15,23,42,.78) 100%
-    ),
-    url("성산.png") center 62%/cover no-repeat;
-  box-shadow:0 10px 22px rgba(15,23,42,.10);
 }
 
 /* 입력 카드 */
@@ -1256,20 +1226,6 @@ h3 .title-svg,
     justify-content:center;
 } 
   /* ===== 결과화면 2026 스타일 ===== */
-
-.result-hero-card.new-result{
-  padding:18px;
-  border-radius:26px;
-  background:linear-gradient(180deg,#ffffff 0%,#f0fdfa 100%);
-  margin-bottom:18px;
-}
-.course-choice-btn strong{
-  display:block;
-  margin-top:6px;
-  font-size:22px;
-  font-weight:950;
-  color:#0f172a;
-}
 
 .route-analysis-page{
   padding-top:14px;
@@ -1641,7 +1597,6 @@ h3 .title-svg,
   /* ===== 메뉴 팝업 글자 정리 ===== */
 
 .menu-popup-content .risk-info-card,
-.menu-popup-content .risk-score-guide{
   padding:18px 20px !important;
   border-radius:22px !important;
 }
@@ -2703,44 +2658,6 @@ body:not(.route-active):not(.route-analysis-mode)
     );
 }
 
-/* 메인 배너 */
-.hero-banner{
-  height:280px !important;
-  border-radius:24px !important;
-  box-shadow:
-    0 14px 30px rgba(15,23,42,.13) !important;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15,23,42,.04) 0%,
-      rgba(15,23,42,.22) 38%,
-      rgba(8,29,48,.92) 100%
-    ),
-    url("성산.png")
-    center 58% / cover no-repeat !important;
-}
-
-/* 배너 문구 */
-.hero-text{
-  left:22px !important;
-  right:22px !important;
-  bottom:20px !important;
-}
-
-.hero-title{
-  font-size:26px !important;
-  line-height:1.25 !important;
-  letter-spacing:-1px !important;
-}
-
-.hero-sub{
-  margin-top:10px !important;
-  font-size:14px !important;
-  line-height:1.55 !important;
-  color:rgba(255,255,255,.92) !important;
-}
-
 /* 배너 하단 기능 */
 .hero-feature-row{
   display:grid;
@@ -2930,25 +2847,6 @@ body:not(.route-active):not(.route-analysis-mode)
 
 /* 작은 휴대전화 */
 @media(max-width:390px){
-
-  .hero-banner{
-    height:255px !important;
-  }
-
-  .hero-title{
-    font-size:23px !important;
-  }
-
-  .hero-feature{
-    gap:5px;
-    font-size:9.5px;
-  }
-
-  .hero-feature-icon{
-    width:26px;
-    height:26px;
-    min-width:26px;
-  }
 
   .route-input-card{
     padding-left:13px !important;
@@ -3193,10 +3091,6 @@ body:not(.route-active):not(.route-analysis-mode)
 @media(max-height:720px){
 
   body:not(.route-active):not(.route-analysis-mode)
-  .hero-banner{
-    height:170px !important;
-    min-height:170px !important;
-  }
 
   body:not(.route-active):not(.route-analysis-mode)
   .hero-title{
@@ -4228,74 +4122,6 @@ if(
 }
 
 let regionLayer;
-
-const regionGuide = {
-  "공항권": {
-    title:"공항권",
-    level:"주의 필요",
-    caution:"렌터카 인수 직후 초행운전이 많아 급차로 변경과 진출입 차량에 주의하세요."
-  },
-  "제주시도심권": {
-    title:"제주시 도심권",
-    level:"주의 필요",
-    caution:"교차로와 보행자 통행이 많아 우회전·차로변경 시 주변 확인이 필요합니다."
-  },
-  "서귀포도심권": {
-    title:"서귀포 도심권",
-    level:"주의 필요",
-    caution:"시내 교차로와 보행자 이동이 많아 신호 변경 구간에서 감속 운전하세요."
-  },
-  "애월권": {
-    title:"애월권",
-    level:"다소 주의",
-    caution:"해안도로와 카페·관광지 진출입 차량이 많아 급정지와 끼어들기에 주의하세요."
-  },
-  "서부중산간권": {
-    title:"서부 중산간권",
-   level:"다소 주의",
-    caution:"곡선도로와 경사구간이 많아 속도를 낮추고 내리막에서는 엔진브레이크를 활용하세요."
-  },
-  "동부중산간권": {
-    title:"동부 중산간권",
-    level:"일반",
-    caution:"중산간 도로 특성상 시야가 제한될 수 있어 교차로 진입 전 충분히 감속하세요."
-  },
-  "협재·한림권": {
-    title:"협재·한림권",
-    level:"일반",
-    caution:"해수욕장 주변 보행자와 주정차 차량이 많아 주차장 진출입부에서 서행하세요."
-  },
-  "함덕·조천권": {
-    title:"함덕·조천권",
-    level:"일반",
-    caution:"해수욕장과 마을도로가 연결되어 보행자·자전거·주정차 차량에 주의하세요."
-  },
-  "김녕·월정권": {
-    title:"김녕·월정권",
-    level:"일반",
-    caution:"해안도로 주행 중 경치에 시선이 분산되기 쉬우므로 전방주시를 유지하세요."
-  },
-  "성산권": {
-    title:"성산권",
-    level:"일반",
-    caution:"관광버스와 렌터카가 혼재되어 목적지를 놓쳐도 급차로 변경하지 마세요."
-  },
-  "한라산권": {
-    title:"한라산권",
-    level:"일반",
-    caution:"급커브·안개·기상변화가 잦아 전조등을 켜고 충분히 감속 운전하세요."
-  },
-  "중문권": {
-    title:"중문권",
-    level:"안전",
-    caution:"관광단지 진출입 차량과 보행자가 많으니 주차장 주변에서는 서행하세요."
-  },
-  "기타": {
-    title:"기타 권역",
-    level:"정보없음",
-    caution:"초행길에서는 내비 안내를 미리 확인하고 교차로에서 충분히 감속하세요."
-  }
-};
 
 fetch("jeju_regions.geojson")
   .then(res => res.json())
@@ -5821,8 +5647,6 @@ lastRecommendedIndex = 0;
 routeSummaries.forEach((summary, index) => {
   const coords = summary.coords;
 
-  allCoords = allCoords.concat(coords);
-
   /*
     1코스: 블루
     2코스: 코랄
@@ -6473,19 +6297,7 @@ function extractRouteRoadNames(route){
     }));
 }
 
-function getMainRouteRoadNames(route){
-  const extracted =
-    extractRouteRoadNames(route);
 
-  /*
-    너무 짧게 지나는 도로는 제외
-  */
-  const meaningfulRoads = extracted.filter(
-    road => road.distanceKm >= 0.5
-  );
-
-  return meaningfulRoads.slice(0, 3);
-}
   /* ===== 제주 주요 도로별 특징 ===== */
 
 const jejuRoadProfiles = [
@@ -7166,86 +6978,7 @@ function makeCourseFeature(route){
   */
   updateLastFeedbackData(index);
 }
-function analyzeRouteRisk(coords){
-  const SEARCH_RADIUS_M = 250;
 
-  let totalScore = 0;
-  let accidentCount = 0;
-  let totalEPDO = 0;
-  let totalDistanceKm = 0;
-
-  const matchedAccidents = new Set();
-
-  for(let i = 0; i < coords.length - 1; i++){
-    const p1 = coords[i];
-    const p2 = coords[i + 1];
-
-    const segmentKm = getDistanceKm(p1[0], p1[1], p2[0], p2[1]);
-    totalDistanceKm += segmentKm;
-
-    const sampleCount = Math.max(1, Math.ceil((segmentKm * 1000) / 250));
-
-    for(let s = 0; s <= sampleCount; s++){
-      const t = s / sampleCount;
-
-      const sampleLat = p1[0] + (p2[0] - p1[0]) * t;
-      const sampleLng = p1[1] + (p2[1] - p1[1]) * t;
-
-      accidentData.forEach((accident, index) => {
-        const distanceM = getDistanceKm(
-          sampleLat,
-          sampleLng,
-          accident.lat,
-          accident.lng
-        ) * 1000;
-
-        if(distanceM <= SEARCH_RADIUS_M && !matchedAccidents.has(index)){
-          matchedAccidents.add(index);
-
-          const epdo = accident.epdo || 1;
-
-         const trafficFactor = getTrafficFactorByRoutePoint(sampleLat, sampleLng);
-
-totalEPDO += epdo;
-totalScore += epdo * trafficFactor;
-accidentCount++;
-        }
-      });
-    }
-  }
-
-  let level = "낮음";
-  let icon = "🟢";
-
-  if(totalScore >= 80){
-    level = "매우높음";
-    icon = "🔴";
-  }else if(totalScore >= 40){
-    level = "높음";
-    icon = "🟠";
-  }else if(totalScore >= 15){
-    level = "보통";
-    icon = "🟡";
-  }
-
-  return {
-    score: totalScore,
-    level: level,
-    icon: icon,
-    zoneNames: accidentCount > 0
-      ? "경로 주변 사고 " + accidentCount + "건"
-      : "경로 주변 사고 적음",
-    reasons: accidentCount > 0
-      ? "경로 반경 " + SEARCH_RADIUS_M + "m 이내 사고 데이터를 반영했습니다."
-      : "경로 주변 사고 데이터가 적은 구간입니다.",
-    totalCount: accidentCount,
-    totalEpdo: totalEPDO,
-    totalDistanceKm: totalDistanceKm,
-    riskScoreText: Math.round(totalScore).toLocaleString() + "점",
-    zoneDetailText: "경로 주변 사고 " + accidentCount + "건 / EPDO " + totalEPDO
-  };
-}
-    
   /* ===== 코스별 사고 특성 분석 ===== */
 
 function analyzeRouteAccidents(coords){
@@ -7432,38 +7165,7 @@ function getMostFrequentKey(countObject){
 
   return entries[0][0];
 }
-const AVG_AADT = 12451;
-const TRAFFIC_MATCH_RADIUS_M = 2000;
 
-function clamp(value, min, max){
-  return Math.max(min, Math.min(max, value));
-}
-
-function getTrafficFactorByRoutePoint(lat, lng){
-  if(typeof TRAFFIC_POINTS === "undefined" || !Array.isArray(TRAFFIC_POINTS)){
-    return 1;
-  }
-
-  let nearest = null;
-  let nearestDist = Infinity;
-
-  TRAFFIC_POINTS.forEach(p => {
-    const d = getDistanceKm(lat, lng, p.lat, p.lng) * 1000;
-
-    if(d < nearestDist){
-      nearestDist = d;
-      nearest = p;
-    }
-  });
-
-  if(!nearest || nearestDist > TRAFFIC_MATCH_RADIUS_M){
-    return 1;
-  }
-
-  const rawFactor = AVG_AADT / nearest.aadt;
-
-  return clamp(rawFactor, 0.6, 1.8);
-}  
 function getDistanceKm(lat1,lng1,lat2,lng2){
   const R = 6371;
   const dLat = deg2rad(lat2-lat1);
