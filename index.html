@@ -143,9 +143,6 @@ body.route-analysis-mode #map{
   white-space:nowrap;
 }
 
-.route-label-1{ background:#14b8a6; }
-.route-label-2{ background:#64748b; }
-
 /* ===== 경로 분석 후 화면 ===== */
 body.route-active .app-topbar,
 body.route-active .hero-banner,
@@ -473,20 +470,9 @@ body.route-active .bottom-nav{
   display:none;
 }
 
-.bottom-item img{
-  width:24px;
-  height:24px;
-  object-fit:contain;
-  opacity:.45;
-}
 
 .bottom-item.active{
   color:#13a89a;
-}
-
-.bottom-item.active img{
-  opacity:1;
-  filter:invert(51%) sepia(79%) saturate(523%) hue-rotate(131deg) brightness(88%) contrast(90%);
 }
 
 /* ===== 위험지도 페이지 ===== */
@@ -1279,18 +1265,6 @@ body{
   justify-content:center;
   padding:0 16px;
   border-bottom:1px solid #f1f5f9;
-}
-
-.app-topbar::before{
-  content:"☰";
-  position:absolute;
-  left:18px;
-  font-size:24px;
-  color:#0f172a;
-}
-
-.app-topbar::after{
-  content:"";
 }
 
 .app-topbar .brand{
@@ -3239,14 +3213,6 @@ body.route-analysis-mode .info-split-col.tip{
 }
   /* ===== 코스 선택 인터랙션 ===== */
 
-/* 지도 경로 라벨 색상 */
-.route-label-1{
-  background:#4F6BED !important;
-}
-
-.route-label-2{
-  background:#D97757 !important;
-}
 
 /* 코스 카드를 누를 수 있다는 표시 */
 .route-info-card{
@@ -3266,55 +3232,14 @@ body.route-analysis-mode .route-info-card{
   box-shadow:none !important;
 }
 
-/* 선택된 카드 */
-body.route-analysis-mode .route-info-card.selected-course{
-  border:2px solid #4F6BED !important;
-  background:#f8f9ff !important;
-  box-shadow:
-    0 8px 20px rgba(79,107,237,.13) !important;
-  transform:translateY(-1px);
-}
-
-/* 선택 카드 왼쪽 강조선 */
-body.route-analysis-mode .route-info-card.selected-course::before{
-  content:"";
-  position:absolute;
-  top:13px;
-  bottom:13px;
-  left:-2px;
-  width:4px;
-  border-radius:999px;
-  background:#4F6BED;
-}
-
 /* 가상 요소 위치 기준 */
 .route-info-card{
   position:relative;
 }
 
-/* 2코스가 선택됐을 때는 코랄 강조 */
-body.route-analysis-mode
-.route-info-card.alt.selected-course{
-  border-color:#D97757 !important;
-  background:#fff9f7 !important;
-  box-shadow:
-    0 8px 20px rgba(217,119,87,.13) !important;
-}
-
 body.route-analysis-mode
 .route-info-card.alt.selected-course::before{
   background:#D97757;
-}
-
-/* 거리·시간도 코스별 색상 */
-.route-info-card.recommend
-.compact-course-head > strong{
-  color:#4F6BED !important;
-}
-
-.route-info-card.alt
-.compact-course-head > strong{
-  color:#D97757 !important;
 }
 
 /* 터치 순간 반응 */
@@ -4080,23 +4005,6 @@ body:not(.route-active):not(.route-analysis-mode)
    홈 배너 높이 + SVG 아이콘 최종 수정
    반드시 CSS 맨 마지막에 배치
 ========================================= */
-
-/* 배너를 현재보다 살짝 높게 */
-body:not(.route-active):not(.route-analysis-mode)
-.hero-banner{
-  height:205px !important;
-  min-height:205px !important;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15,23,42,.03) 0%,
-      rgba(15,23,42,.20) 38%,
-      rgba(8,29,48,.90) 100%
-    ),
-    url("성산.png")
-    center 56% / cover no-repeat !important;
-}
 
 /* 배너 문구를 아주 조금 위로 */
 body:not(.route-active):not(.route-analysis-mode)
