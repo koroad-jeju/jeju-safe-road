@@ -3555,11 +3555,24 @@ body:not(.route-active):not(.route-analysis-mode)
 .difficult-road-chip{
   min-height:27px;
   padding:4px 8px 4px 9px;
-  border:1px solid #eadfcf;
+  border:1px solid #d9dee5;
   border-radius:999px;
-  background:#fff9f1;
-  color:#75512f;
+  background:#f5f6f8;
+  color:#3f4752;
 
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+
+  font-family:inherit;
+  font-size:11.5px;
+  font-weight:850;
+  line-height:1.3;
+
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -3575,7 +3588,7 @@ body:not(.route-active):not(.route-analysis-mode)
 }
 
 .difficult-road-chip .route-road-info-icon{
-  background:#8b735a !important;
+  background:#6b7480 !important;
   color:#fff !important;
 }
 
@@ -3594,18 +3607,67 @@ body:not(.route-active):not(.route-analysis-mode)
 
 .menu-popup.difficult-road-mode
 .road-info-content{
-  border-color:#eadfcf;
-  background:#fffdfa;
+  border-color:#dfe3e8;
+  background:#ffffff;
 }
 
 .menu-popup.difficult-road-mode
 .road-info-feature-list{
-  border-top-color:#eee3d7;
+  border-top-color:#e7eaee;
 }
 
 .menu-popup.difficult-road-mode
 .road-info-feature > span{
-  color:#9a6b3c;
+  color:#6b7480;
+}
+  /* ===== 산간도로 팝업 경로분석 톤 최종 ===== */
+
+.mountain-road-popup{
+  background:rgba(31,41,55,.50) !important;
+}
+
+.mountain-road-card{
+  background:#ffffff !important;
+  border:1px solid #e1e5ea !important;
+  box-shadow:0 22px 55px rgba(31,41,55,.24) !important;
+}
+
+.mountain-road-icon{
+  background:#f1f3f5 !important;
+  border:1px solid #e1e5ea !important;
+}
+
+.mountain-road-icon img{
+  opacity:.78;
+}
+
+.mountain-road-name{
+  background:#f5f6f8 !important;
+  border:1px solid #d9dee5 !important;
+  color:#3f4752 !important;
+}
+
+.mountain-road-card > p{
+  color:#536171 !important;
+}
+
+.mountain-road-list{
+  background:#f5f6f8 !important;
+  border-color:#e1e5ea !important;
+}
+
+.mountain-road-list div::before{
+  background:#7a8491 !important;
+}
+
+.mountain-road-confirm{
+  background:linear-gradient(
+    135deg,
+    #3F4A5A 0%,
+    #667180 100%
+  ) !important;
+
+  box-shadow:0 8px 18px rgba(63,74,90,.20) !important;
 }
 </style>
 </head>
