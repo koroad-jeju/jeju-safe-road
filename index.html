@@ -3669,6 +3669,249 @@ body:not(.route-active):not(.route-analysis-mode)
 
   box-shadow:0 8px 18px rgba(63,74,90,.20) !important;
 }
+  /* ==================================================
+   홈·경로분석·산간도로 팝업 컬러 통일
+   반드시 CSS 가장 마지막에 배치
+================================================== */
+
+:root{
+  /* 1코스 민트 */
+  --course1-main:#55a99a;
+  --course1-deep:#358d7e;
+  --course1-border:#9fd5ca;
+  --course1-bg:#f1faf7;
+  --course1-soft:#e7f5f1;
+
+  /* 2코스 라벤더 그레이 */
+  --course2-main:#8d8196;
+  --course2-border:#cfc6d4;
+  --course2-bg:#faf8fb;
+
+  /* 공통 */
+  --soft-text:#536171;
+  --soft-line:#e4ebe9;
+}
+
+
+/* =========================================
+   1코스 지도 라벨
+========================================= */
+
+.route-label-1{
+  background:var(--course1-main) !important;
+  color:#ffffff !important;
+  box-shadow:
+    0 5px 13px rgba(53,141,126,.24) !important;
+}
+
+
+/* 2코스 지도 라벨 */
+.route-label-2{
+  background:var(--course2-main) !important;
+  color:#ffffff !important;
+}
+
+
+/* =========================================
+   코스 카드 기본
+========================================= */
+
+body.route-analysis-mode .route-info-card{
+  border:1px solid #e2e8e6 !important;
+  background:#ffffff !important;
+  box-shadow:none !important;
+}
+
+
+/* 1코스 기본 카드도 살짝 민트톤 */
+body.route-analysis-mode
+.route-info-card.recommend{
+  border-color:#d4e8e3 !important;
+  background:#fbfefd !important;
+}
+
+
+/* 1코스 선택 상태 */
+body.route-analysis-mode
+.route-info-card.recommend.selected-course{
+  border:2px solid var(--course1-border) !important;
+  background:var(--course1-bg) !important;
+
+  box-shadow:
+    0 7px 18px rgba(53,141,126,.11) !important;
+}
+
+
+/* 2코스 선택 상태 */
+body.route-analysis-mode
+.route-info-card.alt.selected-course{
+  border:2px solid var(--course2-border) !important;
+  background:var(--course2-bg) !important;
+
+  box-shadow:
+    0 7px 18px rgba(141,129,150,.10) !important;
+}
+
+
+/* 코스 거리·시간 */
+.route-info-card.recommend
+.compact-course-head > strong{
+  color:var(--course1-deep) !important;
+}
+
+.route-info-card.alt
+.compact-course-head > strong{
+  color:var(--course2-main) !important;
+}
+
+
+/* 1코스 특징 박스 */
+.route-info-card.recommend .compact-feature{
+  background:#e8f5f1 !important;
+}
+
+.route-info-card.recommend
+.compact-feature > span{
+  color:var(--course1-deep) !important;
+}
+
+
+/* 2코스 특징 박스 */
+.route-info-card.alt .compact-feature{
+  background:#f5f3f6 !important;
+}
+
+.route-info-card.alt
+.compact-feature > span{
+  color:#776b80 !important;
+}
+
+
+/* =========================================
+   주요도로·주의도로 칩
+========================================= */
+
+/* 1코스 주요도로 */
+.route-info-card.recommend .route-road-chip,
+.route-info-card.recommend .difficult-road-chip{
+  border-color:#bdded7 !important;
+  background:#eaf7f3 !important;
+  color:#337f73 !important;
+}
+
+
+/* 1코스 i 아이콘 */
+.route-info-card.recommend
+.route-road-info-icon{
+  background:var(--course1-main) !important;
+  color:#ffffff !important;
+}
+
+
+/* 2코스 칩 */
+.route-info-card.alt .route-road-chip,
+.route-info-card.alt .difficult-road-chip{
+  border-color:#ddd7e1 !important;
+  background:#f6f3f7 !important;
+  color:#706578 !important;
+}
+
+
+/* 2코스 i 아이콘 */
+.route-info-card.alt
+.route-road-info-icon{
+  background:var(--course2-main) !important;
+}
+
+
+/* =========================================
+   1100도로·5·16도로 팝업
+   첨부한 이미지와 같은 밝은 민트톤
+========================================= */
+
+.mountain-road-popup{
+  background:rgba(31,41,55,.38) !important;
+}
+
+
+/* 팝업 카드 */
+.mountain-road-card{
+  background:#ffffff !important;
+  border:1px solid #dcebe7 !important;
+
+  box-shadow:
+    0 22px 55px rgba(35,83,75,.18) !important;
+}
+
+
+/* 상단 경고 아이콘 원 */
+.mountain-road-icon{
+  background:#eaf7f3 !important;
+  border:1px solid #cae8e1 !important;
+}
+
+
+/* 경고 아이콘도 민트색으로 */
+.mountain-road-icon img{
+  opacity:1 !important;
+
+  filter:
+    brightness(0)
+    saturate(100%)
+    invert(53%)
+    sepia(19%)
+    saturate(1128%)
+    hue-rotate(119deg)
+    brightness(90%)
+    contrast(88%) !important;
+}
+
+
+/* 포함된 코스·도로명 배지 */
+.mountain-road-name{
+  background:#edf8f5 !important;
+  border:1px solid #d3ebe5 !important;
+  color:#328274 !important;
+}
+
+
+/* 팝업 설명 */
+.mountain-road-card > p{
+  color:#536171 !important;
+}
+
+
+/* 주의사항 박스 */
+.mountain-road-list{
+  background:#f1f8f6 !important;
+  border-color:#e0ede9 !important;
+}
+
+
+/* 주의사항 점 */
+.mountain-road-list div::before{
+  background:#4da394 !important;
+}
+
+
+/* 확인 버튼 */
+.mountain-road-confirm{
+  background:
+    linear-gradient(
+      135deg,
+      #258f7e 0%,
+      #51aa9b 100%
+    ) !important;
+
+  box-shadow:
+    0 9px 19px rgba(37,143,126,.20) !important;
+}
+
+
+/* 버튼 터치 효과 */
+.mountain-road-confirm:active{
+  transform:scale(.99);
+}
 </style>
 </head>
 
@@ -5815,8 +6058,8 @@ routeSummaries.forEach((summary, index) => {
   */
 const lineColor =
   index === 0
-    ? "#3F4A5A"
-    : "#83758C";
+    ? "#55A99A"
+    : "#8D8196";
 
   const labelClass =
     index === 0
@@ -5829,14 +6072,14 @@ const lineColor =
   const isInitiallySelected =
     index === 0;
 
-  const polyline = L.polyline(coords, {
-    color:lineColor,
-    weight:isInitiallySelected ? 10 : 5,
-    opacity:isInitiallySelected ? 1 : 0.48,
-    lineCap:"round",
-    lineJoin:"round",
-    interactive:true
-  }).addTo(routeLayer);
+const polyline = L.polyline(coords, {
+  color:lineColor,
+  weight:isInitiallySelected ? 9 : 5,
+  opacity:isInitiallySelected ? 0.95 : 0.58,
+  lineCap:"round",
+  lineJoin:"round",
+  interactive:true
+}).addTo(routeLayer);
 
   /*
     지도 위 경로선을 눌러도
@@ -7144,10 +7387,10 @@ function makeCourseFeature(route){
     const isSelected =
       lineIndex === index;
 
-    line.setStyle({
-      weight:isSelected ? 10 : 5,
-      opacity:isSelected ? 1 : 0.42
-    });
+line.setStyle({
+  weight:isSelected ? 9 : 5,
+  opacity:isSelected ? 0.95 : 0.58
+});
 
     if(isSelected){
       line.bringToFront();
