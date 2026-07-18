@@ -54,9 +54,9 @@ body.route-analysis-mode #map{
 
   background:radial-gradient(
     circle at center,
-    rgba(255,255,255,0) 45%,
-    rgba(255,255,255,.08) 72%,
-    rgba(255,255,255,.30) 100%
+    rgba(255,255,255,0) 52%,
+    rgba(255,255,255,.03) 78%,
+    rgba(255,255,255,.14) 100%
   );
 
   pointer-events:none;
@@ -65,10 +65,10 @@ body.route-analysis-mode #map{
 
 .leaflet-tile-pane{
   filter:
-    brightness(1.06)
-    saturate(.78)
-    contrast(.94)
-    opacity(.98);
+    brightness(1.02)
+    saturate(.94)
+    contrast(.98)
+    opacity(1);
 }
 
 /* ===== 상단바 ===== */
@@ -3891,23 +3891,51 @@ body.route-analysis-mode
    주요도로·주의도로 버튼
 ========================================= */
 
+/* 주요도로: 소프트 블루 */
 .route-road-chip,
-.difficult-road-chip,
 .route-info-card.recommend .route-road-chip,
-.route-info-card.recommend .difficult-road-chip,
-.route-info-card.alt .route-road-chip,
-.route-info-card.alt .difficult-road-chip{
+.route-info-card.alt .route-road-chip{
   min-height:27px !important;
-  padding:4px 8px !important;
+  padding:4px 8px 4px 9px !important;
 
-  border:1px solid #D9DDE3 !important;
+  border:1px solid #BDD0EC !important;
   border-radius:8px !important;
 
-  background:#FFFFFF !important;
-  color:var(--route-sub) !important;
+  background:#EDF4FF !important;
+  color:#3E5F98 !important;
 
   font-size:11.5px !important;
-  font-weight:800 !important;
+  font-weight:850 !important;
+}
+
+/* 주요도로 i */
+.route-road-chip .route-road-info-icon{
+  background:#5B7EB8 !important;
+  color:#FFFFFF !important;
+}
+
+
+/* 주의도로: 소프트 앰버 */
+.difficult-road-chip,
+.route-info-card.recommend .difficult-road-chip,
+.route-info-card.alt .difficult-road-chip{
+  min-height:27px !important;
+  padding:4px 8px 4px 9px !important;
+
+  border:1px solid #E9C996 !important;
+  border-radius:8px !important;
+
+  background:#FFF5E5 !important;
+  color:#9B621C !important;
+
+  font-size:11.5px !important;
+  font-weight:850 !important;
+}
+
+/* 주의도로 i */
+.difficult-road-chip .route-road-info-icon{
+  background:#C28132 !important;
+  color:#FFFFFF !important;
 }
 
 
@@ -3917,10 +3945,7 @@ body.route-analysis-mode
 .route-info-card.alt .route-road-info-icon{
   width:14px !important;
   height:14px !important;
-
-  background:#747C87 !important;
   color:#FFFFFF !important;
-
   font-size:9px !important;
 }
 
@@ -3951,6 +3976,115 @@ body.route-analysis-mode
   border:0 !important;
   border-radius:10px !important;
   color:#747B85 !important;
+}
+  /* ==================================================
+   최근 성공 경로 불러오기 화면
+   1코스·2코스 가로 배치
+================================================== */
+
+body.route-fallback-mode
+.fallback-route-info-cards{
+  display:grid !important;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr)) !important;
+
+  gap:10px !important;
+  align-items:stretch !important;
+}
+
+body.route-fallback-mode
+.cached-route-info-card{
+  min-width:0 !important;
+  height:100% !important;
+  padding:12px !important;
+  box-sizing:border-box !important;
+}
+
+body.route-fallback-mode
+.cached-route-info-card .compact-course-head{
+  gap:5px !important;
+}
+
+body.route-fallback-mode
+.cached-route-info-card .compact-course-head > b{
+  font-size:15px !important;
+}
+
+body.route-fallback-mode
+.cached-route-info-card .compact-course-head > strong{
+  font-size:12px !important;
+}
+
+body.route-fallback-mode
+.cached-route-info-card .compact-double-grid{
+  grid-template-columns:1fr !important;
+  gap:9px !important;
+}
+
+body.route-fallback-mode
+.cached-route-info-card .compact-info-box + .compact-info-box{
+  padding-top:8px !important;
+  border-top:1px solid var(--route-line) !important;
+}
+
+.cached-road-text{
+  color:#344054;
+  font-size:12px;
+  font-weight:850;
+  line-height:1.45;
+  word-break:keep-all;
+}
+
+.cached-difficult-road{
+  display:inline-block;
+  padding:4px 7px;
+
+  border:1px solid #E9C996;
+  border-radius:7px;
+
+  background:#FFF5E5;
+  color:#9B621C;
+
+  font-size:11px;
+  font-weight:850;
+  line-height:1.35;
+}
+
+/* 아주 좁은 화면에서도 두 코스는 가로 유지 */
+@media(max-width:370px){
+
+  body.route-fallback-mode
+  .fallback-route-info-cards{
+    gap:7px !important;
+  }
+
+  body.route-fallback-mode
+  .cached-route-info-card{
+    padding:10px 9px !important;
+  }
+
+  body.route-fallback-mode
+  .cached-route-info-card
+  .compact-course-head{
+    display:block !important;
+  }
+
+  body.route-fallback-mode
+  .cached-route-info-card
+  .compact-course-head > strong{
+    display:block;
+    margin-top:4px;
+    white-space:normal !important;
+  }
+}
+  body.route-fallback-mode
+.cached-route-info-card{
+  cursor:default !important;
+}
+
+body.route-fallback-mode
+.cached-route-info-card:active{
+  transform:none !important;
 }
 </style>
 </head>
@@ -4655,7 +4789,7 @@ fetch("jeju_regions.geojson")
         const region = getJejuRegion(name);
         const risk = regionRisk[region];
 return {
-  color:"rgba(255,255,255,.92)",
+  color:"rgba(255,255,255,.94)",
   weight:2,
   opacity:1,
 
@@ -4666,8 +4800,8 @@ return {
 
   fillOpacity:
     risk
-      ? 0.58
-      : 0.12,
+      ? 0.68
+      : 0.14,
 
   interactive:false
 };
@@ -5233,7 +5367,7 @@ const routeCards = cache.routes.map(route => {
   const roadText =
     Array.isArray(route.roadNames) &&
     route.roadNames.length > 0
-      ? route.roadNames.join(" · ")
+      ? route.roadNames.join(" → ")
       : "일반도로 중심 경로";
 
   const difficultRoadText =
@@ -5242,40 +5376,65 @@ const routeCards = cache.routes.map(route => {
       ? route.difficultRoads.join(" · ")
       : "없음";
 
+  const cardClass =
+    route.course === 1
+      ? "recommend"
+      : "alt";
+
   return `
-    <div class="compare-mini ${
-      route.course === 1
-        ? "recommend"
-        : "alt"
-    }">
+    <div class="
+      compare-mini
+      route-info-card
+      cached-route-info-card
+      ${cardClass}
+      ${route.course === 1 ? "selected-course" : ""}
+    ">
 
-      <div class="compare-head">
+      <div class="compact-course-head">
         <b>${route.course}코스</b>
+
+        <strong>
+          ${route.distanceKm}km
+          <span>·</span>
+          ${route.durationMin}분
+        </strong>
       </div>
 
-      <div class="compare-row2">
-        <span>거리</span>
-        <b>${route.distanceKm}km</b>
+      <div class="compact-route-row">
+        <span>주요도로</span>
+
+        <div class="cached-road-text">
+          ${roadText}
+        </div>
       </div>
 
-      <div class="compare-row2">
-        <span>예상시간</span>
-        <b>${route.durationMin}분</b>
+      <div class="compact-double-grid">
+
+        <div class="compact-info-box">
+          <span>사고이력</span>
+          <b>${accidentText}</b>
+        </div>
+
+        <div class="compact-info-box">
+          <span>주의도로</span>
+
+          <div class="${
+            difficultRoadText === "없음"
+              ? "difficult-road-empty"
+              : "cached-difficult-road"
+          }">
+            ${difficultRoadText}
+          </div>
+        </div>
+
       </div>
 
-      <div class="compare-row2">
-        <span>주요 통과도로</span>
-        <b>${roadText}</b>
-      </div>
+      <div class="compact-feature">
+        <span>안내</span>
 
-      <div class="compare-row2">
-        <span>사고이력 구간</span>
-        <b>${accidentText}</b>
-      </div>
-
-      <div class="compare-row2">
-        <span>운전 난이도 높은 도로</span>
-        <b>${difficultRoadText}</b>
+        <p>
+          최근 성공한 동일 출발지·목적지 경로를 기준으로 제공되는 정보입니다.
+        </p>
       </div>
 
     </div>
@@ -5311,10 +5470,10 @@ const routeCards = cache.routes.map(route => {
         <img src="chart-bar.svg" class="title-svg">
         최근 경로 분석결과
       </div>
-
-      <div class="compare-cards">
-        ${routeCards}
-      </div>
+      
+<div class="compare-cards route-info-cards fallback-route-info-cards">
+  ${routeCards}
+</div>
 
       <div class="route-data-note">
         ※ 최근 성공한 동일 출발지·목적지 분석결과이며 실시간 경로정보가 아닙니다.
@@ -6179,8 +6338,8 @@ routeSummaries.forEach((summary, index) => {
   */
 const lineColor =
   index === 0
-    ? "#4F6FAF"
-    : "#90748C";
+    ? "#4E72C4"
+    : "#9B748E";
 
   const labelClass =
     index === 0
@@ -6201,10 +6360,10 @@ const polyline = L.polyline(coords, {
       ? 7
       : 4,
 
-  opacity:
-    isInitiallySelected
-      ? 0.92
-      : 0.48,
+opacity:
+  isInitiallySelected
+    ? 0.97
+    : 0.66,
 
   lineCap:"round",
   lineJoin:"round",
@@ -7523,10 +7682,10 @@ line.setStyle({
       ? 7
       : 4,
 
-  opacity:
-    isSelected
-      ? 0.92
-      : 0.48
+ opacity:
+  isSelected
+    ? 0.97
+    : 0.66
 });
 
     if(isSelected){
