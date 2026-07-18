@@ -4447,6 +4447,17 @@ body.route-fallback-mode
   padding-top:9px !important;
   border-top:1px solid var(--route-line) !important;
 }
+  /* 경로분석 진행 중 버튼 */
+.analyze-btn:disabled{
+  cursor:default !important;
+  opacity:.72 !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+
+.analyze-btn:disabled .analyze-main::after{
+  content:"" !important;
+}
 </style>
 </head>
 
@@ -4696,9 +4707,14 @@ body.route-fallback-mode
 
 </select>
 </div>
-<button class="analyze-btn" onclick="drawRoutes()">
+<button
+  id="routeAnalyzeButton"
+  class="analyze-btn"
+  type="button"
+  onclick="startRouteAnalysis()">
+
   <div class="analyze-main">
-   출발 전 운전경로 확인
+    출발 전 운전경로 확인
   </div>
 </button>
 
@@ -5146,7 +5162,17 @@ if(
 let regionLayer;
 
 fetch("jeju_regions.geojson")
-  .then(res => res.json())
+  .then(response => {
+
+    if(!response.ok){
+      throw new Error(
+        "권역 지도 파일 응답 오류: " +
+        response.status
+      );
+    }
+
+    return response.json();
+  })
   .then(data => {
     regionLayer = L.geoJSON(data, {
       style: function(feature){
@@ -5177,9 +5203,21 @@ return {
   interactive:false
 };
       },
-    }).addTo(map);
-  });
+ }).addTo(map);
+  })
+  .catch(error => {
 
+    /*
+      권역 배경지도 로딩에 실패해도
+      실제 경로분석 기능은 계속 사용
+    */
+    console.warn(
+      "제주 권역 배경지도를 불러오지 못했습니다.",
+      error
+    );
+
+    regionLayer = null;
+  });
 let routeLayer;
   let routePolylines = [];
 let routeLabelMarkers = [];
@@ -5204,6 +5242,69 @@ let ratingSubmitted = false;
 */
 let activeRouteRequestToken = 0;
 let backgroundRouteRetryTimer = null;
+  /*
+  사용자가 경로분석 버튼을
+  여러 번 연속으로 누르는 것을 방지
+*/
+let routeAnalysisPromise = null;
+
+async function startRouteAnalysis(){
+
+  /*
+    이미 분석 중이면 새 요청을 시작하지 않음
+  */
+  if(routeAnalysisPromise){
+    console.log(
+      "이미 경로분석이 진행 중입니다."
+    );
+
+    return;
+  }
+
+  const button =
+    document.getElementById(
+      "routeAnalyzeButton"
+    );
+
+  const buttonText =
+    button?.querySelector(
+      ".analyze-main"
+    );
+
+  if(button){
+    button.disabled = true;
+  }
+
+  if(buttonText){
+    buttonText.textContent =
+      "경로 확인 중입니다";
+  }
+
+  try{
+    routeAnalysisPromise =
+      drawRoutes();
+
+    await routeAnalysisPromise;
+
+  }catch(error){
+    console.error(
+      "경로분석 실행 오류:",
+      error
+    );
+
+  }finally{
+    routeAnalysisPromise = null;
+
+    if(button){
+      button.disabled = false;
+    }
+
+    if(buttonText){
+      buttonText.textContent =
+        "출발 전 운전경로 확인";
+    }
+  }
+}
   
 const destinationTips = {
   "1100고지": [
@@ -5589,6 +5690,76 @@ return [
 ].join("_");
 }
 
+  function cleanupRouteCache(){
+
+  try{
+    const cachePrefix =
+      "jejuSafeRouteV2_";
+
+    const cacheItems = [];
+
+    for(
+      let index = 0;
+      index < localStorage.length;
+      index++
+    ){
+      const key =
+        localStorage.key(index);
+
+      if(
+        !key ||
+        !key.startsWith(cachePrefix)
+      ){
+        continue;
+      }
+
+      try{
+        const cache =
+          JSON.parse(
+            localStorage.getItem(key)
+          );
+
+        cacheItems.push({
+          key:key,
+          savedAt:Number(
+            cache?.savedAt || 0
+          )
+        });
+
+      }catch(error){
+        /*
+          손상된 캐시 데이터 삭제
+        */
+        localStorage.removeItem(key);
+      }
+    }
+
+    /*
+      저장시각이 최신인 순서
+    */
+    cacheItems.sort(
+      (a, b) =>
+        b.savedAt - a.savedAt
+    );
+
+    /*
+      최근 20개만 유지
+    */
+    cacheItems
+      .slice(20)
+      .forEach(item => {
+        localStorage.removeItem(
+          item.key
+        );
+      });
+
+  }catch(error){
+    console.warn(
+      "경로 캐시 정리 실패:",
+      error
+    );
+  }
+}
 function saveSuccessfulRouteCache(routeSummaries, tips){
   try{
     const key = makeRouteCacheKey();
@@ -5635,6 +5806,7 @@ routes:routeSummaries.slice(0, 2).map((route, index) => {
       key,
       JSON.stringify(cacheData)
     );
+    cleanupRouteCache();
 
   }catch(error){
     console.warn("최근 경로 저장 실패:", error);
@@ -5945,12 +6117,12 @@ const difficultRoadHtml =
 
     ${makeNavigationButtonsHtml()}
 
-    <button
-      type="button"
-      class="fallback-retry-btn"
-      onclick="drawRoutes()">
-      실시간 경로 다시 분석하기
-    </button>
+<button
+  type="button"
+  class="fallback-retry-btn"
+  onclick="startRouteAnalysis()">
+  실시간 경로 다시 분석하기
+</button>
 
     <div class="info-split-col tip">
       <h3>
