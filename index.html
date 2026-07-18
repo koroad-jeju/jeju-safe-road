@@ -62,7 +62,11 @@ body.route-analysis-mode #map{
 }
 
 .leaflet-tile-pane{
-  filter:brightness(1.12) saturate(.82) contrast(.92);
+  filter:
+    brightness(1.10)
+    saturate(.58)
+    contrast(.90)
+    opacity(.94);
 }
 
 /* ===== 상단바 ===== */
@@ -3573,19 +3577,6 @@ body:not(.route-active):not(.route-analysis-mode)
   cursor:pointer;
   -webkit-tap-highlight-color:transparent;
 }
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:5px;
-
-  font-family:inherit;
-  font-size:11.5px;
-  font-weight:850;
-  line-height:1.3;
-
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
 
 .difficult-road-chip .route-road-info-icon{
   background:#6b7480 !important;
@@ -3669,248 +3660,285 @@ body:not(.route-active):not(.route-analysis-mode)
 
   box-shadow:0 8px 18px rgba(63,74,90,.20) !important;
 }
-  /* ==================================================
-   홈·경로분석·산간도로 팝업 컬러 통일
-   반드시 CSS 가장 마지막에 배치
+/* ==================================================
+   경로분석 컬러 최종 정리
+   1코스 블루 · 2코스 모브
+   반드시 </style> 바로 위에 배치
 ================================================== */
 
 :root{
-  /* 1코스 민트 */
-  --course1-main:#55a99a;
-  --course1-deep:#358d7e;
-  --course1-border:#9fd5ca;
-  --course1-bg:#f1faf7;
-  --course1-soft:#e7f5f1;
+  /* 1코스 */
+  --course1-main:#4F6FAF;
+  --course1-deep:#3F5F9D;
+  --course1-border:#9DB1DC;
+  --course1-bg:#FFFFFF;
+  --course1-soft:#F2F5FB;
 
-  /* 2코스 라벤더 그레이 */
-  --course2-main:#8d8196;
-  --course2-border:#cfc6d4;
-  --course2-bg:#faf8fb;
+  /* 2코스 */
+  --course2-main:#90748C;
+  --course2-deep:#795E75;
+  --course2-border:#C9B7C5;
+  --course2-bg:#FFFFFF;
+  --course2-soft:#F7F2F5;
 
   /* 공통 */
-  --soft-text:#536171;
-  --soft-line:#e4ebe9;
+  --route-text:#171A1F;
+  --route-sub:#4F5662;
+  --route-muted:#89919C;
+  --route-line:#E5E7EB;
+  --route-surface:#FFFFFF;
+  --route-soft:#F7F8F9;
 }
 
 
 /* =========================================
-   1코스 지도 라벨
+   지도 위 코스 라벨
 ========================================= */
 
 .route-label-1{
   background:var(--course1-main) !important;
-  color:#ffffff !important;
+  color:#FFFFFF !important;
+
   box-shadow:
-    0 5px 13px rgba(53,141,126,.24) !important;
+    0 4px 11px rgba(79,111,175,.20) !important;
+}
+
+.route-label-2{
+  background:var(--course2-main) !important;
+  color:#FFFFFF !important;
+
+  box-shadow:
+    0 4px 11px rgba(144,116,140,.20) !important;
 }
 
 
-/* 2코스 지도 라벨 */
-.route-label-2{
-  background:var(--course2-main) !important;
-  color:#ffffff !important;
+/* 라벨 자체 크기도 살짝 정돈 */
+.route-label{
+  padding:5px 11px !important;
+  border-radius:9px !important;
+
+  font-size:11.5px !important;
+  font-weight:850 !important;
+
+  box-shadow:
+    0 4px 11px rgba(24,29,37,.14) !important;
 }
 
 
 /* =========================================
-   코스 카드 기본
+   코스 카드 공통
 ========================================= */
 
-body.route-analysis-mode .route-info-card{
-  border:1px solid #e2e8e6 !important;
-  background:#ffffff !important;
+body.route-analysis-mode
+.route-info-card{
+  background:#FFFFFF !important;
+  border:1px solid var(--route-line) !important;
+  border-radius:15px !important;
   box-shadow:none !important;
 }
 
 
-/* 1코스 기본 카드도 살짝 민트톤 */
+/* 미선택 카드도 너무 흐려지지 않도록 */
+body.route-analysis-mode
+.route-info-card:not(.selected-course){
+  background:#FFFFFF !important;
+  opacity:1 !important;
+}
+
+
+/* =========================================
+   1코스
+========================================= */
+
 body.route-analysis-mode
 .route-info-card.recommend{
-  border-color:#d4e8e3 !important;
-  background:#fbfefd !important;
+  border-color:#D7DEED !important;
+  background:#FFFFFF !important;
 }
 
-
-/* 1코스 선택 상태 */
 body.route-analysis-mode
 .route-info-card.recommend.selected-course{
-  border:2px solid var(--course1-border) !important;
-  background:var(--course1-bg) !important;
+  border:1.5px solid var(--course1-main) !important;
+  background:#FFFFFF !important;
 
   box-shadow:
-    0 7px 18px rgba(53,141,126,.11) !important;
+    0 4px 14px rgba(79,111,175,.08) !important;
 }
 
 
-/* 2코스 선택 상태 */
-body.route-analysis-mode
-.route-info-card.alt.selected-course{
-  border:2px solid var(--course2-border) !important;
-  background:var(--course2-bg) !important;
-
-  box-shadow:
-    0 7px 18px rgba(141,129,150,.10) !important;
+/* 1코스 제목 */
+.route-info-card.recommend
+.compact-course-head > b{
+  color:var(--course1-main) !important;
 }
 
 
-/* 코스 거리·시간 */
+/* 1코스 거리·시간 */
 .route-info-card.recommend
 .compact-course-head > strong{
-  color:var(--course1-deep) !important;
+  color:var(--route-text) !important;
 }
 
+
+/* =========================================
+   2코스
+========================================= */
+
+body.route-analysis-mode
+.route-info-card.alt{
+  border-color:#E2D9E0 !important;
+  background:#FFFFFF !important;
+}
+
+body.route-analysis-mode
+.route-info-card.alt.selected-course{
+  border:1.5px solid var(--course2-main) !important;
+  background:#FFFFFF !important;
+
+  box-shadow:
+    0 4px 14px rgba(144,116,140,.08) !important;
+}
+
+
+/* 2코스 제목 */
 .route-info-card.alt
-.compact-course-head > strong{
+.compact-course-head > b{
   color:var(--course2-main) !important;
 }
 
 
-/* 1코스 특징 박스 */
-.route-info-card.recommend .compact-feature{
-  background:#e8f5f1 !important;
-}
-
-.route-info-card.recommend
-.compact-feature > span{
-  color:var(--course1-deep) !important;
-}
-
-
-/* 2코스 특징 박스 */
-.route-info-card.alt .compact-feature{
-  background:#f5f3f6 !important;
-}
-
+/* 2코스 거리·시간 */
 .route-info-card.alt
-.compact-feature > span{
-  color:#776b80 !important;
+.compact-course-head > strong{
+  color:var(--route-text) !important;
 }
 
 
 /* =========================================
-   주요도로·주의도로 칩
+   코스 카드 내부
 ========================================= */
 
-/* 1코스 주요도로 */
+.compact-course-head{
+  border:0 !important;
+}
+
+.compact-course-head > strong{
+  font-size:14.5px !important;
+  font-weight:850 !important;
+}
+
+
+/* 구분선 */
+.compact-route-row,
+.compact-double-grid{
+  border-color:var(--route-line) !important;
+}
+
+
+/* 소제목 */
+.compact-route-row > span,
+.compact-info-box > span{
+  color:var(--route-muted) !important;
+}
+
+
+/* 본문 */
+.compact-info-box > b{
+  color:var(--route-text) !important;
+}
+
+
+/* =========================================
+   특징 박스
+========================================= */
+
+.compact-feature,
+.route-info-card.recommend .compact-feature,
+.route-info-card.alt .compact-feature{
+  background:var(--route-soft) !important;
+  border:0 !important;
+  border-radius:10px !important;
+}
+
+
+/* 특징 제목 */
+.compact-feature > span,
+.route-info-card.recommend .compact-feature > span,
+.route-info-card.alt .compact-feature > span{
+  color:var(--route-sub) !important;
+}
+
+
+/* 특징 설명 */
+.compact-feature > p{
+  color:var(--route-sub) !important;
+}
+
+
+/* =========================================
+   주요도로·주의도로 버튼
+========================================= */
+
+.route-road-chip,
+.difficult-road-chip,
 .route-info-card.recommend .route-road-chip,
-.route-info-card.recommend .difficult-road-chip{
-  border-color:#bdded7 !important;
-  background:#eaf7f3 !important;
-  color:#337f73 !important;
-}
-
-
-/* 1코스 i 아이콘 */
-.route-info-card.recommend
-.route-road-info-icon{
-  background:var(--course1-main) !important;
-  color:#ffffff !important;
-}
-
-
-/* 2코스 칩 */
+.route-info-card.recommend .difficult-road-chip,
 .route-info-card.alt .route-road-chip,
 .route-info-card.alt .difficult-road-chip{
-  border-color:#ddd7e1 !important;
-  background:#f6f3f7 !important;
-  color:#706578 !important;
+  min-height:27px !important;
+  padding:4px 8px !important;
+
+  border:1px solid #D9DDE3 !important;
+  border-radius:8px !important;
+
+  background:#FFFFFF !important;
+  color:var(--route-sub) !important;
+
+  font-size:11.5px !important;
+  font-weight:800 !important;
 }
 
 
-/* 2코스 i 아이콘 */
-.route-info-card.alt
-.route-road-info-icon{
-  background:var(--course2-main) !important;
+/* i 아이콘 */
+.route-road-info-icon,
+.route-info-card.recommend .route-road-info-icon,
+.route-info-card.alt .route-road-info-icon{
+  width:14px !important;
+  height:14px !important;
+
+  background:#747C87 !important;
+  color:#FFFFFF !important;
+
+  font-size:9px !important;
+}
+
+
+/* 화살표 */
+.route-road-arrow{
+  color:#A0A6AE !important;
 }
 
 
 /* =========================================
-   1100도로·5·16도로 팝업
-   첨부한 이미지와 같은 밝은 민트톤
+   바깥 카드 및 안내문
 ========================================= */
 
-.mountain-road-popup{
-  background:rgba(31,41,55,.38) !important;
-}
-
-
-/* 팝업 카드 */
-.mountain-road-card{
-  background:#ffffff !important;
-  border:1px solid #dcebe7 !important;
+.compare-detail-new.always-open{
+  background:#FFFFFF !important;
+  border:1px solid #E5E7EB !important;
+  border-radius:18px !important;
 
   box-shadow:
-    0 22px 55px rgba(35,83,75,.18) !important;
+    0 5px 16px rgba(23,26,31,.05) !important;
 }
 
 
-/* 상단 경고 아이콘 원 */
-.mountain-road-icon{
-  background:#eaf7f3 !important;
-  border:1px solid #cae8e1 !important;
-}
-
-
-/* 경고 아이콘도 민트색으로 */
-.mountain-road-icon img{
-  opacity:1 !important;
-
-  filter:
-    brightness(0)
-    saturate(100%)
-    invert(53%)
-    sepia(19%)
-    saturate(1128%)
-    hue-rotate(119deg)
-    brightness(90%)
-    contrast(88%) !important;
-}
-
-
-/* 포함된 코스·도로명 배지 */
-.mountain-road-name{
-  background:#edf8f5 !important;
-  border:1px solid #d3ebe5 !important;
-  color:#328274 !important;
-}
-
-
-/* 팝업 설명 */
-.mountain-road-card > p{
-  color:#536171 !important;
-}
-
-
-/* 주의사항 박스 */
-.mountain-road-list{
-  background:#f1f8f6 !important;
-  border-color:#e0ede9 !important;
-}
-
-
-/* 주의사항 점 */
-.mountain-road-list div::before{
-  background:#4da394 !important;
-}
-
-
-/* 확인 버튼 */
-.mountain-road-confirm{
-  background:
-    linear-gradient(
-      135deg,
-      #258f7e 0%,
-      #51aa9b 100%
-    ) !important;
-
-  box-shadow:
-    0 9px 19px rgba(37,143,126,.20) !important;
-}
-
-
-/* 버튼 터치 효과 */
-.mountain-road-confirm:active{
-  transform:scale(.99);
+/* 사고자료 안내 */
+.route-data-note{
+  background:#F7F8F9 !important;
+  border:0 !important;
+  border-radius:10px !important;
+  color:#747B85 !important;
 }
 </style>
 </head>
@@ -4402,21 +4430,93 @@ L.tileLayer(
 ).addTo(map);
   
 const regionRisk = {
-  "공항권": { color:"#dc2626", level:"매우높음", count:53, epdo:261 },
-  "제주시도심권": { color:"#dc2626", level:"매우높음", count:132, epdo:581 },
-  "서귀포도심권": { color:"#dc2626", level:"매우높음", count:57, epdo:259 },
+  /* 매우 높음: 저채도 로즈그레이 */
+  "공항권": {
+    color:"#D8B8B6",
+    level:"매우높음",
+    count:53,
+    epdo:261
+  },
 
-  "애월권": { color:"#f97316", level:"높음", count:38, epdo:215 },
-  "서부중산간권": { color:"#f97316", level:"높음", count:35, epdo:223 },
+  "제주시도심권": {
+    color:"#D8B8B6",
+    level:"매우높음",
+    count:132,
+    epdo:581
+  },
 
-  "동부중산간권": { color:"#facc15", level:"보통", count:30, epdo:162 },
-  "협재·한림권": { color:"#facc15", level:"보통", count:24, epdo:107 },
-  "함덕·조천권": { color:"#facc15", level:"보통", count:17, epdo:93 },
-  "김녕·월정권": { color:"#facc15", level:"보통", count:16, epdo:80 },
-  "성산권": { color:"#facc15", level:"보통", count:15, epdo:100 },
-  "한라산권": { color:"#facc15", level:"보통", count:16, epdo:85 },
+  "서귀포도심권": {
+    color:"#D8B8B6",
+    level:"매우높음",
+    count:57,
+    epdo:259
+  },
 
-  "중문권": { color:"#22c55e", level:"낮음", count:14, epdo:79 }
+  /* 높음: 샌드 베이지 */
+  "애월권": {
+    color:"#E8CDB5",
+    level:"높음",
+    count:38,
+    epdo:215
+  },
+
+  "서부중산간권": {
+    color:"#E8CDB5",
+    level:"높음",
+    count:35,
+    epdo:223
+  },
+
+  /* 보통: 소프트 아이보리 */
+  "동부중산간권": {
+    color:"#EFE6C7",
+    level:"보통",
+    count:30,
+    epdo:162
+  },
+
+  "협재·한림권": {
+    color:"#EFE6C7",
+    level:"보통",
+    count:24,
+    epdo:107
+  },
+
+  "함덕·조천권": {
+    color:"#EFE6C7",
+    level:"보통",
+    count:17,
+    epdo:93
+  },
+
+  "김녕·월정권": {
+    color:"#EFE6C7",
+    level:"보통",
+    count:16,
+    epdo:80
+  },
+
+  "성산권": {
+    color:"#EFE6C7",
+    level:"보통",
+    count:15,
+    epdo:100
+  },
+
+  "한라산권": {
+    color:"#EFE6C7",
+    level:"보통",
+    count:16,
+    epdo:85
+  },
+
+  /* 낮음: 소프트 세이지 */
+  "중문권": {
+    color:"#C9DCCF",
+    level:"낮음",
+    count:14,
+    epdo:79
+  }
 };
 
 function getJejuRegion(name){
@@ -4543,11 +4643,20 @@ fetch("jeju_regions.geojson")
         const region = getJejuRegion(name);
         const risk = regionRisk[region];
 return {
-  color:"#ffffff",
-  weight:2.4,
+  color:"rgba(255,255,255,.88)",
+  weight:1.8,
   opacity:1,
-  fillColor: risk ? risk.color : "#e5e7eb",
-  fillOpacity: risk ? 0.52 : 0.12,
+
+  fillColor:
+    risk
+      ? risk.color
+      : "#E8E9EB",
+
+  fillOpacity:
+    risk
+      ? 0.42
+      : 0.10,
+
   interactive:false
 };
       },
@@ -6058,8 +6167,8 @@ routeSummaries.forEach((summary, index) => {
   */
 const lineColor =
   index === 0
-    ? "#55A99A"
-    : "#8D8196";
+    ? "#4F6FAF"
+    : "#90748C";
 
   const labelClass =
     index === 0
@@ -6074,8 +6183,17 @@ const lineColor =
 
 const polyline = L.polyline(coords, {
   color:lineColor,
-  weight:isInitiallySelected ? 9 : 5,
-  opacity:isInitiallySelected ? 0.95 : 0.58,
+
+  weight:
+    isInitiallySelected
+      ? 7
+      : 4,
+
+  opacity:
+    isInitiallySelected
+      ? 0.92
+      : 0.48,
+
   lineCap:"round",
   lineJoin:"round",
   interactive:true
@@ -7388,8 +7506,15 @@ function makeCourseFeature(route){
       lineIndex === index;
 
 line.setStyle({
-  weight:isSelected ? 9 : 5,
-  opacity:isSelected ? 0.95 : 0.58
+  weight:
+    isSelected
+      ? 7
+      : 4,
+
+  opacity:
+    isSelected
+      ? 0.92
+      : 0.48
 });
 
     if(isSelected){
