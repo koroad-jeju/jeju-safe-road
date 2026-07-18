@@ -51,22 +51,24 @@ body.route-analysis-mode #map{
   content:"";
   position:absolute;
   inset:0;
+
   background:radial-gradient(
     circle at center,
-    rgba(255,255,255,0) 38%,
-    rgba(255,255,255,.22) 62%,
-    rgba(255,255,255,.70) 100%
+    rgba(255,255,255,0) 45%,
+    rgba(255,255,255,.08) 72%,
+    rgba(255,255,255,.30) 100%
   );
+
   pointer-events:none;
   z-index:400;
 }
 
 .leaflet-tile-pane{
   filter:
-    brightness(1.10)
-    saturate(.58)
-    contrast(.90)
-    opacity(.94);
+    brightness(1.06)
+    saturate(.78)
+    contrast(.94)
+    opacity(.98);
 }
 
 /* ===== 상단바 ===== */
@@ -3668,19 +3670,19 @@ body:not(.route-active):not(.route-analysis-mode)
 
 :root{
   /* 1코스 */
-  --course1-main:#4F6FAF;
-  --course1-deep:#3F5F9D;
-  --course1-border:#9DB1DC;
-  --course1-bg:#FFFFFF;
-  --course1-soft:#F2F5FB;
-
+--course1-main:#4E72C4;
+--course1-deep:#3D5EAA;
+--course1-border:#91A9DE;
+--course1-bg:#F4F7FF;
+--course1-soft:#EAF0FC;
+  
   /* 2코스 */
-  --course2-main:#90748C;
-  --course2-deep:#795E75;
-  --course2-border:#C9B7C5;
-  --course2-bg:#FFFFFF;
-  --course2-soft:#F7F2F5;
-
+--course2-main:#9B748E;
+--course2-deep:#805E77;
+--course2-border:#CDB2C3;
+--course2-bg:#FCF7FA;
+--course2-soft:#F5EAF0;
+  
   /* 공통 */
   --route-text:#171A1F;
   --route-sub:#4F5662;
@@ -3741,7 +3743,6 @@ body.route-analysis-mode
 /* 미선택 카드도 너무 흐려지지 않도록 */
 body.route-analysis-mode
 .route-info-card:not(.selected-course){
-  background:#FFFFFF !important;
   opacity:1 !important;
 }
 
@@ -3752,19 +3753,24 @@ body.route-analysis-mode
 
 body.route-analysis-mode
 .route-info-card.recommend{
-  border-color:#D7DEED !important;
-  background:#FFFFFF !important;
+  border-color:#C9D5ED !important;
+  background:#FBFCFF !important;
 }
 
 body.route-analysis-mode
 .route-info-card.recommend.selected-course{
   border:1.5px solid var(--course1-main) !important;
-  background:#FFFFFF !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #F8FAFF 0%,
+      #F2F6FF 100%
+    ) !important;
 
   box-shadow:
-    0 4px 14px rgba(79,111,175,.08) !important;
+    0 6px 18px rgba(78,114,196,.12) !important;
 }
-
 
 /* 1코스 제목 */
 .route-info-card.recommend
@@ -3786,17 +3792,23 @@ body.route-analysis-mode
 
 body.route-analysis-mode
 .route-info-card.alt{
-  border-color:#E2D9E0 !important;
-  background:#FFFFFF !important;
+  border-color:#DED0D9 !important;
+  background:#FFFDFE !important;
 }
 
 body.route-analysis-mode
 .route-info-card.alt.selected-course{
   border:1.5px solid var(--course2-main) !important;
-  background:#FFFFFF !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #FFFBFD 0%,
+      #FAF3F7 100%
+    ) !important;
 
   box-shadow:
-    0 4px 14px rgba(144,116,140,.08) !important;
+    0 6px 18px rgba(155,116,142,.11) !important;
 }
 
 
@@ -4430,89 +4442,89 @@ L.tileLayer(
 ).addTo(map);
   
 const regionRisk = {
-  /* 매우 높음: 저채도 로즈그레이 */
+  /* 매우 높음: 부드러운 로즈 */
   "공항권": {
-    color:"#D8B8B6",
+    color:"#E3A9A6",
     level:"매우높음",
     count:53,
     epdo:261
   },
 
   "제주시도심권": {
-    color:"#D8B8B6",
+    color:"#E3A9A6",
     level:"매우높음",
     count:132,
     epdo:581
   },
 
   "서귀포도심권": {
-    color:"#D8B8B6",
+    color:"#E3A9A6",
     level:"매우높음",
     count:57,
     epdo:259
   },
 
-  /* 높음: 샌드 베이지 */
+  /* 높음: 살구 베이지 */
   "애월권": {
-    color:"#E8CDB5",
+    color:"#EDBD96",
     level:"높음",
     count:38,
     epdo:215
   },
 
   "서부중산간권": {
-    color:"#E8CDB5",
+    color:"#EDBD96",
     level:"높음",
     count:35,
     epdo:223
   },
 
-  /* 보통: 소프트 아이보리 */
+  /* 보통: 따뜻한 옐로 */
   "동부중산간권": {
-    color:"#EFE6C7",
+    color:"#F1D77F",
     level:"보통",
     count:30,
     epdo:162
   },
 
   "협재·한림권": {
-    color:"#EFE6C7",
+    color:"#F1D77F",
     level:"보통",
     count:24,
     epdo:107
   },
 
   "함덕·조천권": {
-    color:"#EFE6C7",
+    color:"#F1D77F",
     level:"보통",
     count:17,
     epdo:93
   },
 
   "김녕·월정권": {
-    color:"#EFE6C7",
+    color:"#F1D77F",
     level:"보통",
     count:16,
     epdo:80
   },
 
   "성산권": {
-    color:"#EFE6C7",
+    color:"#F1D77F",
     level:"보통",
     count:15,
     epdo:100
   },
 
   "한라산권": {
-    color:"#EFE6C7",
+    color:"#F1D77F",
     level:"보통",
     count:16,
     epdo:85
   },
 
-  /* 낮음: 소프트 세이지 */
+  /* 낮음: 세이지 그린 */
   "중문권": {
-    color:"#C9DCCF",
+    color:"#A8CFB5",
     level:"낮음",
     count:14,
     epdo:79
@@ -4643,8 +4655,8 @@ fetch("jeju_regions.geojson")
         const region = getJejuRegion(name);
         const risk = regionRisk[region];
 return {
-  color:"rgba(255,255,255,.88)",
-  weight:1.8,
+  color:"rgba(255,255,255,.92)",
+  weight:2,
   opacity:1,
 
   fillColor:
@@ -4654,8 +4666,8 @@ return {
 
   fillOpacity:
     risk
-      ? 0.42
-      : 0.10,
+      ? 0.58
+      : 0.12,
 
   interactive:false
 };
