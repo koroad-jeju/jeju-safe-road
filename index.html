@@ -22,8 +22,6 @@
 <meta property="og:locale" content="ko_KR">
 <meta property="og:site_name" content="제주 렌터카 안전경로 안내">
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <!-- 추가 -->
 <meta name="twitter:card" content="summary_large_image">
 
 <link rel="stylesheet"
@@ -4639,7 +4637,10 @@ body.route-fallback-mode
   현재 위치 사용
 </button>
 
-<button class="clear-btn" type="button" onclick="document.getElementById('startInput').value=''">
+<button
+  class="clear-btn"
+  type="button"
+  onclick="clearStartPlace()">
   <img src="x.svg" alt="">
 </button>
 
@@ -4658,8 +4659,11 @@ body.route-fallback-mode
   <img src="map-pin.svg" alt="">
 </span>
   <input id="endInput" type="text" placeholder="예)성산일출봉">
-  <button class="clear-btn" type="button" onclick="document.getElementById('endInput').value=''">
- <img src="x.svg" alt="">
+<button
+  class="clear-btn"
+  type="button"
+  onclick="clearEndPlace()">
+  <img src="x.svg" alt="">
 </button>
 
 <button class="mini-btn" onclick="searchDestination()">
@@ -6105,6 +6109,75 @@ function showRouteFallback(){
   );
 
   showRouteAnalysis();
+}
+  /* ===== 출발지·목적지 초기화 ===== */
+
+function clearStartPlace(){
+
+  const startInput =
+    document.getElementById("startInput");
+
+  const startResults =
+    document.getElementById("startResults");
+
+  if(startInput){
+    startInput.value = "";
+    startInput.placeholder = "예)제주국제공항";
+  }
+
+  if(startResults){
+    startResults.innerHTML = "";
+    startResults.style.display = "none";
+  }
+
+  customStart = null;
+  customStartName = null;
+  customStartArea = "기타";
+
+  const info =
+    document.getElementById("info");
+
+  if(info){
+    info.innerHTML = "";
+  }
+}
+
+
+function clearEndPlace(){
+
+  const endInput =
+    document.getElementById("endInput");
+
+  const endResults =
+    document.getElementById("endResults");
+
+  const popularSelect =
+    document.getElementById("popularSelect");
+
+  if(endInput){
+    endInput.value = "";
+    endInput.placeholder = "예)성산일출봉";
+  }
+
+  if(endResults){
+    endResults.innerHTML = "";
+    endResults.style.display = "none";
+  }
+
+  if(popularSelect){
+    popularSelect.value = "";
+  }
+
+  customEnd = null;
+  customEndName = null;
+  customEndArea = "기타";
+
+  const info =
+    document.getElementById("info");
+
+  if(info){
+    info.innerHTML = "";
+  }
 }
   const fixedDestinationCoords = {
   "성산일출봉": { lat:33.4589, lng:126.9347 },
