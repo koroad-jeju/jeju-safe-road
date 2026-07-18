@@ -3985,9 +3985,7 @@ body.route-analysis-mode
 body.route-fallback-mode
 .fallback-route-info-cards{
   display:grid !important;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr)) !important;
-
+  grid-template-columns:1fr !important;
   gap:10px !important;
   align-items:stretch !important;
 }
@@ -4049,47 +4047,6 @@ body.route-fallback-mode
   font-weight:850;
   line-height:1.35;
 }
-
-/* 아주 좁은 화면에서도 두 코스는 가로 유지 */
-@media(max-width:370px){
-
-  body.route-fallback-mode
-  .fallback-route-info-cards{
-    gap:7px !important;
-  }
-
-  body.route-fallback-mode
-  .cached-route-info-card{
-    padding:10px 9px !important;
-  }
-
-  body.route-fallback-mode
-  .cached-route-info-card
-  .compact-course-head{
-    display:block !important;
-  }
-
-  body.route-fallback-mode
-  .cached-route-info-card
-  .compact-course-head > strong{
-    display:block;
-    margin-top:4px;
-    white-space:normal !important;
-  }
-}
-  body.route-fallback-mode
-.cached-route-info-card{
-  cursor:default !important;
-}
-
-body.route-fallback-mode
-.cached-route-info-card:active{
-  transform:none !important;
-}
-  /* ==================================================
-   코스별 도로 칩 · 산간도로 팝업 최종 보정
-   CSS 영역 가장 마지막에 배치
-================================================== */
 
 
 /* ==================================================
@@ -4469,6 +4426,20 @@ body.route-analysis-mode
     height:54px !important;
     min-height:54px !important;
   }
+}
+  /* 실패 화면 코스 카드 내부 세로 정리 */
+body.route-fallback-mode
+.cached-route-info-card
+.compact-double-grid{
+  grid-template-columns:1fr !important;
+  gap:9px !important;
+}
+
+body.route-fallback-mode
+.cached-route-info-card
+.compact-info-box + .compact-info-box{
+  padding-top:9px !important;
+  border-top:1px solid var(--route-line) !important;
 }
 </style>
 </head>
@@ -5735,6 +5706,101 @@ function makeNavigationButtonsHtml(){
   `;
 }
 
+function getCachedRoadHtml(roadNames){
+  if(
+    !Array.isArray(roadNames) ||
+    roadNames.length === 0
+  ){
+    return `
+      <span class="general-road-text">
+        일반도로 중심 경로
+      </span>
+    `;
+  }
+
+  return roadNames
+    .map(roadName => {
+
+      const profile =
+        jejuRoadProfiles.find(
+          road =>
+            road.name === roadName
+        );
+
+      /*
+        설명 정보가 있는 대표도로만
+        i 버튼으로 표시
+      */
+      if(profile){
+        return `
+          <button
+            type="button"
+            class="route-road-chip"
+            onclick="event.stopPropagation(); showRoadInfo('${roadName}')">
+            ${roadName}
+            <span class="route-road-info-icon">i</span>
+          </button>
+        `;
+      }
+
+      /*
+        설명 정보가 없는 도로는 일반 텍스트
+      */
+      return `
+        <span class="cached-road-text">
+          ${roadName}
+        </span>
+      `;
+    })
+    .join(`
+      <span class="route-road-arrow">→</span>
+    `);
+}
+
+
+function getCachedDifficultRoadHtml(difficultRoads){
+  if(
+    !Array.isArray(difficultRoads) ||
+    difficultRoads.length === 0
+  ){
+    return `
+      <span class="difficult-road-empty">
+        없음
+      </span>
+    `;
+  }
+
+  return `
+    <div class="difficult-road-list">
+      ${difficultRoads.map(roadName => {
+
+        const profile =
+          jejuRoadProfiles.find(
+            road =>
+              road.name === roadName
+          );
+
+        if(profile){
+          return `
+            <button
+              type="button"
+              class="difficult-road-chip"
+              onclick="event.stopPropagation(); showRoadInfo('${roadName}')">
+              ${roadName}
+              <span class="route-road-info-icon">i</span>
+            </button>
+          `;
+        }
+
+        return `
+          <span class="cached-difficult-road">
+            ${roadName}
+          </span>
+        `;
+      }).join("")}
+    </div>
+  `;
+}  
 function buildCachedFallbackHtml(cache){
 const routeCards = cache.routes.map(route => {
 
@@ -5756,17 +5822,15 @@ const routeCards = cache.routes.map(route => {
       "건";
   }
 
-  const roadText =
-    Array.isArray(route.roadNames) &&
-    route.roadNames.length > 0
-      ? route.roadNames.join(" → ")
-      : "일반도로 중심 경로";
+const roadHtml =
+  getCachedRoadHtml(
+    route.roadNames
+  );
 
-  const difficultRoadText =
-    Array.isArray(route.difficultRoads) &&
-    route.difficultRoads.length > 0
-      ? route.difficultRoads.join(" · ")
-      : "없음";
+const difficultRoadHtml =
+  getCachedDifficultRoadHtml(
+    route.difficultRoads
+  );
 
   const cardClass =
     route.course === 1
@@ -5792,13 +5856,13 @@ const routeCards = cache.routes.map(route => {
         </strong>
       </div>
 
-      <div class="compact-route-row">
-        <span>주요도로</span>
+<div class="compact-route-row">
+  <span>주요도로</span>
 
-        <div class="cached-road-text">
-          ${roadText}
-        </div>
-      </div>
+  <div class="route-road-list">
+    ${roadHtml}
+  </div>
+</div>
 
       <div class="compact-double-grid">
 
@@ -5807,17 +5871,11 @@ const routeCards = cache.routes.map(route => {
           <b>${accidentText}</b>
         </div>
 
-        <div class="compact-info-box">
-          <span>주의도로</span>
+   <div class="compact-info-box">
+  <span>주의도로</span>
 
-          <div class="${
-            difficultRoadText === "없음"
-              ? "difficult-road-empty"
-              : "cached-difficult-road"
-          }">
-            ${difficultRoadText}
-          </div>
-        </div>
+  ${difficultRoadHtml}
+</div>
 
       </div>
 
