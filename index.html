@@ -4086,6 +4086,326 @@ body.route-fallback-mode
 .cached-route-info-card:active{
   transform:none !important;
 }
+  /* ==================================================
+   코스별 도로 칩 · 산간도로 팝업 최종 보정
+   CSS 영역 가장 마지막에 배치
+================================================== */
+
+
+/* ==================================================
+   1코스 도로 칩 — 블루 톤
+================================================== */
+
+/* 1코스 주요도로 */
+body.route-analysis-mode
+.route-info-card.recommend
+.route-road-chip{
+  border:1px solid #B8CBEF !important;
+  background:#EEF4FF !important;
+  color:#3D5F9F !important;
+
+  box-shadow:
+    0 2px 6px rgba(78,114,196,.06) !important;
+}
+
+/* 1코스 주요도로 i 아이콘 */
+body.route-analysis-mode
+.route-info-card.recommend
+.route-road-chip
+.route-road-info-icon{
+  background:#5C7FC7 !important;
+  color:#FFFFFF !important;
+}
+
+
+/* 1코스 주의도로 */
+body.route-analysis-mode
+.route-info-card.recommend
+.difficult-road-chip{
+  border:1px solid #91A9DE !important;
+  background:#E1EAFB !important;
+  color:#31558F !important;
+
+  box-shadow:
+    0 2px 7px rgba(78,114,196,.09) !important;
+}
+
+/* 1코스 주의도로 i 아이콘 */
+body.route-analysis-mode
+.route-info-card.recommend
+.difficult-road-chip
+.route-road-info-icon{
+  background:#4167AC !important;
+  color:#FFFFFF !important;
+}
+
+
+/* 1코스 주요도로 사이 화살표 */
+body.route-analysis-mode
+.route-info-card.recommend
+.route-road-arrow{
+  color:#8EA5D2 !important;
+}
+
+
+/* 1코스 특징 박스도 아주 약하게 연결 */
+body.route-analysis-mode
+.route-info-card.recommend
+.compact-feature{
+  background:#EDF3FE !important;
+}
+
+body.route-analysis-mode
+.route-info-card.recommend
+.compact-feature > span{
+  color:#4365A7 !important;
+}
+
+body.route-analysis-mode
+.route-info-card.recommend
+.compact-feature > p{
+  color:#46566F !important;
+}
+
+
+/* ==================================================
+   2코스 도로 칩 — 모브 톤
+================================================== */
+
+/* 2코스 주요도로 */
+body.route-analysis-mode
+.route-info-card.alt
+.route-road-chip{
+  border:1px solid #D5C3D0 !important;
+  background:#F8EFF4 !important;
+  color:#805F78 !important;
+
+  box-shadow:
+    0 2px 6px rgba(155,116,142,.06) !important;
+}
+
+/* 2코스 주요도로 i 아이콘 */
+body.route-analysis-mode
+.route-info-card.alt
+.route-road-chip
+.route-road-info-icon{
+  background:#A27C96 !important;
+  color:#FFFFFF !important;
+}
+
+
+/* 2코스 주의도로 */
+body.route-analysis-mode
+.route-info-card.alt
+.difficult-road-chip{
+  border:1px solid #C5A8BA !important;
+  background:#F1E3EB !important;
+  color:#74536B !important;
+
+  box-shadow:
+    0 2px 7px rgba(155,116,142,.09) !important;
+}
+
+/* 2코스 주의도로 i 아이콘 */
+body.route-analysis-mode
+.route-info-card.alt
+.difficult-road-chip
+.route-road-info-icon{
+  background:#89677E !important;
+  color:#FFFFFF !important;
+}
+
+
+/* 2코스 주요도로 사이 화살표 */
+body.route-analysis-mode
+.route-info-card.alt
+.route-road-arrow{
+  color:#B79EAE !important;
+}
+
+
+/* 2코스 특징 박스도 아주 약하게 연결 */
+body.route-analysis-mode
+.route-info-card.alt
+.compact-feature{
+  background:#F8EEF4 !important;
+}
+
+body.route-analysis-mode
+.route-info-card.alt
+.compact-feature > span{
+  color:#805F77 !important;
+}
+
+body.route-analysis-mode
+.route-info-card.alt
+.compact-feature > p{
+  color:#574B56 !important;
+}
+
+
+/* ==================================================
+   도로 칩 공통 형태
+================================================== */
+
+body.route-analysis-mode
+.route-info-card
+.route-road-chip,
+
+body.route-analysis-mode
+.route-info-card
+.difficult-road-chip{
+  min-height:28px !important;
+  padding:4px 9px !important;
+
+  border-radius:9px !important;
+
+  font-size:11.5px !important;
+  font-weight:850 !important;
+  line-height:1.3 !important;
+
+  transition:
+    transform .16s ease,
+    box-shadow .16s ease,
+    background .16s ease !important;
+}
+
+body.route-analysis-mode
+.route-info-card
+.route-road-chip:active,
+
+body.route-analysis-mode
+.route-info-card
+.difficult-road-chip:active{
+  transform:scale(.97);
+}
+
+
+/* ==================================================
+   산간도로 운전 주의 팝업
+   따뜻한 주의 컬러 + 앱 블루 버튼
+================================================== */
+
+.mountain-road-popup{
+  background:rgba(28,38,55,.52) !important;
+}
+
+
+/* 팝업 카드 */
+.mountain-road-card{
+  background:
+    linear-gradient(
+      180deg,
+      #FFFFFF 0%,
+      #FFFCF7 100%
+    ) !important;
+
+  border:1px solid #EBDCC4 !important;
+
+  box-shadow:
+    0 24px 60px rgba(28,38,55,.28) !important;
+}
+
+
+/* 경고 아이콘 배경 */
+.mountain-road-icon{
+  background:
+    linear-gradient(
+      145deg,
+      #FFF5E6 0%,
+      #FFE8C5 100%
+    ) !important;
+
+  border:1px solid #F1CE98 !important;
+
+  box-shadow:
+    0 6px 14px rgba(188,119,32,.11) !important;
+}
+
+
+/* 경고 SVG를 앰버색으로 */
+.mountain-road-icon img{
+  opacity:1 !important;
+
+  filter:
+    brightness(0)
+    saturate(100%)
+    invert(54%)
+    sepia(78%)
+    saturate(893%)
+    hue-rotate(354deg)
+    brightness(91%)
+    contrast(90%) !important;
+}
+
+
+/* 팝업 제목 */
+.mountain-road-card h3{
+  color:#202A38 !important;
+}
+
+
+/* 1코스:1100도로 표시 배지 */
+.mountain-road-name{
+  background:#FFF0D8 !important;
+  border:1px solid #EDC588 !important;
+  color:#A86013 !important;
+
+  box-shadow:
+    0 3px 8px rgba(180,103,20,.07) !important;
+}
+
+
+/* 설명 */
+.mountain-road-card > p{
+  color:#536071 !important;
+}
+
+
+/* 주의사항 박스 */
+.mountain-road-list{
+  background:#FFF8EE !important;
+  border:1px solid #F0DEC1 !important;
+}
+
+
+/* 주의사항 글자 */
+.mountain-road-list div::after{
+  color:#4B586A !important;
+}
+
+
+/* 주의사항 작은 점 */
+.mountain-road-list div::before{
+  background:#C27B28 !important;
+}
+
+
+/* 확인 버튼 */
+.mountain-road-confirm{
+  background:
+    linear-gradient(
+      135deg,
+      #4268B4 0%,
+      #6585C9 100%
+    ) !important;
+
+  border:1px solid rgba(56,89,159,.20) !important;
+
+  box-shadow:
+    0 9px 20px rgba(66,104,180,.24) !important;
+}
+
+.mountain-road-confirm:active{
+  background:
+    linear-gradient(
+      135deg,
+      #385C9F 0%,
+      #5576BA 100%
+    ) !important;
+
+  transform:scale(.99);
+}
 </style>
 </head>
 
