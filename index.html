@@ -4406,6 +4406,70 @@ body.route-analysis-mode
 
   transform:scale(.99);
 }
+  /* =========================================
+   제주 주요 도로 안내 이미지 팝업
+========================================= */
+
+.menu-popup.road-guide-mode{
+  padding:68px 12px 82px !important;
+}
+
+.menu-popup.road-guide-mode .menu-popup-card{
+  width:100% !important;
+  max-width:630px !important;
+  height:calc(100dvh - 150px) !important;
+  margin:0 auto !important;
+  border-radius:24px !important;
+  background:#ffffff !important;
+}
+
+.menu-popup.road-guide-mode .menu-popup-head{
+  flex:0 0 56px !important;
+  height:56px !important;
+  min-height:56px !important;
+  padding:0 14px 0 18px !important;
+}
+
+.menu-popup.road-guide-mode .menu-popup-content{
+  flex:1 !important;
+  min-height:0 !important;
+  padding:0 !important;
+  overflow-y:auto !important;
+  background:#dff3ff !important;
+  -webkit-overflow-scrolling:touch;
+}
+
+.road-guide-image-wrap{
+  width:100%;
+  min-height:100%;
+  background:#dff3ff;
+}
+
+.road-guide-image{
+  display:block;
+  width:100%;
+  height:auto;
+  margin:0;
+}
+
+/* 휴대전화 */
+@media(max-width:480px){
+
+  .menu-popup.road-guide-mode{
+    padding:58px 0 66px !important;
+  }
+
+  .menu-popup.road-guide-mode .menu-popup-card{
+    max-width:none !important;
+    height:calc(100dvh - 124px) !important;
+    border-radius:0 !important;
+  }
+
+  .menu-popup.road-guide-mode .menu-popup-head{
+    height:54px !important;
+    min-height:54px !important;
+  }
+}
 </style>
 </head>
 
@@ -4446,20 +4510,24 @@ body.route-analysis-mode
 </div>
     </button>
 
-    <button class="side-menu-item" type="button" onclick="openEpdoFromMenu()">
-      <div class="side-menu-main">
- <div class="side-menu-icon">
-  <img src="chart-bar.svg" alt="">
-</div>
-        <div class="side-menu-text">
-<b>사고정보 안내</b>
-<span>사고 심각도 표시 기준</span>
-        </div>
-      </div>
-     <div class="side-arrow">
-  <img src="chevron-right.svg">
-</div>
-    </button>
+<button class="side-menu-item" type="button" onclick="openRoadGuideFromMenu()">
+  <div class="side-menu-main">
+
+    <div class="side-menu-icon">
+      <img src="road.svg" alt="">
+    </div>
+
+    <div class="side-menu-text">
+      <b>제주 주요 도로 안내</b>
+      <span>주요 도로 특성과 주의사항</span>
+    </div>
+
+  </div>
+
+  <div class="side-arrow">
+    <img src="chevron-right.svg">
+  </div>
+</button>
 
     <button class="side-menu-item" type="button" onclick="openNoticeFromMenu()">
       <div class="side-menu-main">
@@ -9293,9 +9361,9 @@ function openRiskMapFromMenu(){
   closeSideMenu();
   openMenuPopup("risk");
 }
-function openEpdoFromMenu(){
+function openRoadGuideFromMenu(){
   closeSideMenu();
-  openMenuPopup("epdo");
+  openMenuPopup("roadGuide");
 }
 
 function openNoticeFromMenu(){
@@ -9331,25 +9399,20 @@ setTimeout(() => {
 }, 300);
   }
 
-if(type === "epdo"){
-  title.innerText = "사고정보 안내";
+if(type === "roadGuide"){
+  title.innerText = "제주 주요 도로 안내";
 
   content.innerHTML = `
-    <div class="risk-info-card">
-      <h3>사고 심각도 표시 기준</h3>
-
-      <p>
-        사고 위험 지도에서는 사고 피해 정도에 따라
-        사고지점의 색상을 구분해 표시합니다.
-      </p>
-
-      <p>
-        경로분석 화면에서는 경로 주변에서 확인된
-        중상 이상 사고이력을 참고정보로 제공합니다.
-      </p>
+    <div class="road-guide-image-wrap">
+      <img
+        src="jeju-road-guide.png"
+        alt="제주 주요 도로 안내"
+        class="road-guide-image"
+      >
     </div>
   `;
 
+  popup.classList.add("road-guide-mode");
   popup.classList.add("active");
 }
 
@@ -9378,6 +9441,7 @@ function closeMenuPopup(){
     "active",
     "road-info-mode",
     "difficult-road-mode"
+    "road-guide-mode"
   );
 }
 </script>
