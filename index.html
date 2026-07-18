@@ -5217,7 +5217,12 @@ selectedRouteIndex = 0;
 lastRecommendedIndex = 0;
 ratingSubmitted = false;
   
-
+/*
+  ORS 요청 중복·백그라운드 재시도 관리
+*/
+let activeRouteRequestToken = 0;
+let backgroundRouteRetryTimer = null;
+  
 const destinationTips = {
   "1100고지": [
     "1100고지 접근 구간은 급커브와 경사가 이어지므로 커브 진입 전에 충분히 감속하세요.",
@@ -6145,123 +6150,253 @@ function completeLoadingSteps(){
     `;
   });
 }
-async function requestOrsRoute(body){
+
+  function wait(ms){
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function requestOrsRoute(
+  body,
+  {
+    overallTimeoutMs = 15000,
+    maxAttempts = 3
+  } = {}
+){
   let lastStatus = "";
   let lastErrorText = "";
 
+  /*
+    ORS 공식 주소와 보조 주소를 번갈아 사용
+  */
   const orsUrls = [
-    "https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson",
-    "https://api.openrouteservice.org/v2/directions/driving-car/geojson"
+    "https://api.openrouteservice.org/v2/directions/driving-car/geojson",
+    "https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson"
   ];
+
+  /*
+    주소와 API 키 조합 생성
+  */
+  const requestCandidates = [];
+
+  orsUrls.forEach(url => {
+    orsApiKeys.forEach(key => {
+      requestCandidates.push({
+        url:url,
+        key:key
+      });
+    });
+  });
+
+  if(requestCandidates.length === 0){
+    throw new Error("사용 가능한 ORS 요청 정보가 없습니다.");
+  }
 
   const overallStartTime = Date.now();
 
   /*
-    ORS 전체 시도는 최대 12초까지만 진행
+    최대 3회까지만 요청
   */
-  const OVERALL_TIMEOUT_MS = 12000;
+  for(
+    let attempt = 1;
+    attempt <= maxAttempts;
+    attempt++
+  ){
+    const elapsedTime =
+      Date.now() - overallStartTime;
 
-  /*
-    개별 요청은 최대 4.5초
-  */
-  const SINGLE_REQUEST_TIMEOUT_MS = 4500;
+    const remainingTime =
+      overallTimeoutMs - elapsedTime;
 
-  for(const url of orsUrls){
-    for(const key of orsApiKeys){
+    if(remainingTime <= 0){
+      throw new Error(
+        "ORS 전체 요청 시간 15초 초과"
+      );
+    }
 
-      const elapsedTime =
-        Date.now() - overallStartTime;
+    /*
+      최대 3회 요청이 15초 안에 끝나도록
+      개별 요청은 최대 약 4.5초
+    */
+    const singleRequestTimeout =
+      Math.min(
+        4500,
+        remainingTime
+      );
+
+    /*
+      요청할 때마다 주소·키 조합 변경
+    */
+    const candidate =
+      requestCandidates[
+        (attempt - 1) %
+        requestCandidates.length
+      ];
+
+    console.log(
+      `[ORS ${attempt}/${maxAttempts}차 요청]`,
+      candidate.url,
+      `제한시간 ${singleRequestTimeout}ms`
+    );
+
+    try{
+      const response =
+        await fetchWithTimeout(
+          candidate.url,
+          {
+            method:"POST",
+
+            headers:{
+              "Authorization":candidate.key,
+              "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify(body)
+          },
+          singleRequestTimeout
+        );
+
+      if(response.ok){
+        console.log(
+          `[ORS ${attempt}차 요청 성공]`,
+          candidate.url
+        );
+
+        return response;
+      }
+
+      lastStatus = response.status;
+
+      lastErrorText =
+        await response.text();
+
+      console.error(
+        `[ORS ${attempt}차 요청 실패]`,
+        candidate.url,
+        response.status,
+        lastErrorText
+      );
 
       /*
-        이미 전체 제한시간을 넘었다면
-        더 이상 다음 서버나 키를 시도하지 않음
+        400번대 요청 오류는 반복해도
+        성공 가능성이 낮으므로 즉시 중단
+
+        단, 408·429는 일시 오류일 수 있어 재시도
       */
-      if(elapsedTime >= OVERALL_TIMEOUT_MS){
+      if(
+        response.status >= 400 &&
+        response.status < 500 &&
+        response.status !== 408 &&
+        response.status !== 429
+      ){
         throw new Error(
-          "ORS 전체 요청 시간 초과"
+          "ORS 요청값 오류 / 상태:" +
+          response.status
         );
       }
 
-      const remainingTime =
-        OVERALL_TIMEOUT_MS - elapsedTime;
+    }catch(error){
+      lastErrorText =
+        error.name === "AbortError"
+          ? "요청 시간 초과"
+          : error.message;
 
-      const currentTimeout =
-        Math.min(
-          SINGLE_REQUEST_TIMEOUT_MS,
-          remainingTime
-        );
+      console.error(
+        `[ORS ${attempt}차 요청 오류]`,
+        candidate.url,
+        lastErrorText
+      );
 
-      try{
-        const response = await fetchWithTimeout(
-          url,
-          {
-            method:"POST",
-            headers:{
-              "Authorization":key,
-              "Content-Type":"application/json"
-            },
-            body:JSON.stringify(body)
-          },
-          currentTimeout
-        );
+      /*
+        요청 형식 오류는 재시도하지 않음
+      */
+      if(
+        String(error.message || "")
+          .includes("ORS 요청값 오류")
+      ){
+        throw error;
+      }
+    }
 
-        if(response.ok){
-          console.log(
-            "ORS 성공:",
-            url
-          );
+    /*
+      마지막 시도가 아니라면 짧게 대기 후 재시도
+    */
+    if(attempt < maxAttempts){
+      const elapsedAfterRequest =
+        Date.now() - overallStartTime;
 
-          return response;
-        }
-
-        lastStatus = response.status;
-        lastErrorText =
-          await response.text();
-
-        console.error(
-          "ORS 실패:",
-          url,
-          response.status,
-          lastErrorText
-        );
-
-      }catch(error){
-        lastErrorText =
-          error.name === "AbortError"
-            ? "요청 시간 초과"
-            : error.message;
-
-        console.error(
-          "ORS 요청 오류:",
-          url,
-          lastErrorText
-        );
+      if(
+        elapsedAfterRequest + 300 <
+        overallTimeoutMs
+      ){
+        await wait(300);
       }
     }
   }
 
   throw new Error(
-    "ORS 전체 실패 / 상태:" +
+    "ORS 3회 요청 실패 / 상태:" +
     (lastStatus || "-") +
     " / " +
     lastErrorText
   );
 }
- 
-  async function drawRoutes(){
-    if(!customEnd){
-  alert("목적지를 검색하거나 인기 관광지를 선택해주세요.");
-  return;
+  function scheduleBackgroundRouteRetry(
+  requestToken,
+  attempt = 1
+){
+  /*
+    백그라운드에서는 최대 2번 추가 시도
+  */
+  const maxBackgroundAttempts = 2;
+
+  if(attempt > maxBackgroundAttempts){
+    console.warn(
+      "백그라운드 ORS 재시도를 종료합니다."
+    );
+
+    return;
+  }
+
+  if(backgroundRouteRetryTimer){
+    clearTimeout(
+      backgroundRouteRetryTimer
+    );
+  }
+
+  const delay =
+    attempt === 1
+      ? 4000
+      : 7000;
+
+  console.log(
+    `백그라운드 ORS ${attempt}차 재시도 예약:`,
+    delay + "ms 후"
+  );
+
+  backgroundRouteRetryTimer =
+    setTimeout(() => {
+
+      /*
+        사용자가 그사이 다른 경로를 검색한 경우
+        이전 경로 재시도는 취소
+      */
+      if(
+        requestToken !==
+        activeRouteRequestToken
+      ){
+        return;
+      }
+
+      drawRoutes({
+        backgroundRetry:true,
+        requestToken:requestToken,
+        backgroundAttempt:attempt
+      });
+
+    }, delay);
 }
-
-if(routeLayer){
-  map.removeLayer(routeLayer);
-}
-
-routePolylines = [];
-routeLabelMarkers = [];
-
-routeLayer = L.layerGroup().addTo(map);
 
   let startLng, startLat, startName;
 
@@ -6303,6 +6438,8 @@ lastEnd = {
     alert("출발지와 목적지가 같습니다.");
     return;
 }
+  
+  if(!isBackgroundRetry){
   document.getElementById("info").innerHTML = `
 <div class="loading-card">
 <b>안전운전 정보를 준비하고 있습니다</b>
@@ -6337,16 +6474,25 @@ lastEnd = {
 </div>
 </div>
 `;
-    const slowLoadingTimer = setTimeout(() => {
-  const notice = document.getElementById("slowLoadingNotice");
 
-  if(notice){
-    notice.classList.add("show");
-  }
-}, 3000);
+    let slowLoadingTimer = null;
+
+if(!isBackgroundRetry){
+  slowLoadingTimer = setTimeout(() => {
+    const notice =
+      document.getElementById(
+        "slowLoadingNotice"
+      );
+
+    if(notice){
+      notice.classList.add("show");
+    }
+  }, 3000);
+}
 
     document.querySelector(".panel").classList.add("route-mode");
     document.body.classList.add("route-active");
+  }
 
   const body = {
   coordinates:[
@@ -6365,24 +6511,140 @@ lastEnd = {
  let response;
 
 try{
-  response = await requestOrsRoute(body);
+  response = await requestOrsRoute(
+    body,
+    {
+      overallTimeoutMs:15000,
+      maxAttempts:3
+    }
+  );
 
 }catch(err){
-  clearTimeout(slowLoadingTimer);
+
+  if(slowLoadingTimer){
+    clearTimeout(slowLoadingTimer);
+  }
 
   console.error(
-    "경로 분석 서버 전체 실패:",
+    isBackgroundRetry
+      ? "백그라운드 경로 재분석 실패:"
+      : "경로 분석 서버 전체 실패:",
     err
   );
 
+  /*
+    과거 검색에 대한 응답이면 무시
+  */
+  if(
+    requestToken !==
+    activeRouteRequestToken
+  ){
+    return;
+  }
+
+  if(isBackgroundRetry){
+
+    /*
+      백그라운드 1차가 실패하면
+      2차 재시도 예약
+    */
+    if(backgroundAttempt < 2){
+      scheduleBackgroundRouteRetry(
+        requestToken,
+        backgroundAttempt + 1
+      );
+    }
+
+    /*
+      캐시 화면은 그대로 유지
+    */
+    return;
+  }
+
+  /*
+    최초 15초 요청 실패 시
+    우선 최근 경로 또는 권역 안내 표시
+  */
   showRouteFallback();
+
+  /*
+    화면 뒤에서 ORS 재시도
+  */
+  scheduleBackgroundRouteRetry(
+    requestToken,
+    1
+  );
 
   return;
 }
-    clearTimeout(slowLoadingTimer);
-    const data = await response.json();
-    completeLoadingSteps();
-    document.body.classList.remove("route-fallback-mode");
+    if(slowLoadingTimer){
+  clearTimeout(slowLoadingTimer);
+}
+const data = await response.json();
+
+/*
+  이미 다른 경로 검색이 시작된 경우
+  오래된 응답은 화면에 반영하지 않음
+*/
+if(
+  requestToken !==
+  activeRouteRequestToken
+){
+  console.log(
+    "이전 경로 요청 결과이므로 무시합니다."
+  );
+
+  return;
+}
+
+if(slowLoadingTimer){
+  clearTimeout(slowLoadingTimer);
+}
+
+/*
+  백그라운드 재시도 예약 제거
+*/
+if(backgroundRouteRetryTimer){
+  clearTimeout(
+    backgroundRouteRetryTimer
+  );
+
+  backgroundRouteRetryTimer = null;
+}
+
+if(!data.features || data.features.length === 0){
+  throw new Error(
+    "ORS 경로 데이터가 없습니다."
+  );
+}
+
+/*
+  ORS 성공이 확인된 뒤에만
+  이전 지도 경로를 제거
+*/
+if(routeLayer){
+  map.removeLayer(routeLayer);
+}
+
+routePolylines = [];
+routeLabelMarkers = [];
+
+routeLayer =
+  L.layerGroup().addTo(map);
+
+if(!isBackgroundRetry){
+  completeLoadingSteps();
+}
+
+document.body.classList.remove(
+  "route-fallback-mode"
+);
+
+if(isBackgroundRetry){
+  console.log(
+    "실시간 경로 복구 성공: 캐시 화면을 최신 결과로 교체합니다."
+  );
+}
 
     if(!data.features || data.features.length===0){
       alert("경로 데이터를 찾지 못했어요.");
@@ -7084,20 +7346,55 @@ setTimeout(() => {
   }
 
 }, 250);
+
     }catch(error){
-  clearTimeout(slowLoadingTimer);
+
+  if(slowLoadingTimer){
+    clearTimeout(slowLoadingTimer);
+  }
 
   console.error(
-    "경로 분석 중 오류가 발생했습니다:",
+    isBackgroundRetry
+      ? "백그라운드 경로 처리 오류:"
+      : "경로 분석 중 오류가 발생했습니다:",
     error
   );
 
-  if(routeLayer){
-    map.removeLayer(routeLayer);
-    routeLayer = null;
+  /*
+    과거 요청이면 현재 화면을 건드리지 않음
+  */
+  if(
+    requestToken !==
+    activeRouteRequestToken
+  ){
+    return;
   }
 
+  if(isBackgroundRetry){
+
+    /*
+      캐시 화면이나 기존 경로는 그대로 유지
+    */
+    if(backgroundAttempt < 2){
+      scheduleBackgroundRouteRetry(
+        requestToken,
+        backgroundAttempt + 1
+      );
+    }
+
+    return;
+  }
+
+  /*
+    일반 분석 실패일 때만
+    캐시 또는 권역 안내 표시
+  */
   showRouteFallback();
+
+  scheduleBackgroundRouteRetry(
+    requestToken,
+    1
+  );
 }
 
 }
