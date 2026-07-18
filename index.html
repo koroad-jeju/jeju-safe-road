@@ -6397,7 +6397,50 @@ async function requestOrsRoute(
 
     }, delay);
 }
+/* ===== 경로 분석 실행 ===== */
 
+async function drawRoutes(options = {}){
+
+  const isBackgroundRetry =
+    options.backgroundRetry === true;
+
+  const backgroundAttempt =
+    Number(
+      options.backgroundAttempt || 0
+    );
+
+  const requestToken =
+    isBackgroundRetry
+      ? options.requestToken
+      : ++activeRouteRequestToken;
+
+  /*
+    사용자가 새 경로를 검색하면
+    이전 백그라운드 재시도 예약을 취소
+  */
+  if(
+    !isBackgroundRetry &&
+    backgroundRouteRetryTimer
+  ){
+    clearTimeout(
+      backgroundRouteRetryTimer
+    );
+
+    backgroundRouteRetryTimer = null;
+  }
+
+  /*
+    목적지가 없는 경우
+  */
+  if(!customEnd){
+    alert(
+      "목적지를 검색하거나 인기 관광지를 선택해주세요."
+    );
+
+    return;
+  }
+
+  let slowLoadingTimer = null;
   let startLng, startLat, startName;
 
   if(!customStart){
@@ -6446,7 +6489,7 @@ lastEnd = {
   <p>주요 통과도로와 사고이력을 확인하는 중입니다.</p>
   <p id="slowLoadingNotice" class="slow-loading-notice">
   분석에 시간이 조금 더 걸리고 있습니다.<br>
-  약 5~10초 정도 소요될 수 있습니다.
+  최대 15초 정도 소요될 수 있습니다.
 </p>
 
 <div class="loading-steps">
@@ -6475,10 +6518,7 @@ lastEnd = {
 </div>
 `;
 
-    let slowLoadingTimer = null;
-
-if(!isBackgroundRetry){
-  slowLoadingTimer = setTimeout(() => {
+slowLoadingTimer = setTimeout(() => {
     const notice =
       document.getElementById(
         "slowLoadingNotice"
@@ -6488,11 +6528,15 @@ if(!isBackgroundRetry){
       notice.classList.add("show");
     }
   }, 3000);
-}
 
-    document.querySelector(".panel").classList.add("route-mode");
-    document.body.classList.add("route-active");
-  }
+  document
+    .querySelector(".panel")
+    .classList.add("route-mode");
+
+  document.body.classList.add(
+    "route-active"
+  );
+}
 
   const body = {
   coordinates:[
@@ -6645,11 +6689,6 @@ if(isBackgroundRetry){
     "실시간 경로 복구 성공: 캐시 화면을 최신 결과로 교체합니다."
   );
 }
-
-    if(!data.features || data.features.length===0){
-      alert("경로 데이터를 찾지 못했어요.");
-      return;
-    }
 
    let routes = data.features;
 
@@ -7279,7 +7318,10 @@ lastNavigation = "";
   별점과 이용 기록 저장용 기본값은 1코스를 사용
 */
 updateLastFeedbackData(0);
-sendRouteAnalysisLog();
+
+if(!isBackgroundRetry){
+  sendRouteAnalysisLog();
+}
 
 /*
   1코스와 2코스 모두 산간도로 포함 여부 확인
@@ -7296,9 +7338,14 @@ routeSummaries.forEach((route, index) => {
   });
 });
 
-if(detectedMountainRoads.length > 0){
+if(
+  !isBackgroundRetry &&
+  detectedMountainRoads.length > 0
+){
   setTimeout(() => {
-    showMountainRoadPopup(detectedMountainRoads);
+    showMountainRoadPopup(
+      detectedMountainRoads
+    );
   }, 450);
 }
 
