@@ -5200,22 +5200,21 @@ return {
 let routeLayer;
   let routePolylines = [];
 let routeLabelMarkers = [];
-customStart = null;
-customEnd = null;
-customStartName = null;
-customEndName = null;
-customStartArea = "기타";
-  customEndArea = "기타";
-lastNavigation = "";
+let customStart = null;
+let customEnd = null;
+let customStartName = null;
+let customEndName = null;
+let customStartArea = "기타";
+let customEndArea = "기타";
+let lastNavigation = "";
 
-lastStart = null;
-lastEnd = null;
-lastRouteAnalysisHtml = "";
-lastRouteSummaries = [];
-lastFeedbackData = {};
-selectedRouteIndex = 0;
-lastRecommendedIndex = 0;
-ratingSubmitted = false;
+let lastStart = null;
+let lastEnd = null;
+let lastRouteAnalysisHtml = "";
+let lastRouteSummaries = [];
+let lastFeedbackData = {};
+let selectedRouteIndex = 0;
+let ratingSubmitted = false;
   
 /*
   ORS 요청 중복·백그라운드 재시도 관리
@@ -5846,12 +5845,13 @@ const routeCards = cache.routes.map(route => {
     <div class="fallback-notice-card">
       <div class="fallback-cache-badge">최근 분석결과 제공</div>
 
-      <h3>실시간 경로 지도를 불러오지 못했습니다</h3>
+<h3>최근 분석결과를 먼저 안내합니다</h3>
 
-      <p>
-        같은 출발지와 목적지에서 최근 성공한 분석결과를 불러왔습니다.
-        실제 교통상황과 내비게이션 안내 경로는 달라질 수 있습니다.
-      </p>
+<p>
+  실시간 경로 확인이 지연되어 동일 출발지·목적지의
+  최근 분석결과를 먼저 표시합니다.
+  실시간 경로가 확인되면 화면이 자동으로 업데이트됩니다.
+</p>
 
       <div class="fallback-cache-time">
         저장 시각: ${savedTime}
@@ -6452,19 +6452,10 @@ startLng = customStart.lng;
 startLat = customStart.lat;
 startName = customStartName;
 
- let endLng, endLat, endName;
-
-if(customEnd){
-  endLng = customEnd.lng;
-  endLat = customEnd.lat;
-  endName = customEndName;
-}else{
-  const endSelect = document.getElementById("endSelect");
-  const endValue = endSelect.value.split(",");
-  endLng = parseFloat(endValue[0]);
-  endLat = parseFloat(endValue[1]);
-  endName = endSelect.options[endSelect.selectedIndex].text;
-}
+const endLng = customEnd.lng;
+const endLat = customEnd.lat;
+const endName = customEndName;
+  
   lastStart = {
   lat: startLat,
   lng: startLng,
@@ -6641,10 +6632,6 @@ if(
   return;
 }
 
-if(slowLoadingTimer){
-  clearTimeout(slowLoadingTimer);
-}
-
 /*
   백그라운드 재시도 예약 제거
 */
@@ -6709,7 +6696,6 @@ const routeAccidentAnalyses = routes.map(route => {
   " <span class='arrow'>→</span> "+
   endName+"</span>";
 
-let allCoords = [];
 let routeSummaries = [];
 
 routes.forEach((route,index)=>{
@@ -7017,7 +7003,6 @@ lastRouteSummaries = routeSummaries;
   ORS에서 받은 순서대로 1코스, 2코스로 표시
 */
 selectedRouteIndex = 0;
-lastRecommendedIndex = 0;
 routeSummaries.forEach((summary, index) => {
   const coords = summary.coords;
 
