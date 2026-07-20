@@ -4570,6 +4570,55 @@ body.route-analysis-mode
 .route-info-cards:has(.route-info-card:only-child){
   grid-template-columns:1fr !important;
 }
+  /* ===== 1코스·2코스 칸 높이 맞추기 ===== */
+
+body.route-analysis-mode
+.route-info-card{
+  display:grid !important;
+
+  grid-template-rows:
+    auto
+    118px
+    104px
+    128px
+    minmax(150px, auto);
+
+  align-content:start !important;
+}
+
+/* 주요 통과도로 */
+body.route-analysis-mode
+.route-info-card .compact-info-row:nth-of-type(1){
+  min-height:118px !important;
+}
+
+/* 교통환경 */
+body.route-analysis-mode
+.route-info-card .compact-info-row:nth-of-type(2){
+  min-height:104px !important;
+}
+
+/* 사고이력·심각도 */
+body.route-analysis-mode
+.route-info-card .compact-info-row:nth-of-type(3){
+  min-height:128px !important;
+}
+
+/* 코스 특성 */
+body.route-analysis-mode
+.route-info-card .compact-feature{
+  min-height:150px !important;
+  height:100% !important;
+}
+
+/* 글자가 넘치지 않도록 */
+body.route-analysis-mode
+.compact-info-row > b,
+body.route-analysis-mode
+.compact-feature > p{
+  word-break:keep-all !important;
+  overflow-wrap:anywhere !important;
+}
 </style>
 </head>
 
