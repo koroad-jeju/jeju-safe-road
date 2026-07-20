@@ -4605,6 +4605,55 @@ body.route-analysis-mode
     line-height:1.4 !important;
     word-break:keep-all !important;
 }
+  /* ===== 출발지·목적지 지도 마커 ===== */
+
+.route-point-marker{
+  background:transparent !important;
+  border:0 !important;
+}
+
+.route-point-pin{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  color:#fff;
+  font-size:12px;
+  font-weight:900;
+  border:3px solid #fff;
+  box-shadow:0 5px 14px rgba(15,23,42,.28);
+}
+
+.route-point-pin.start{
+  background:#4E72C4;
+}
+
+.route-point-pin.end{
+  background:#E35D6A;
+}
+
+/* 목적지는 살짝 다른 형태 */
+.route-point-pin.end{
+  border-radius:50% 50% 50% 8px;
+  transform:rotate(-45deg);
+}
+
+.route-point-pin.end span{
+  transform:rotate(45deg);
+}
+  .road-map-highlight-note{
+  margin-bottom:12px;
+  padding:9px 11px;
+  border-radius:11px;
+  background:#FFF5E5;
+  color:#9B621C;
+  font-size:11.5px;
+  font-weight:850;
+  line-height:1.45;
+}
 </style>
 </head>
 
@@ -5368,6 +5417,10 @@ return {
 let routeLayer;
   let routePolylines = [];
 let routeLabelMarkers = [];
+  /*
+  도로 i 버튼 선택 시 사용하는 강조 레이어
+*/
+let roadHighlightLayer = null;
 let customStart = null;
 let customEnd = null;
 let customStartName = null;
@@ -7297,6 +7350,12 @@ routeSummaries[index] = {
   allRoadNames:allRoadNames,
   roadNames:roadNames,
   roadProfiles:roadProfiles
+    /*
+    도로 i 버튼을 눌렀을 때
+    지도에 강조하기 위한 도로별 좌표
+  */
+  roadSegments:
+    extractRouteRoadSegments(route)
 };
 
 /*
@@ -7871,13 +7930,68 @@ if(
 */
 showRouteAnalysis();
     
-    L.marker([startLat,startLng])
-      .addTo(routeLayer)
-      .bindPopup("출발지: "+startName);
+    /*
+  출발지 마커
+*/
+const startMarkerIcon =
+  L.divIcon({
+    className:"route-point-marker",
 
-    L.marker([endLat,endLng])
-      .addTo(routeLayer)
-      .bindPopup("목적지: "+endName);
+    html:`
+      <div class="route-point-pin start">
+        출발
+      </div>
+    `,
+
+    iconSize:[34,34],
+    iconAnchor:[17,17],
+    popupAnchor:[0,-18]
+  });
+
+L.marker(
+  [startLat,startLng],
+  {
+    icon:startMarkerIcon,
+    zIndexOffset:1000
+  }
+)
+  .addTo(routeLayer)
+  .bindPopup(
+    "<b>출발지</b><br>" +
+    startName
+  );
+
+
+/*
+  목적지 마커
+*/
+const endMarkerIcon =
+  L.divIcon({
+    className:"route-point-marker",
+
+    html:`
+      <div class="route-point-pin end">
+        <span>도착</span>
+      </div>
+    `,
+
+    iconSize:[34,34],
+    iconAnchor:[17,28],
+    popupAnchor:[0,-27]
+  });
+
+L.marker(
+  [endLat,endLng],
+  {
+    icon:endMarkerIcon,
+    zIndexOffset:1000
+  }
+)
+  .addTo(routeLayer)
+  .bindPopup(
+    "<b>목적지</b><br>" +
+    endName
+  );
 
 setTimeout(() => {
 
@@ -8384,6 +8498,114 @@ const jejuRoadProfiles = [
   }
 ];
 
+  /* ==================================================
+   ORS 경로에서 도로별 실제 좌표 구간 추출
+================================================== */
+
+function extractRouteRoadSegments(route){
+
+  const geometryCoordinates =
+    route?.geometry?.coordinates || [];
+
+  const routeSegments =
+    route?.properties?.segments || [];
+
+  const roadSegmentMap =
+    new Map();
+
+  routeSegments.forEach(segment => {
+
+    const steps =
+      segment?.steps || [];
+
+    steps.forEach(step => {
+
+      const originalRoadName =
+        String(step?.name || "").trim();
+
+      if(!originalRoadName){
+        return;
+      }
+
+      /*
+        ORS 도로명을 제주 대표도로명으로 연결
+      */
+      const matchedProfile =
+        findJejuRoadProfile(
+          originalRoadName
+        );
+
+      if(!matchedProfile){
+        return;
+      }
+
+      const wayPoints =
+        step?.way_points;
+
+      if(
+        !Array.isArray(wayPoints) ||
+        wayPoints.length < 2
+      ){
+        return;
+      }
+
+      const startIndex =
+        Number(wayPoints[0]);
+
+      const endIndex =
+        Number(wayPoints[1]);
+
+      if(
+        !Number.isFinite(startIndex) ||
+        !Number.isFinite(endIndex)
+      ){
+        return;
+      }
+
+      /*
+        ORS 좌표는 [경도, 위도]이므로
+        Leaflet용 [위도, 경도]로 변환
+      */
+      const stepCoordinates =
+        geometryCoordinates
+          .slice(
+            startIndex,
+            endIndex + 1
+          )
+          .map(coordinate => [
+            coordinate[1],
+            coordinate[0]
+          ])
+          .filter(coordinate =>
+            Number.isFinite(coordinate[0]) &&
+            Number.isFinite(coordinate[1])
+          );
+
+      if(stepCoordinates.length < 2){
+        return;
+      }
+
+      const roadName =
+        matchedProfile.name;
+
+      if(!roadSegmentMap.has(roadName)){
+        roadSegmentMap.set(
+          roadName,
+          []
+        );
+      }
+
+      roadSegmentMap
+        .get(roadName)
+        .push(stepCoordinates);
+    });
+  });
+
+  return Object.fromEntries(
+    roadSegmentMap
+  );
+}
+
 function normalizeRoadMatchText(value){
   return String(value || "")
     .replace(/\s/g, "")
@@ -8562,7 +8784,10 @@ function getRouteRoadText(route){
     ? uniqueRoadNames.join(" → ")
     : "주요 도로 정보 없음";
 }
-function getRouteRoadHtml(route){
+function getRouteRoadHtml(
+  route,
+  routeIndex
+){{
   if(
     !route ||
     !Array.isArray(route.roadNames) ||
@@ -8580,7 +8805,13 @@ function getRouteRoadHtml(route){
       <button
         type="button"
         class="route-road-chip"
-     onclick="event.stopPropagation(); showRoadInfo('${road.name}')">
+  onclick="
+  event.stopPropagation();
+  showRoadInfo(
+    '${road.name}',
+    ${routeIndex}
+  );
+"
         ${road.name}
         <span class="route-road-info-icon">i</span>
       </button>
@@ -8589,7 +8820,147 @@ function getRouteRoadHtml(route){
       <span class="route-road-arrow">→</span>
     `);
 }
-  function showRoadInfo(roadName){
+  /* ==================================================
+   선택한 주요도로 지도 강조
+================================================== */
+
+function clearRoadHighlight(){
+
+  if(
+    roadHighlightLayer &&
+    map.hasLayer(roadHighlightLayer)
+  ){
+    map.removeLayer(
+      roadHighlightLayer
+    );
+  }
+
+  roadHighlightLayer = null;
+}
+
+
+function highlightRoadOnMap(
+  roadName,
+  routeIndex
+){
+
+  clearRoadHighlight();
+
+  const route =
+    lastRouteSummaries?.[routeIndex];
+
+  if(!route){
+    return false;
+  }
+
+  const roadSegments =
+    route?.roadSegments?.[roadName];
+
+  /*
+    ORS 도로 단계에서 좌표가 잡히지 않은 경우
+  */
+  if(
+    !Array.isArray(roadSegments) ||
+    roadSegments.length === 0
+  ){
+    console.warn(
+      roadName +
+      "의 지도 강조 좌표를 찾지 못했습니다."
+    );
+
+    return false;
+  }
+
+  roadHighlightLayer =
+    L.layerGroup()
+      .addTo(map);
+
+  const highlightLines = [];
+
+  roadSegments.forEach(segmentCoords => {
+
+    if(
+      !Array.isArray(segmentCoords) ||
+      segmentCoords.length < 2
+    ){
+      return;
+    }
+
+    /*
+      흰색 테두리
+    */
+    L.polyline(
+      segmentCoords,
+      {
+        color:"#FFFFFF",
+        weight:11,
+        opacity:0.92,
+        lineCap:"round",
+        lineJoin:"round",
+        interactive:false
+      }
+    ).addTo(roadHighlightLayer);
+
+    /*
+      실제 강조선
+    */
+    const highlightLine =
+      L.polyline(
+        segmentCoords,
+        {
+          color:"#F59E0B",
+          weight:7,
+          opacity:1,
+          lineCap:"round",
+          lineJoin:"round",
+          interactive:false
+        }
+      ).addTo(roadHighlightLayer);
+
+    highlightLines.push(
+      highlightLine
+    );
+  });
+
+  if(highlightLines.length === 0){
+    clearRoadHighlight();
+    return false;
+  }
+
+  /*
+    해당 도로가 보이도록 지도 이동
+  */
+  const bounds =
+    L.featureGroup(
+      highlightLines
+    ).getBounds();
+
+  if(bounds.isValid()){
+    map.fitBounds(
+      bounds,
+      {
+        paddingTopLeft:[25,25],
+        paddingBottomRight:[25,330],
+        maxZoom:14
+      }
+    );
+  }
+
+  return true;
+}
+  function showRoadInfo(
+  roadName,
+  routeIndex = selectedRouteIndex
+){
+      selectRouteCourse(
+    routeIndex
+  );
+
+  const roadHighlighted =
+    highlightRoadOnMap(
+      roadName,
+      routeIndex
+    );
   const profile =
     jejuRoadProfiles.find(road =>
       road.name === roadName
@@ -9256,7 +9627,10 @@ function makeCourseFeature(route){
         <span>주요 통과도로</span>
 
         <div class="route-road-list">
-          ${getRouteRoadHtml(route)}
+         ${getRouteRoadHtml(
+  route,
+  courseNumber - 1
+)}
         </div>
       </div>
 
@@ -10797,6 +11171,7 @@ function closeMenuPopup(){
     "difficult-road-mode",
     "road-guide-mode"
   );
+  clearRoadHighlight();
 }
 </script>
 </body>
