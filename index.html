@@ -2148,14 +2148,14 @@ body.route-fallback-mode .app-topbar{
 }
 
 .route-road-chip{
-  min-height:32px;
-  padding:6px 9px 6px 11px;
+  min-height:27px;
+  padding:4px 8px 4px 9px;
   border:1px solid #cdeee8;
   border-radius:999px;
   background:#f0fdfa;
   color:#0f766e;
   font-family:inherit;
-  font-size:12.5px;
+  font-size:11.5px;
   font-weight:900;
   display:inline-flex;
   align-items:center;
@@ -4570,54 +4570,40 @@ body.route-analysis-mode
 .route-info-cards:has(.route-info-card:only-child){
   grid-template-columns:1fr !important;
 }
-  /* ===== 1코스·2코스 칸 높이 맞추기 ===== */
+ /* ===== 카드 높이 자연스럽게 ===== */
 
 body.route-analysis-mode
 .route-info-card{
-  display:grid !important;
-
-  grid-template-rows:
-    auto
-    118px
-    104px
-    128px
-    minmax(150px, auto);
-
-  align-content:start !important;
+    display:flex !important;
+    flex-direction:column !important;
 }
 
-/* 주요 통과도로 */
 body.route-analysis-mode
-.route-info-card .compact-info-row:nth-of-type(1){
-  min-height:118px !important;
+.compact-info-row{
+    padding:8px 0 !important;
 }
 
-/* 교통환경 */
 body.route-analysis-mode
-.route-info-card .compact-info-row:nth-of-type(2){
-  min-height:104px !important;
+.route-road-list{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    gap:4px !important;
+    min-height:52px;
+    align-content:flex-start;
 }
 
-/* 사고이력·심각도 */
 body.route-analysis-mode
-.route-info-card .compact-info-row:nth-of-type(3){
-  min-height:128px !important;
+.compact-feature{
+    margin-top:0 !important;
+    padding:9px !important;
 }
 
-/* 코스 특성 */
-body.route-analysis-mode
-.route-info-card .compact-feature{
-  min-height:150px !important;
-  height:100% !important;
-}
-
-/* 글자가 넘치지 않도록 */
 body.route-analysis-mode
 .compact-info-row > b,
 body.route-analysis-mode
 .compact-feature > p{
-  word-break:keep-all !important;
-  overflow-wrap:anywhere !important;
+    line-height:1.4 !important;
+    word-break:keep-all !important;
 }
 </style>
 </head>
