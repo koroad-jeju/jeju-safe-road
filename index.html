@@ -7349,7 +7349,7 @@ routeSummaries[index] = {
   accidentAnalysis:accidentAnalysis,
   allRoadNames:allRoadNames,
   roadNames:roadNames,
-  roadProfiles:roadProfiles
+  roadProfiles:roadProfiles,
     /*
     도로 i 버튼을 눌렀을 때
     지도에 강조하기 위한 도로별 좌표
@@ -8787,7 +8787,7 @@ function getRouteRoadText(route){
 function getRouteRoadHtml(
   route,
   routeIndex
-){{
+){
   if(
     !route ||
     !Array.isArray(route.roadNames) ||
@@ -8800,18 +8800,18 @@ function getRouteRoadHtml(
     `;
   }
 
-  return route.roadNames
+ return route.roadNames
     .map(road => `
       <button
         type="button"
         class="route-road-chip"
-  onclick="
-  event.stopPropagation();
-  showRoadInfo(
-    '${road.name}',
-    ${routeIndex}
-  );
-"
+        onclick="
+          event.stopPropagation();
+          showRoadInfo(
+            '${road.name}',
+            ${routeIndex}
+          );
+        ">
         ${road.name}
         <span class="route-road-info-icon">i</span>
       </button>
