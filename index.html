@@ -4458,6 +4458,118 @@ body.route-fallback-mode
 .analyze-btn:disabled .analyze-main::after{
   content:"" !important;
 }
+  /* ==================================================
+   코스 정보 카드 최종 가로 배치
+   반드시 CSS 가장 마지막에 추가
+================================================== */
+
+/* 1코스·2코스 좌우 배치 */
+body.route-analysis-mode
+.route-info-cards{
+  display:grid !important;
+  grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+  gap:9px !important;
+  align-items:stretch !important;
+}
+
+/* 코스 카드 크기 통일 */
+body.route-analysis-mode
+.route-info-card{
+  min-width:0 !important;
+  height:100% !important;
+  padding:12px 10px !important;
+  box-sizing:border-box !important;
+}
+
+/* 코스명과 거리·시간은 위아래 배치 */
+body.route-analysis-mode
+.compact-course-head{
+  display:block !important;
+  padding-bottom:9px !important;
+}
+
+body.route-analysis-mode
+.compact-course-head > b{
+  display:block !important;
+  font-size:16px !important;
+}
+
+body.route-analysis-mode
+.compact-course-head > strong{
+  display:block !important;
+  margin-top:4px !important;
+  font-size:12.5px !important;
+  white-space:normal !important;
+}
+
+/* 각 정보 영역 */
+body.route-analysis-mode
+.compact-info-row{
+  padding:9px 0 !important;
+  border-top:1px solid var(--route-line) !important;
+}
+
+body.route-analysis-mode
+.compact-info-row > span{
+  display:block !important;
+  margin-bottom:5px !important;
+  color:var(--route-muted) !important;
+  font-size:10.5px !important;
+  font-weight:800 !important;
+}
+
+body.route-analysis-mode
+.compact-info-row > b{
+  display:block !important;
+  color:var(--route-text) !important;
+  font-size:11.5px !important;
+  font-weight:800 !important;
+  line-height:1.45 !important;
+  word-break:keep-all !important;
+}
+
+/* 주요도로 버튼이 좁은 카드 안에서 정리되도록 */
+body.route-analysis-mode
+.route-road-list{
+  display:flex !important;
+  align-items:flex-start !important;
+  flex-wrap:wrap !important;
+  gap:4px !important;
+}
+
+body.route-analysis-mode
+.route-road-chip{
+  min-height:26px !important;
+  padding:4px 7px !important;
+  font-size:10.5px !important;
+}
+
+body.route-analysis-mode
+.route-road-arrow{
+  display:none !important;
+}
+
+/* 코스 특성 */
+body.route-analysis-mode
+.compact-feature{
+  margin-top:0 !important;
+  padding:9px !important;
+}
+
+body.route-analysis-mode
+.compact-feature > p{
+  display:block !important;
+  overflow:visible !important;
+  -webkit-line-clamp:unset !important;
+  font-size:11.5px !important;
+  line-height:1.45 !important;
+}
+
+/* 1코스만 나올 때는 한 칸 전체 사용 */
+body.route-analysis-mode
+.route-info-cards:has(.route-info-card:only-child){
+  grid-template-columns:1fr !important;
+}
 </style>
 </head>
 
@@ -7168,6 +7280,49 @@ const confirmedMountainRoads =
   detectMountainRoad(
     currentRouteSummary
   );
+  /*
+  좌표로 확인된 1100도로·5·16도로는
+  주요 통과도로에도 반드시 반영
+*/
+confirmedMountainRoads.forEach(
+  mountainRoadName => {
+
+    const alreadyIncluded =
+      currentRouteSummary.roadNames.some(
+        road =>
+          road.name === mountainRoadName
+      );
+
+    if(!alreadyIncluded){
+      currentRouteSummary.roadNames.unshift({
+        name:mountainRoadName,
+        distanceKm:null,
+        detectedBy:"coordinates"
+      });
+    }
+
+    const mountainProfile =
+      jejuRoadProfiles.find(
+        profile =>
+          profile.name === mountainRoadName
+      );
+
+    const profileAlreadyIncluded =
+      currentRouteSummary.roadProfiles.some(
+        profile =>
+          profile.name === mountainRoadName
+      );
+
+    if(
+      mountainProfile &&
+      !profileAlreadyIncluded
+    ){
+      currentRouteSummary.roadProfiles.unshift(
+        mountainProfile
+      );
+    }
+  }
+);
 
 /*
   20km 이상 장거리 경로에서는
@@ -7271,6 +7426,38 @@ if(hasPyeonghwaRoad){
       detectedBy:"coordinates"
     });
   }
+  /*
+  중복 제거 후 주요 통과도로 최대 2개 표시
+  산간도로가 확인된 경우 우선 노출
+*/
+currentRouteSummary.roadNames =
+  currentRouteSummary.roadNames
+    .filter(
+      (road, roadIndex, array) =>
+        array.findIndex(
+          item =>
+            item.name === road.name
+        ) === roadIndex
+    )
+    .sort((a, b) => {
+      const priorityRoads = [
+        "1100도로",
+        "5·16도로"
+      ];
+
+      const aPriority =
+        priorityRoads.includes(a.name)
+          ? 1
+          : 0;
+
+      const bPriority =
+        priorityRoads.includes(b.name)
+          ? 1
+          : 0;
+
+      return bPriority - aPriority;
+    })
+    .slice(0, 2);
 
   /*
     코스 특징에도 평화로 특성을 반영
@@ -7295,16 +7482,6 @@ if(hasPyeonghwaRoad){
       pyeonghwaProfile
     );
   }
-  currentRouteSummary.roadNames =
-  currentRouteSummary.roadNames
-    .filter(
-      (road, roadIndex, array) =>
-        array.findIndex(
-          item =>
-            item.name === road.name
-        ) === roadIndex
-    )
-    .slice(0, 2);
 }
 });
 lastRouteSummaries = routeSummaries;
@@ -7516,11 +7693,13 @@ lastRouteAnalysisHtml = `
 
 <div class="route-data-note">
   ${route2
- ? `※ 사고이력은 2023~2025년 제주 렌터카 사고자료에서 
-   확인된 중상 이상 사고를 기준으로 제공되는 참고정보입니다.`
-: `※ 유의미한 대안경로가 확인되지 않아 하나의 경로만 안내합니다.
+ ? `※ 사고이력과 사고심각도는 2023~2025년 제주 렌터카
+사고자료를 기준으로 제공. 사고 건수는 교통량의
+영향을 받을 수 있으며, 사고이력이 적더라도 도로 구조와
+기상상황에 따라 주의가 필요함.`
+: `※ 유의미한 대안경로가 확인되지 않아 하나의 경로만 안내.
    사고이력은 2023~2025년 제주 렌터카 사고자료에서
-   확인된 중상 이상 사고를 기준으로 제공되는 참고정보입니다.`
+   확인된 중상 이상 사고를 기준으로 제공되는 참고정보.`
   }
 </div>
   </div>
@@ -8501,6 +8680,165 @@ function getDifficultRoadText(route){
   `;
 }
 
+/* ===== 경로별 교통환경 안내 ===== */
+
+function getRouteTrafficEnvironmentText(route){
+  if(
+    !route ||
+    !Array.isArray(route.coords) ||
+    route.coords.length === 0
+  ){
+    return "교통환경 정보 없음";
+  }
+
+  /*
+    교통량 측정자료가 없는 경우에는
+    주요 통과도로의 특성으로 보완 안내
+  */
+  if(
+    typeof TRAFFIC_POINTS === "undefined" ||
+    !Array.isArray(TRAFFIC_POINTS) ||
+    TRAFFIC_POINTS.length === 0
+  ){
+    return getTrafficEnvironmentByRoadType(route);
+  }
+
+  const matchedAadtValues = [];
+
+  /*
+    경로 좌표를 모두 검사하면 계산량이 많아지므로
+    최대 약 60개 지점만 표본으로 사용
+  */
+  const sampleInterval = Math.max(
+    1,
+    Math.floor(route.coords.length / 60)
+  );
+
+  const sampledCoords = route.coords.filter(
+    (_, index) => index % sampleInterval === 0
+  );
+
+  sampledCoords.forEach(routePoint => {
+    let nearestPoint = null;
+    let nearestDistanceM = Infinity;
+
+    TRAFFIC_POINTS.forEach(trafficPoint => {
+      const distanceM =
+        getDistanceKm(
+          routePoint[0],
+          routePoint[1],
+          trafficPoint.lat,
+          trafficPoint.lng
+        ) * 1000;
+
+      if(distanceM < nearestDistanceM){
+        nearestDistanceM = distanceM;
+        nearestPoint = trafficPoint;
+      }
+    });
+
+    /*
+      경로에서 2km 이내에 있는 교통량 측정지점만 반영
+    */
+    if(
+      nearestPoint &&
+      nearestDistanceM <= 2000 &&
+      Number(nearestPoint.aadt) > 0
+    ){
+      matchedAadtValues.push(
+        Number(nearestPoint.aadt)
+      );
+    }
+  });
+
+  /*
+    충분한 측정지점이 없으면
+    도로 종류를 기준으로 보완
+  */
+  if(matchedAadtValues.length < 3){
+    return getTrafficEnvironmentByRoadType(route);
+  }
+
+  const averageAadt =
+    matchedAadtValues.reduce(
+      (sum, value) => sum + value,
+      0
+    ) / matchedAadtValues.length;
+
+  if(averageAadt >= 15000){
+    return "차량 통행이 많은 간선도로 중심";
+  }
+
+  if(averageAadt >= 9000){
+    return "차량 통행이 비교적 많은 도로 중심";
+  }
+
+  if(averageAadt >= 5000){
+    return "교통량이 보통인 일반도로 중심";
+  }
+
+  return "교통량이 비교적 적은 중산간도로 포함";
+}
+
+
+/*
+  교통량 측정자료가 부족한 구간은
+  주요 통과도로 특성으로 문구를 보완
+*/
+function getTrafficEnvironmentByRoadType(route){
+  const roadNames =
+    Array.isArray(route?.roadNames)
+      ? route.roadNames.map(road => road.name)
+      : [];
+
+  const mountainRoads =
+    detectMountainRoad(route);
+
+  const lowTrafficRoads = [
+    "1100도로",
+    "5·16도로",
+    "산록남로",
+    "산록북로",
+    "비자림로",
+    "남조로",
+    "중산간동로",
+    "중산간서로",
+    "서성로"
+  ];
+
+  const highTrafficRoads = [
+    "평화로",
+    "번영로",
+    "애조로",
+    "연북로",
+    "연삼로",
+    "일주동로",
+    "일주서로"
+  ];
+
+  const hasLowTrafficRoad =
+    [...roadNames, ...mountainRoads].some(
+      roadName =>
+        lowTrafficRoads.includes(roadName)
+    );
+
+  const hasHighTrafficRoad =
+    roadNames.some(
+      roadName =>
+        highTrafficRoads.includes(roadName)
+    );
+
+  if(hasLowTrafficRoad){
+    return "교통량이 비교적 적은 중산간도로 포함";
+  }
+
+  if(hasHighTrafficRoad){
+    return "차량 통행이 많은 간선도로 중심";
+  }
+
+  return "일반도로와 지역 연결도로 중심";
+}
+  
 function getAccidentHistoryText(route){
   const accident =
     route?.accidentAnalysis;
@@ -8510,32 +8848,55 @@ function getAccidentHistoryText(route){
   }
 
   /*
-    사망사고가 있을 때 최우선 안내
+    사고 객체에 totalEpdo가 있으면 사용하고,
+    없으면 매칭된 개별 사고의 epdo를 합산
   */
+  const severityScore =
+    Number(accident.totalEpdo) ||
+    (
+      Array.isArray(accident.accidents)
+        ? accident.accidents.reduce(
+            (sum, item) =>
+              sum + Number(item?.epdo || 0),
+            0
+          )
+        : 0
+    );
+
   if(accident.deathCount > 0){
     return (
       "사망 " +
       accident.deathCount +
       "건 · 중상 이상 " +
       accident.seriousCount +
-      "건"
+      "건" +
+      (
+        severityScore > 0
+          ? " · 심각도 " +
+            Math.round(severityScore) +
+            "점"
+          : ""
+      )
     );
   }
 
-  /*
-    중상 이상 사고가 있을 때만 표시
-  */
   if(accident.seriousCount > 0){
     return (
-      "중상 이상 사고이력 " +
+      "중상 이상 " +
       accident.seriousCount +
-      "건"
+      "건" +
+      (
+        severityScore > 0
+          ? " · 심각도 " +
+            Math.round(severityScore) +
+            "점"
+          : ""
+      )
     );
   }
 
-  return "중상 이상 사고이력 없음";
+  return "확인된 중상 이상 사고이력 없음";
 }
-
 
 function makeCourseFeature(route){
   const difficultRoads =
@@ -8614,10 +8975,18 @@ function makeCourseFeature(route){
   );
 }
 
-  function makeRouteInfoCard(route, courseNumber, cardClass){
+ function makeRouteInfoCard(
+  route,
+  courseNumber,
+  cardClass
+){
   if(!route){
     return `
-      <div class="compare-mini route-info-card ${cardClass}">
+      <div class="
+        compare-mini
+        route-info-card
+        ${cardClass}
+      ">
         <div class="compact-course-head">
           <b>${courseNumber}코스</b>
         </div>
@@ -8631,15 +9000,25 @@ function makeCourseFeature(route){
 
   return `
     <div
-      class="compare-mini route-info-card ${cardClass} ${
-        courseNumber === 1 ? "selected-course" : ""
-      }"
+      class="
+        compare-mini
+        route-info-card
+        ${cardClass}
+        ${
+          courseNumber === 1
+            ? "selected-course"
+            : ""
+        }
+      "
       data-route-index="${courseNumber - 1}"
       role="button"
       tabindex="0"
       onclick="selectRouteCourse(${courseNumber - 1})"
       onkeydown="
-        if(event.key === 'Enter' || event.key === ' '){
+        if(
+          event.key === 'Enter' ||
+          event.key === ' '
+        ){
           event.preventDefault();
           selectRouteCourse(${courseNumber - 1});
         }
@@ -8656,32 +9035,36 @@ function makeCourseFeature(route){
         </strong>
       </div>
 
-      <div class="compact-route-row">
-        <span>주요도로</span>
+      <div class="compact-info-row">
+        <span>주요 통과도로</span>
 
         <div class="route-road-list">
           ${getRouteRoadHtml(route)}
         </div>
       </div>
 
-      <div class="compact-double-grid">
+      <div class="compact-info-row">
+        <span>교통환경</span>
 
-        <div class="compact-info-box">
-          <span>사고이력</span>
-          <b>${getAccidentHistoryText(route)}</b>
-        </div>
+        <b>
+          ${getRouteTrafficEnvironmentText(route)}
+        </b>
+      </div>
 
-<div class="compact-info-box difficult-road-box">
-  <span>주의도로</span>
+      <div class="compact-info-row">
+        <span>사고이력·심각도</span>
 
-  ${getDifficultRoadHtml(route)}
-</div>
-
+        <b>
+          ${getAccidentHistoryText(route)}
+        </b>
       </div>
 
       <div class="compact-feature">
-        <span>특징</span>
-        <p>${makeCourseFeature(route)}</p>
+        <span>코스 특성</span>
+
+        <p>
+          ${makeCourseFeature(route)}
+        </p>
       </div>
 
     </div>
