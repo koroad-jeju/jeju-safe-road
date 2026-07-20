@@ -8729,6 +8729,128 @@ function getDifficultRoadText(route){
   `;
 }
 
+/* ==================================================
+   사고지점별 AADT 보정계수
+================================================== */
+
+const ACCIDENT_TRAFFIC_MATCH_RADIUS_M = 2000;
+
+/*
+  AADT 구간별 보정계수
+
+  교통량이 적은 지점:
+  사고가 적게 관측될 가능성을 고려해 상향
+
+  교통량이 많은 지점:
+  차량 노출이 많은 점을 고려해 하향
+*/
+function getAadtCorrectionFactor(aadt){
+  const trafficVolume = Number(aadt);
+
+  if(!Number.isFinite(trafficVolume) || trafficVolume <= 0){
+    return 1.00;
+  }
+
+  if(trafficVolume < 3000){
+    return 1.25;
+  }
+
+  if(trafficVolume < 8000){
+    return 1.15;
+  }
+
+  if(trafficVolume < 15000){
+    return 1.00;
+  }
+
+  if(trafficVolume < 25000){
+    return 0.90;
+  }
+
+  return 0.80;
+}
+
+
+/*
+  특정 사고지점에서 가장 가까운
+  교통량 측정지점과 보정계수를 반환
+*/
+function getTrafficCorrectionAtPoint(lat, lng){
+  if(
+    typeof TRAFFIC_POINTS === "undefined" ||
+    !Array.isArray(TRAFFIC_POINTS) ||
+    TRAFFIC_POINTS.length === 0
+  ){
+    return {
+      aadt:null,
+      factor:1.00,
+      matched:false
+    };
+  }
+
+  let nearestPoint = null;
+  let nearestDistanceM = Infinity;
+
+  TRAFFIC_POINTS.forEach(trafficPoint => {
+    const trafficLat =
+      Number(trafficPoint?.lat);
+
+    const trafficLng =
+      Number(trafficPoint?.lng);
+
+    const trafficAadt =
+      Number(trafficPoint?.aadt);
+
+    if(
+      !Number.isFinite(trafficLat) ||
+      !Number.isFinite(trafficLng) ||
+      !Number.isFinite(trafficAadt) ||
+      trafficAadt <= 0
+    ){
+      return;
+    }
+
+    const distanceM =
+      getDistanceKm(
+        Number(lat),
+        Number(lng),
+        trafficLat,
+        trafficLng
+      ) * 1000;
+
+    if(distanceM < nearestDistanceM){
+      nearestDistanceM = distanceM;
+      nearestPoint = trafficPoint;
+    }
+  });
+
+  /*
+    2km보다 먼 측정지점은
+    해당 사고지점의 교통량으로 사용하지 않음
+  */
+  if(
+    !nearestPoint ||
+    nearestDistanceM >
+      ACCIDENT_TRAFFIC_MATCH_RADIUS_M
+  ){
+    return {
+      aadt:null,
+      factor:1.00,
+      matched:false
+    };
+  }
+
+  const aadt =
+    Number(nearestPoint.aadt);
+
+  return {
+    aadt:aadt,
+    factor:getAadtCorrectionFactor(aadt),
+    matched:true,
+    distanceM:Math.round(nearestDistanceM)
+  };
+}
+  
 /* ===== 경로별 교통환경 안내 ===== */
 
 function getRouteTrafficEnvironmentText(route){
@@ -8896,21 +9018,24 @@ function getAccidentHistoryText(route){
     return "사고이력 정보 없음";
   }
 
-  /*
-    사고 객체에 totalEpdo가 있으면 사용하고,
-    없으면 매칭된 개별 사고의 epdo를 합산
-  */
-  const severityScore =
-    Number(accident.totalEpdo) ||
-    (
-      Array.isArray(accident.accidents)
-        ? accident.accidents.reduce(
-            (sum, item) =>
-              sum + Number(item?.epdo || 0),
-            0
-          )
-        : 0
+  const adjustedSeverity =
+    Number(
+      accident.adjustedSeverityScore || 0
     );
+
+  const rawSeverity =
+    Number(
+      accident.totalEpdo || 0
+    );
+
+  /*
+    새 보정값이 없을 경우
+    기존 사고 EPDO 합계 사용
+  */
+  const displayedSeverity =
+    adjustedSeverity > 0
+      ? adjustedSeverity
+      : rawSeverity;
 
   if(accident.deathCount > 0){
     return (
@@ -8918,14 +9043,9 @@ function getAccidentHistoryText(route){
       accident.deathCount +
       "건 · 중상 이상 " +
       accident.seriousCount +
-      "건" +
-      (
-        severityScore > 0
-          ? " · 심각도 " +
-            Math.round(severityScore) +
-            "점"
-          : ""
-      )
+      "건 · 보정 심각도 " +
+      Math.round(displayedSeverity) +
+      "점"
     );
   }
 
@@ -8933,14 +9053,9 @@ function getAccidentHistoryText(route){
     return (
       "중상 이상 " +
       accident.seriousCount +
-      "건" +
-      (
-        severityScore > 0
-          ? " · 심각도 " +
-            Math.round(severityScore) +
-            "점"
-          : ""
-      )
+      "건 · 보정 심각도 " +
+      Math.round(displayedSeverity) +
+      "점"
     );
   }
 
@@ -9294,6 +9409,70 @@ const singleVehicleAccidents = matchedList.filter(accident => {
     );
   });
 
+/*
+  사고별 EPDO에 사고지점 주변 AADT 보정계수 적용
+*/
+let totalEpdo = 0;
+let adjustedSeverityScore = 0;
+let trafficMatchedAccidentCount = 0;
+
+let totalMatchedAadt = 0;
+let matchedAadtCount = 0;
+
+const accidentsWithTrafficCorrection =
+  matchedList.map(accident => {
+
+    const epdo =
+      Math.max(
+        0,
+        Number(accident?.epdo || 1)
+      );
+
+    const trafficCorrection =
+      getTrafficCorrectionAtPoint(
+        accident.lat,
+        accident.lng
+      );
+
+    const adjustedEpdo =
+      epdo * trafficCorrection.factor;
+
+    totalEpdo += epdo;
+    adjustedSeverityScore += adjustedEpdo;
+
+    if(trafficCorrection.matched){
+      trafficMatchedAccidentCount++;
+
+      totalMatchedAadt +=
+        trafficCorrection.aadt;
+
+      matchedAadtCount++;
+    }
+
+    return {
+      ...accident,
+
+      originalEpdo:epdo,
+
+      trafficAadt:
+        trafficCorrection.aadt,
+
+      trafficFactor:
+        trafficCorrection.factor,
+
+      adjustedEpdo:
+        Number(
+          adjustedEpdo.toFixed(2)
+        )
+    };
+  });
+
+const averageAccidentAadt =
+  matchedAadtCount > 0
+    ? totalMatchedAadt /
+      matchedAadtCount
+    : null;
+  
   const accidentTypeCounts = {};
   const violationCounts = {};
 
@@ -9317,18 +9496,68 @@ const accidentType =
       (violationCounts[violation] || 0) + 1;
   });
 
-  return {
-    totalCount:matchedList.length,
-    seriousCount:seriousAccidents.length,
-    deathCount:deathAccidents.length,
-    pedestrianCount:pedestrianAccidents.length,
-    singleVehicleCount:singleVehicleAccidents.length,
-    intersectionCount:intersectionAccidents.length,
-    badWeatherCount:badWeatherAccidents.length,
-    mainAccidentType:getMostFrequentKey(accidentTypeCounts),
-    mainViolation:getMostFrequentKey(violationCounts),
-    accidents:matchedList
-  };
+return {
+  totalCount:matchedList.length,
+
+  seriousCount:
+    seriousAccidents.length,
+
+  deathCount:
+    deathAccidents.length,
+
+  pedestrianCount:
+    pedestrianAccidents.length,
+
+  singleVehicleCount:
+    singleVehicleAccidents.length,
+
+  intersectionCount:
+    intersectionAccidents.length,
+
+  badWeatherCount:
+    badWeatherAccidents.length,
+
+  mainAccidentType:
+    getMostFrequentKey(
+      accidentTypeCounts
+    ),
+
+  mainViolation:
+    getMostFrequentKey(
+      violationCounts
+    ),
+
+  /*
+    기존 EPDO 단순 합계
+  */
+  totalEpdo:
+    Number(totalEpdo.toFixed(1)),
+
+  /*
+    EPDO × AADT 보정계수
+  */
+  adjustedSeverityScore:
+    Number(
+      adjustedSeverityScore.toFixed(1)
+    ),
+
+  /*
+    사고지점 중 교통량 자료가 연결된 수
+  */
+  trafficMatchedAccidentCount:
+    trafficMatchedAccidentCount,
+
+  /*
+    교통량이 연결된 사고지점들의 평균 AADT
+  */
+  averageAccidentAadt:
+    averageAccidentAadt !== null
+      ? Math.round(averageAccidentAadt)
+      : null,
+
+  accidents:
+    accidentsWithTrafficCorrection
+};
 }
 
 function getMainAccidentCategory(accidentType){
