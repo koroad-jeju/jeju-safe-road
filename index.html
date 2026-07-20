@@ -7532,6 +7532,13 @@ currentRouteSummary.roadNames =
     );
   }
 }
+  /*
+  AADT 보정값에
+  도로 난이도 계수 최종 적용
+*/
+applyRouteDifficultyCorrection(
+  currentRouteSummary
+);
 });
 lastRouteSummaries = routeSummaries;
 
@@ -8853,131 +8860,79 @@ function getTrafficCorrectionAtPoint(lat, lng){
   
 /* ===== 경로별 교통환경 안내 ===== */
 
+/* ===== 경로별 주행환경 안내 ===== */
+
 function getRouteTrafficEnvironmentText(route){
-  if(
-    !route ||
-    !Array.isArray(route.coords) ||
-    route.coords.length === 0
-  ){
-    return "교통환경 정보 없음";
+
+  if(!route){
+    return "주행환경 정보 없음";
   }
 
-  /*
-    교통량 측정자료가 없는 경우에는
-    주요 통과도로의 특성으로 보완 안내
-  */
-  if(
-    typeof TRAFFIC_POINTS === "undefined" ||
-    !Array.isArray(TRAFFIC_POINTS) ||
-    TRAFFIC_POINTS.length === 0
-  ){
-    return getTrafficEnvironmentByRoadType(route);
-  }
-
-  const matchedAadtValues = [];
-
-  /*
-    경로 좌표를 모두 검사하면 계산량이 많아지므로
-    최대 약 60개 지점만 표본으로 사용
-  */
-  const sampleInterval = Math.max(
-    1,
-    Math.floor(route.coords.length / 60)
-  );
-
-  const sampledCoords = route.coords.filter(
-    (_, index) => index % sampleInterval === 0
-  );
-
-  sampledCoords.forEach(routePoint => {
-    let nearestPoint = null;
-    let nearestDistanceM = Infinity;
-
-    TRAFFIC_POINTS.forEach(trafficPoint => {
-      const distanceM =
-        getDistanceKm(
-          routePoint[0],
-          routePoint[1],
-          trafficPoint.lat,
-          trafficPoint.lng
-        ) * 1000;
-
-      if(distanceM < nearestDistanceM){
-        nearestDistanceM = distanceM;
-        nearestPoint = trafficPoint;
-      }
-    });
-
-    /*
-      경로에서 2km 이내에 있는 교통량 측정지점만 반영
-    */
-    if(
-      nearestPoint &&
-      nearestDistanceM <= 2000 &&
-      Number(nearestPoint.aadt) > 0
-    ){
-      matchedAadtValues.push(
-        Number(nearestPoint.aadt)
-      );
-    }
-  });
-
-  /*
-    충분한 측정지점이 없으면
-    도로 종류를 기준으로 보완
-  */
-  if(matchedAadtValues.length < 3){
-    return getTrafficEnvironmentByRoadType(route);
-  }
-
-  const averageAadt =
-    matchedAadtValues.reduce(
-      (sum, value) => sum + value,
-      0
-    ) / matchedAadtValues.length;
-
-  if(averageAadt >= 15000){
-    return "차량 통행이 많은 간선도로 중심";
-  }
-
-  if(averageAadt >= 9000){
-    return "차량 통행이 비교적 많은 도로 중심";
-  }
-
-  if(averageAadt >= 5000){
-    return "교통량이 보통인 일반도로 중심";
-  }
-
-  return "교통량이 비교적 적은 중산간도로 포함";
-}
-
-
-/*
-  교통량 측정자료가 부족한 구간은
-  주요 통과도로 특성으로 문구를 보완
-*/
-function getTrafficEnvironmentByRoadType(route){
-  const roadNames =
-    Array.isArray(route?.roadNames)
-      ? route.roadNames.map(road => road.name)
+  const mainRoadNames =
+    Array.isArray(route.roadNames)
+      ? route.roadNames.map(
+          road => road.name
+        )
       : [];
 
-  const mountainRoads =
-    detectMountainRoad(route);
+  const difficultRoadNames =
+    getDifficultRoadNames(route);
 
-  const lowTrafficRoads = [
-    "1100도로",
-    "5·16도로",
+  /*
+    주요 통과도로와 운전 난이도 높은 도로를
+    하나의 목록으로 합침
+  */
+  const detectedRoadNames =
+    [...new Set([
+      ...mainRoadNames,
+      ...difficultRoadNames
+    ])];
+
+  /*
+    1순위: 한라산 횡단 산간도로
+  */
+  if(
+    detectedRoadNames.includes("1100도로") ||
+    detectedRoadNames.includes("5·16도로")
+  ){
+    return (
+      "산간도로 포함" +
+      "(급경사·급커브 등 운전 난이도 높음)"
+    );
+  }
+
+  /*
+    2순위: 중산간·곡선도로
+  */
+  const middleMountainRoads = [
+    "비자림로",
     "산록남로",
     "산록북로",
-    "비자림로",
-    "남조로",
     "중산간동로",
     "중산간서로",
+    "남조로",
     "서성로"
   ];
 
-  const highTrafficRoads = [
+  const hasMiddleMountainRoad =
+    detectedRoadNames.some(
+      roadName =>
+        middleMountainRoads.includes(
+          roadName
+        )
+    );
+
+  if(hasMiddleMountainRoad){
+    return (
+      "교통량이 비교적 적은 " +
+      "중산간도로"
+    );
+  }
+
+  /*
+    3순위: 주요 간선도로
+  */
+  const majorRoads = [
     "평화로",
     "번영로",
     "애조로",
@@ -8987,27 +8942,138 @@ function getTrafficEnvironmentByRoadType(route){
     "일주서로"
   ];
 
-  const hasLowTrafficRoad =
-    [...roadNames, ...mountainRoads].some(
+  const hasMajorRoad =
+    detectedRoadNames.some(
       roadName =>
-        lowTrafficRoads.includes(roadName)
+        majorRoads.includes(
+          roadName
+        )
     );
 
-  const hasHighTrafficRoad =
-    roadNames.some(
-      roadName =>
-        highTrafficRoads.includes(roadName)
+  if(hasMajorRoad){
+    return (
+      "차량 통행이 많은 " +
+      "주요 간선도로"
+    );
+  }
+
+  /*
+    대표도로가 잡히지 않은 경로
+  */
+  return "일반도로 중심 경로";
+}
+  /* ==================================================
+   도로 특성 보정계수
+================================================== */
+
+function getRouteDifficultyCorrection(route){
+
+  const roadNames =
+    Array.isArray(route?.roadNames)
+      ? route.roadNames.map(
+          road => road.name
+        )
+      : [];
+
+  const difficultRoads =
+    getDifficultRoadNames(route);
+
+  const detectedRoads =
+    [...new Set([
+      ...roadNames,
+      ...difficultRoads
+    ])];
+
+  /*
+    도로별 운전 난이도 계수
+  */
+  const correctionTable = {
+    "1100도로":1.60,
+    "5·16도로":1.50,
+
+    "비자림로":1.30,
+
+    "산록남로":1.25,
+    "산록북로":1.25,
+
+    "남조로":1.20,
+
+    "중산간동로":1.18,
+    "중산간서로":1.18,
+
+    "서성로":1.12,
+
+    "번영로":1.05,
+
+    "평화로":1.00,
+    "애조로":1.00,
+    "연북로":1.00,
+    "연삼로":1.00,
+    "일주동로":1.00,
+    "일주서로":1.00
+  };
+
+  let highestFactor = 1.00;
+  let appliedRoad = null;
+
+  detectedRoads.forEach(roadName => {
+
+    const factor =
+      correctionTable[roadName] || 1.00;
+
+    /*
+      여러 도로가 있어도 계수를 모두 곱하지 않고
+      가장 높은 계수 하나만 적용
+    */
+    if(factor > highestFactor){
+      highestFactor = factor;
+      appliedRoad = roadName;
+    }
+  });
+
+  return {
+    factor:highestFactor,
+    appliedRoad:appliedRoad
+  };
+}
+
+
+/*
+  AADT 보정 점수에
+  도로 난이도 계수를 최종 적용
+*/
+function applyRouteDifficultyCorrection(route){
+
+  if(!route?.accidentAnalysis){
+    return;
+  }
+
+  const accident =
+    route.accidentAnalysis;
+
+  const aadtAdjustedScore =
+    Number(
+      accident.adjustedSeverityScore ||
+      accident.totalEpdo ||
+      0
     );
 
-  if(hasLowTrafficRoad){
-    return "교통량이 비교적 적은 중산간도로 포함";
-  }
+  const correction =
+    getRouteDifficultyCorrection(route);
 
-  if(hasHighTrafficRoad){
-    return "차량 통행이 많은 간선도로 중심";
-  }
+  accident.roadDifficultyFactor =
+    correction.factor;
 
-  return "일반도로와 지역 연결도로 중심";
+  accident.roadDifficultyRoad =
+    correction.appliedRoad;
+
+  accident.finalAdjustedSeverityScore =
+    Number(
+      (
+        aadtAdjustedScore *
+        correction.factor
+      ).toFixed(1)
+    );
 }
   
 function getAccidentHistoryText(route){
@@ -9018,10 +9084,12 @@ function getAccidentHistoryText(route){
     return "사고이력 정보 없음";
   }
 
-  const adjustedSeverity =
-    Number(
-      accident.adjustedSeverityScore || 0
-    );
+const adjustedSeverity =
+  Number(
+    accident.finalAdjustedSeverityScore ||
+    accident.adjustedSeverityScore ||
+    0
+  );
 
   const rawSeverity =
     Number(
