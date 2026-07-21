@@ -1281,95 +1281,6 @@ h3 .title-svg,
     display:none;
 }
 
-/* 로딩 카드 전체 축소 */
-.loading-card{
-  margin-top:10px !important;
-  padding:15px 16px !important;
-  border-radius:20px !important;
-}
-
-.loading-card b{
-  font-size:15px !important;
-}
-
-.loading-card p{
-  font-size:12px !important;
-  margin-top:5px !important;
-}
-
-/* 로딩 스텝 칸 줄이기 */
-.loading-steps{
-  margin-top:12px !important;
-  gap:7px !important;
-}
-
-.loading-step{
-  height:38px !important;
-  padding:0 13px !important;
-  border-radius:14px !important;
-  gap:9px !important;
-  font-size:13.5px !important;
-  box-shadow:0 4px 12px rgba(15,23,42,.035) !important;
-}
-
-/* 스피너도 작게 */
-.step-spinner{
-  width:12px !important;
-  height:12px !important;
-  border-width:2px !important;
-}
-
-.step-dot{
-  width:9px !important;
-  height:9px !important;
-  box-shadow:0 0 0 4px rgba(20,184,166,.12) !important;
-}
-  /* ===== 깨진 부분 복구용 CSS ===== */
-
-/* 1. 로딩화면 복구 */
-.loading-card{
-  margin:12px 0 14px !important;
-  padding:18px 16px !important;
-  border-radius:22px !important;
-  background:#eefdf9 !important;
-  border:1px solid #c9f1e9 !important;
-}
-
-.loading-card b{
-  display:block;
-  font-size:15px !important;
-  font-weight:900 !important;
-  color:#00796f !important;
-}
-
-.loading-card p{
-  margin:6px 0 0 !important;
-  font-size:12px !important;
-  font-weight:700 !important;
-  color:#64748b !important;
-}
-
-.loading-step{
-  display:flex !important;
-  align-items:center !important;
-  height:42px !important;
-  padding:0 14px !important;
-  border-radius:16px !important;
-  background:#fff !important;
-  border:1px solid #d9f5ee !important;
-  color:#00796f !important;
-  font-size:13.5px !important;
-  font-weight:900 !important;
-}
-
-.step-dot{
-  display:none;
-  width:9px;
-  height:9px;
-  border-radius:50%;
-  background:#14b8a6;
-}
-
   /* ===== 햄버거 사이드 메뉴 ===== */
 
 .app-topbar::before{
@@ -2881,24 +2792,6 @@ body:not(.route-active):not(.route-analysis-mode)
   overflow-y:auto !important;
 }
 
-/* 1. 상단 사진 높이 축소 */
-body:not(.route-active):not(.route-analysis-mode)
-.hero-banner{
-  height:190px !important;
-  min-height:190px !important;
-  border-radius:22px !important;
-  box-shadow:0 9px 22px rgba(15,23,42,.11) !important;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(15,23,42,.04) 0%,
-      rgba(15,23,42,.24) 40%,
-      rgba(8,29,48,.90) 100%
-    ),
-    url("성산.png") center 58% / cover no-repeat !important;
-}
-
 /* 사진 안 문구 */
 body:not(.route-active):not(.route-analysis-mode)
 .hero-text{
@@ -3101,8 +2994,6 @@ body:not(.route-active):not(.route-analysis-mode)
 
 /* 세로가 짧은 휴대전화 추가 압축 */
 @media(max-height:720px){
-
-  body:not(.route-active):not(.route-analysis-mode)
 
   body:not(.route-active):not(.route-analysis-mode)
   .hero-title{
@@ -7533,14 +7424,26 @@ if(address){
   );
 }
 
-   function fetchWithTimeout(url, options, timeout = 8000){
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
+function fetchWithTimeout(
+  url,
+  options = {},
+  timeout = 8000
+){
+  const controller =
+    new AbortController();
+
+  const timer =
+    setTimeout(
+      () => controller.abort(),
+      timeout
+    );
 
   return fetch(url, {
     ...options,
-    signal: controller.signal
-  }).finally(() => clearTimeout(timer));
+    signal:controller.signal
+  }).finally(() => {
+    clearTimeout(timer);
+  });
 }
 function completeLoadingSteps(){
   const loadingSteps = [
@@ -7588,7 +7491,7 @@ async function requestOrsRoute(
     ORS 공식 주소와 보조 주소를 번갈아 사용
   */
   const orsUrls = [
-    "https://api.openrouteservice.org/v2/directions/driving-car/geojson",
+    "https://api.openrouteservice.org/v2/directions/driving-car/geojson"
   ];
 
   /*
@@ -7611,9 +7514,9 @@ async function requestOrsRoute(
 
   const overallStartTime = Date.now();
 
-  /*
-    최대 3회까지만 요청
-  */
+/*
+  maxAttempts에 지정된 횟수만큼 요청
+*/
   for(
     let attempt = 1;
     attempt <= maxAttempts;
@@ -7632,9 +7535,9 @@ if(remainingTime <= 0){
 }
 
     /*
-      최대 3회 요청이 15초 안에 끝나도록
-      개별 요청은 최대 약 4.5초
-    */
+  남은 전체 제한시간 안에서
+  개별 요청은 최대 6.5초 진행
+*/
 const singleRequestTimeout =
   Math.min(
     6500,
