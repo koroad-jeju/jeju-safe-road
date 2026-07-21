@@ -4899,9 +4899,8 @@ body.route-analysis-mode
 
 body.route-analysis-mode
 .compare-detail-new.always-open{
-  margin:-10px 0 10px !important;
+  margin:-16px 0 10px !important;
   padding:8px 9px 9px !important;
-}
 
   border:1px solid #e4e8ed !important;
   border-radius:18px !important;
@@ -9182,13 +9181,19 @@ setTimeout(() => {
         route => route.coords
       );
 
-    map.fitBounds(
-      L.latLngBounds(allRouteCoords),
-      {
-        paddingTopLeft:[25,25],
-        paddingBottomRight:[25,250]
-      }
-    );
+map.fitBounds(
+  L.latLngBounds(allRouteCoords),
+  {
+    paddingTopLeft:[25,10],
+    paddingBottomRight:[25,300]
+  }
+);
+
+setTimeout(() => {
+  map.panBy([0, -20], {
+    animate:false
+  });
+}, 80);
   }
 showDifficultRoadsOnMap();
 
@@ -12472,13 +12477,19 @@ function showRouteAnalysis(){
       const allRouteCoords =
         lastRouteSummaries.flatMap(route => route.coords);
 
-      map.fitBounds(
-        L.latLngBounds(allRouteCoords),
-        {
-          paddingTopLeft:[25,25],
-          paddingBottomRight:[25,250]
-        }
-      );
+map.fitBounds(
+  L.latLngBounds(allRouteCoords),
+  {
+    paddingTopLeft:[25,10],
+    paddingBottomRight:[25,300]
+  }
+);
+
+setTimeout(() => {
+  map.panBy([0, -20], {
+    animate:false
+  });
+}, 80);
     }
   }, 250);
 }
