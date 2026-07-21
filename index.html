@@ -9702,6 +9702,228 @@ async function requestOrsRoute(
     lastErrorText
   );
 }
+
+  /* ==================================================
+   카카오 백업 경로
+   카카오 응답을 기존 ORS GeoJSON 구조로 변환
+================================================== */
+
+function convertKakaoRouteToOrsFormat(
+  kakaoData
+){
+  const kakaoRoutes =
+    Array.isArray(kakaoData?.routes)
+      ? kakaoData.routes
+      : [];
+
+  const features =
+    kakaoRoutes
+      .filter(route => {
+        return (
+          route &&
+          Number(route.result_code) === 0 &&
+          route.summary &&
+          Array.isArray(route.sections)
+        );
+      })
+      .map(route => {
+
+        const coordinates = [];
+
+        route.sections.forEach(section => {
+
+          const roads =
+            Array.isArray(section?.roads)
+              ? section.roads
+              : [];
+
+          roads.forEach(road => {
+
+            const vertexes =
+              Array.isArray(road?.vertexes)
+                ? road.vertexes
+                : [];
+
+            /*
+              카카오 vertexes 구조:
+              [경도, 위도, 경도, 위도 ...]
+            */
+            for(
+              let index = 0;
+              index < vertexes.length - 1;
+              index += 2
+            ){
+              const lng =
+                Number(vertexes[index]);
+
+              const lat =
+                Number(vertexes[index + 1]);
+
+              if(
+                !Number.isFinite(lng) ||
+                !Number.isFinite(lat)
+              ){
+                continue;
+              }
+
+              const previous =
+                coordinates[
+                  coordinates.length - 1
+                ];
+
+              /*
+                도로 구간 경계에서 발생하는
+                같은 좌표 중복 제거
+              */
+              if(
+                previous &&
+                previous[0] === lng &&
+                previous[1] === lat
+              ){
+                continue;
+              }
+
+              coordinates.push([
+                lng,
+                lat
+              ]);
+            }
+          });
+        });
+
+        return {
+          type:"Feature",
+
+          geometry:{
+            type:"LineString",
+            coordinates:coordinates
+          },
+
+          properties:{
+            summary:{
+              distance:
+                Number(
+                  route.summary.distance || 0
+                ),
+
+              duration:
+                Number(
+                  route.summary.duration || 0
+                )
+            },
+
+            /*
+              기존 코드에는 영향을 주지 않지만
+              어떤 API 결과인지 확인하기 위한 표시
+            */
+            provider:"kakao"
+          }
+        };
+      })
+      .filter(feature => {
+        return (
+          feature.geometry.coordinates.length >= 2 &&
+          feature.properties.summary.distance > 0
+        );
+      });
+
+  return {
+    type:"FeatureCollection",
+    features:features,
+    provider:"kakao"
+  };
+}
+
+
+/* ==================================================
+   Google Apps Script를 통한 카카오 경로 요청
+================================================== */
+
+async function requestKakaoBackupRoute(
+  startLng,
+  startLat,
+  endLng,
+  endLat
+){
+  if(!kakaoRouteProxyUrl){
+    throw new Error(
+      "카카오 백업 경로 서버 주소가 없습니다."
+    );
+  }
+
+  const params =
+    new URLSearchParams({
+      startLng:String(startLng),
+      startLat:String(startLat),
+      endLng:String(endLng),
+      endLat:String(endLat)
+    });
+
+  console.log(
+    "[카카오 백업 경로 요청]"
+  );
+
+  const response =
+    await fetchWithTimeout(
+      kakaoRouteProxyUrl +
+        "?" +
+        params.toString(),
+
+      {
+        method:"GET",
+        cache:"no-store"
+      },
+
+      12000
+    );
+
+  if(!response.ok){
+    throw new Error(
+      "카카오 백업 서버 응답 오류: " +
+      response.status
+    );
+  }
+
+  let result;
+
+  try{
+    result =
+      await response.json();
+
+  }catch(error){
+    throw new Error(
+      "카카오 백업 서버 응답을 읽지 못했습니다."
+    );
+  }
+
+  if(!result?.ok){
+    throw new Error(
+      result?.message ||
+      "카카오 길찾기 요청에 실패했습니다."
+    );
+  }
+
+  const converted =
+    convertKakaoRouteToOrsFormat(
+      result.data
+    );
+
+  if(
+    !Array.isArray(converted.features) ||
+    converted.features.length === 0
+  ){
+    throw new Error(
+      "카카오에서 사용할 수 있는 경로를 받지 못했습니다."
+    );
+  }
+
+  console.log(
+    "[카카오 백업 경로 성공]",
+    converted.features.length + "개 경로"
+  );
+
+  return converted;
+}
   function scheduleBackgroundRouteRetry(
   requestToken,
   attempt = 1
@@ -9906,29 +10128,49 @@ slowLoadingTimer = setTimeout(() => {
  let response;
 
 try{
-response = await requestOrsRoute(
-  body,
-  {
-    overallTimeoutMs:12000,
-    maxAttempts:2
-  }
-);
+/*
+  최종적으로 사용할 경로 데이터
+  ORS 또는 카카오 중 성공한 결과가 들어감
+*/
+let data = null;
+let routeProvider = "ors";
 
-}catch(err){
+try{
 
-  if(slowLoadingTimer){
-    clearTimeout(slowLoadingTimer);
-  }
+  /*
+    백그라운드 복구 요청은 ORS만 다시 확인
+    최초 사용자 요청일 때만 카카오 백업 사용
+  */
+  const response =
+    await requestOrsRoute(
+      body,
+      {
+        overallTimeoutMs:12000,
+        maxAttempts:2
+      }
+    );
+
+  data =
+    await response.json();
+
+  routeProvider = "ors";
+
+  console.log(
+    "[실시간 경로 제공자] ORS"
+  );
+
+}catch(orsError){
 
   console.error(
     isBackgroundRetry
-      ? "백그라운드 경로 재분석 실패:"
-      : "경로 분석 서버 전체 실패:",
-    err
+      ? "백그라운드 ORS 재분석 실패:"
+      : "ORS 경로 요청 실패:",
+    orsError
   );
 
   /*
-    과거 검색에 대한 응답이면 무시
+    사용자가 이미 다른 경로를 검색했다면
+    과거 요청 결과는 모두 무시
   */
   if(
     requestToken !==
@@ -9937,12 +10179,12 @@ response = await requestOrsRoute(
     return;
   }
 
+  /*
+    백그라운드 요청에서는
+    카카오를 다시 부르지 않고 ORS만 재확인
+  */
   if(isBackgroundRetry){
 
-    /*
-      백그라운드 1차가 실패하면
-      2차 재시도 예약
-    */
     if(backgroundAttempt < 2){
       scheduleBackgroundRouteRetry(
         requestToken,
@@ -9950,33 +10192,73 @@ response = await requestOrsRoute(
       );
     }
 
-    /*
-      캐시 화면은 그대로 유지
-    */
     return;
   }
 
   /*
-    최초 15초 요청 실패 시
-    우선 최근 경로 또는 권역 안내 표시
+    최초 ORS 실패 시
+    카카오 백업 경로를 즉시 요청
   */
-  showRouteFallback();
+  try{
 
-  /*
-    화면 뒤에서 ORS 재시도
-  */
-  scheduleBackgroundRouteRetry(
-    requestToken,
-    1
-  );
+    data =
+      await requestKakaoBackupRoute(
+        startLng,
+        startLat,
+        endLng,
+        endLat
+      );
 
-  return;
-}
+    routeProvider = "kakao";
+
+    console.log(
+      "[실시간 경로 제공자] 카카오 백업"
+    );
+
+  }catch(kakaoError){
+
     if(slowLoadingTimer){
-  clearTimeout(slowLoadingTimer);
-}
-const data = await response.json();
+      clearTimeout(
+        slowLoadingTimer
+      );
+    }
 
+    console.error(
+      "ORS와 카카오 경로가 모두 실패했습니다.",
+      {
+        ors:orsError,
+        kakao:kakaoError
+      }
+    );
+
+    /*
+      두 API가 모두 실패한 경우에만
+      최근 성공 결과 또는 권역 안내 표시
+    */
+    showRouteFallback();
+
+    /*
+      화면 뒤에서는 ORS 복구 여부를 재확인
+    */
+    scheduleBackgroundRouteRetry(
+      requestToken,
+      1
+    );
+
+    return;
+  }
+}
+
+
+/*
+  ORS 또는 카카오 중 하나가 성공한 경우
+  로딩 지연 안내 타이머 제거
+*/
+if(slowLoadingTimer){
+  clearTimeout(
+    slowLoadingTimer
+  );
+}
 /*
   이미 다른 경로 검색이 시작된 경우
   오래된 응답은 화면에 반영하지 않음
@@ -10003,9 +10285,13 @@ if(backgroundRouteRetryTimer){
   backgroundRouteRetryTimer = null;
 }
 
-if(!data.features || data.features.length === 0){
+if(
+  !data ||
+  !Array.isArray(data.features) ||
+  data.features.length === 0
+){
   throw new Error(
-    "ORS 경로 데이터가 없습니다."
+    "사용 가능한 경로 데이터가 없습니다."
   );
 }
 
@@ -10042,7 +10328,12 @@ if(isBackgroundRetry){
 routes = filterMeaningfulAlternativeRoutes(routes);
 
 console.log("최종 표시 경로 개수:", routes.length);
-console.log("ORS 전체 응답:", data);
+console.log(
+  routeProvider === "kakao"
+    ? "카카오 백업 전체 응답:"
+    : "ORS 전체 응답:",
+  data
+);
 
 const routeAccidentAnalyses = routes.map(route => {
   const coords = route.geometry.coordinates.map(
