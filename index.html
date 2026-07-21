@@ -9904,13 +9904,13 @@ slowLoadingTimer = setTimeout(() => {
  let response;
 
 try{
-  response = await requestOrsRoute(
-    body,
-    {
-      overallTimeoutMs:15000,
-      maxAttempts:3
-    }
-  );
+response = await requestOrsRoute(
+  body,
+  {
+    overallTimeoutMs:12000,
+    maxAttempts:2
+  }
+);
 
 }catch(err){
 
