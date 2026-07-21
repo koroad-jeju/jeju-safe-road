@@ -10028,7 +10028,23 @@ function getRouteRiskScore(route){
     )
   );
 }
+function getRouteRiskMark(score){
+  const value = Number(score) || 0;
 
+  if(value >= 500){
+    return "🔴";
+  }
+
+  if(value >= 400){
+    return "🟠";
+  }
+
+  if(value >= 300){
+    return "🟡";
+  }
+
+  return "🟢";
+}
 /* 코스 특징을 짧은 2줄로 정리 */
 function getCompactCourseFeature(route){
   const difficultRoads =
