@@ -4859,7 +4859,7 @@ body.route-analysis-mode
 
 body.route-analysis-mode
 .route-analysis-page{
-  top:40vh !important;
+  top:55vh !important;
   bottom:66px !important;
 
   padding:
@@ -5405,7 +5405,7 @@ body.route-analysis-mode
 
   body.route-analysis-mode
   .route-analysis-page{
-    top:40vh !important;
+    top:55vh !important;
   }
 }
 
@@ -5415,7 +5415,7 @@ body.route-analysis-mode
 
   body.route-analysis-mode
   .route-analysis-page{
-    top:37vh !important;
+    top:51vh !important;
   }
 }
 
@@ -5444,6 +5444,37 @@ body.route-analysis-mode
   body.route-analysis-mode
   .route-compare-value{
     font-size:11px !important;
+  }
+}
+  /* 로딩 단계 스피너 정렬 복구 */
+.loading-step{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  box-sizing:border-box !important;
+}
+
+.step-spinner{
+  display:block !important;
+  flex:0 0 auto !important;
+
+  width:14px !important;
+  height:14px !important;
+
+  border:3px solid #dcebea !important;
+  border-top-color:#15978d !important;
+  border-radius:50% !important;
+
+  animation:spin .8s linear infinite !important;
+}
+
+@keyframes spin{
+  from{
+    transform:rotate(0deg);
+  }
+
+  to{
+    transform:rotate(360deg);
   }
 }
 </style>
@@ -8271,6 +8302,12 @@ routeLayer =
 
 if(!isBackgroundRetry){
   completeLoadingSteps();
+
+  /*
+    완료 표시가 잠깐 보인 뒤
+    결과 화면으로 넘어가도록 처리
+  */
+  await wait(700);
 }
 
 document.body.classList.remove(
@@ -9142,7 +9179,7 @@ setTimeout(() => {
       L.latLngBounds(allRouteCoords),
       {
         paddingTopLeft:[25,25],
-        paddingBottomRight:[25,300]
+        paddingBottomRight:[25,250]
       }
     );
   }
@@ -12432,7 +12469,7 @@ function showRouteAnalysis(){
         L.latLngBounds(allRouteCoords),
         {
           paddingTopLeft:[25,25],
-          paddingBottomRight:[25,360]
+          paddingBottomRight:[25,250]
         }
       );
     }
