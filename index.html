@@ -5854,6 +5854,628 @@ body.route-analysis-mode
     font-size:8.2px !important;
   }
 }
+  
+  /* ==================================================
+   경로 상세 비교 반응형 최종본
+   반드시  바로 위, CSS 맨 마지막에 추가
+================================================== */
+
+/* 전체 결과 영역 */
+body.route-analysis-mode
+.route-analysis-page{
+  top:38vh !important;
+  bottom:66px !important;
+
+  padding:10px 12px 90px !important;
+  box-sizing:border-box !important;
+
+  background:#f6f7f9 !important;
+  border-radius:24px 24px 0 0 !important;
+
+  overflow-y:auto !important;
+}
+
+
+/* 결과 콘텐츠는 PC에서 너무 넓어지지 않게 */
+body.route-analysis-mode
+#routeAnalysisContent{
+  width:100% !important;
+  max-width:920px !important;
+  margin:0 auto !important;
+}
+
+
+/* 출발지 → 목적지 */
+body.route-analysis-mode
+.routePath{
+  max-width:920px !important;
+  margin:0 auto 7px !important;
+
+  color:#697382 !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+
+/* 비교표 바깥 흰 카드 */
+body.route-analysis-mode
+.compare-detail-new.always-open{
+  width:100% !important;
+  margin:0 0 10px !important;
+  padding:14px !important;
+
+  box-sizing:border-box !important;
+
+  border:1px solid #e5e9ee !important;
+  border-radius:20px !important;
+
+  background:#ffffff !important;
+
+  box-shadow:
+    0 6px 18px rgba(15,23,42,.055) !important;
+}
+
+
+/* 제목 */
+body.route-analysis-mode
+.compare-title{
+  display:flex !important;
+  align-items:center !important;
+
+  margin:0 0 11px !important;
+
+  color:#17202c !important;
+  font-size:17px !important;
+  font-weight:900 !important;
+  letter-spacing:-.4px !important;
+}
+
+body.route-analysis-mode
+.compare-title .title-svg{
+  width:18px !important;
+  height:18px !important;
+  margin-right:7px !important;
+}
+
+
+/* ==================================================
+   비교표 전체 구조
+================================================== */
+
+body.route-analysis-mode
+.route-compare-table{
+  display:grid !important;
+
+  grid-template-columns:
+    82px
+    minmax(0,1fr) !important;
+
+  gap:8px !important;
+
+  width:100% !important;
+  min-width:0 !important;
+}
+
+
+/* 왼쪽 비교항목 */
+body.route-analysis-mode
+.route-compare-labels{
+  display:grid !important;
+
+  grid-template-rows:
+    38px
+    46px
+    46px
+    64px
+    46px
+    46px
+    64px !important;
+
+  min-width:0 !important;
+}
+
+
+/* 비교항목·거리·시간 모두 가운데 정렬 */
+body.route-analysis-mode
+.route-compare-labels > div{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  padding:0 5px !important;
+  box-sizing:border-box !important;
+
+  border-bottom:1px solid #e5e9ee !important;
+
+  color:#667180 !important;
+
+  /* 오른쪽 숫자와 시각적 크기 통일 */
+  font-size:12.5px !important;
+  font-weight:850 !important;
+  line-height:1.25 !important;
+
+  text-align:center !important;
+  word-break:keep-all !important;
+}
+
+
+/* 비교항목 제목 */
+body.route-analysis-mode
+.route-compare-label-head{
+  color:#5f6977 !important;
+  font-size:12px !important;
+  font-weight:900 !important;
+}
+
+
+/* 오른쪽 코스 2개 */
+body.route-analysis-mode
+.route-compare-courses{
+  display:grid !important;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr)) !important;
+
+  gap:8px !important;
+
+  min-width:0 !important;
+}
+
+
+/* 1코스만 있을 때 */
+body.route-analysis-mode
+.route-compare-table.single-course
+.route-compare-courses{
+  grid-template-columns:1fr !important;
+}
+
+
+/* ==================================================
+   코스 카드
+================================================== */
+
+body.route-analysis-mode
+.route-compare-course{
+  display:grid !important;
+
+  grid-template-rows:
+    38px
+    46px
+    46px
+    64px
+    46px
+    46px
+    64px !important;
+
+  min-width:0 !important;
+
+  padding:0 !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+
+  border:1px solid #dfe4ea !important;
+  border-radius:14px !important;
+
+  background:#ffffff !important;
+
+  box-shadow:none !important;
+}
+
+
+/* 1코스 선택 */
+body.route-analysis-mode
+.route-compare-course.recommend.selected-course{
+  border:1.5px solid var(--course1-main) !important;
+
+  background:#ffffff !important;
+
+  box-shadow:
+    0 4px 13px rgba(78,114,196,.09) !important;
+}
+
+
+/* 2코스 선택 */
+body.route-analysis-mode
+.route-compare-course.alt.selected-course{
+  border:1.5px solid var(--course2-main) !important;
+
+  background:#ffffff !important;
+
+  box-shadow:
+    0 4px 13px rgba(155,116,142,.09) !important;
+}
+
+
+/* 코스 제목 */
+body.route-analysis-mode
+.route-compare-course-title{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  padding:0 5px !important;
+  box-sizing:border-box !important;
+
+  color:#ffffff !important;
+
+  font-size:13px !important;
+  font-weight:900 !important;
+
+  text-align:center !important;
+
+  border-bottom:1px solid #e5e9ee !important;
+}
+
+body.route-analysis-mode
+.route-compare-course.recommend
+.route-compare-course-title{
+  background:var(--course1-main) !important;
+  color:#ffffff !important;
+}
+
+body.route-analysis-mode
+.route-compare-course.alt
+.route-compare-course-title{
+  background:var(--course2-main) !important;
+  color:#ffffff !important;
+}
+
+
+/* 거리·시간·사고이력·위험점수 */
+body.route-analysis-mode
+.route-compare-value{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  min-width:0 !important;
+  padding:5px 6px !important;
+  box-sizing:border-box !important;
+
+  border-bottom:1px solid #e5e9ee !important;
+
+  color:#171a1f !important;
+
+  /* 왼쪽 항목과 크기 차이가 너무 크지 않게 */
+  font-size:13.5px !important;
+  font-weight:900 !important;
+
+  text-align:center !important;
+  white-space:nowrap !important;
+}
+
+
+/* 거리·시간은 약간만 강조 */
+body.route-analysis-mode
+.route-distance-value,
+body.route-analysis-mode
+.route-time-value{
+  font-size:14px !important;
+}
+
+
+/* 위험점수 원 제거 */
+body.route-analysis-mode
+.route-risk-value{
+  gap:0 !important;
+}
+
+body.route-analysis-mode
+.route-risk-value > span{
+  display:none !important;
+}
+
+
+/* ==================================================
+   주요도로
+================================================== */
+
+body.route-analysis-mode
+.route-compare-road{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  min-width:0 !important;
+  min-height:64px !important;
+
+  padding:5px !important;
+  box-sizing:border-box !important;
+
+  border-bottom:1px solid #e5e9ee !important;
+
+  text-align:center !important;
+}
+
+
+body.route-analysis-mode
+.route-compare-road
+.route-road-list{
+  display:flex !important;
+
+  align-items:center !important;
+  justify-content:center !important;
+  align-content:center !important;
+
+  flex-wrap:wrap !important;
+
+  min-height:0 !important;
+  gap:4px !important;
+}
+
+
+/* 도로 버튼 */
+body.route-analysis-mode
+.route-compare-road
+.route-road-chip{
+  min-height:25px !important;
+
+  padding:3px 7px !important;
+
+  border-radius:8px !important;
+
+  font-size:10.5px !important;
+  font-weight:850 !important;
+  line-height:1.2 !important;
+}
+
+
+/* i 아이콘 */
+body.route-analysis-mode
+.route-compare-road
+.route-road-info-icon{
+  width:13px !important;
+  height:13px !important;
+
+  font-size:8px !important;
+}
+
+
+/* 일반도로 문구 */
+body.route-analysis-mode
+.route-compare-road
+.general-road-text{
+  color:#566170 !important;
+
+  font-size:11.5px !important;
+  font-weight:800 !important;
+  line-height:1.35 !important;
+
+  text-align:center !important;
+}
+
+
+/* ==================================================
+   코스특징
+================================================== */
+
+body.route-analysis-mode
+.route-course-summary{
+  display:flex !important;
+  flex-direction:column !important;
+
+  align-items:center !important;
+  justify-content:center !important;
+
+  min-height:64px !important;
+
+  padding:6px 5px !important;
+  box-sizing:border-box !important;
+
+  text-align:center !important;
+}
+
+
+body.route-analysis-mode
+.route-compare-course.recommend
+.route-course-summary{
+  background:#f2f6ff !important;
+}
+
+body.route-analysis-mode
+.route-compare-course.alt
+.route-course-summary{
+  background:#faf2f6 !important;
+}
+
+
+/* 특징 제목 */
+body.route-analysis-mode
+.route-course-summary strong{
+  display:block !important;
+
+  color:#252d38 !important;
+
+  font-size:11.5px !important;
+  font-weight:900 !important;
+  line-height:1.3 !important;
+
+  white-space:normal !important;
+  word-break:keep-all !important;
+}
+
+
+/* 특징 설명 */
+body.route-analysis-mode
+.route-course-summary span{
+  display:block !important;
+
+  margin-top:3px !important;
+
+  color:#687384 !important;
+
+  font-size:10px !important;
+  font-weight:700 !important;
+  line-height:1.3 !important;
+
+  word-break:keep-all !important;
+}
+
+
+/* ==================================================
+   하단 설명
+================================================== */
+
+body.route-analysis-mode
+.route-score-guide{
+  margin-top:9px !important;
+  padding:9px 11px !important;
+
+  border-radius:10px !important;
+
+  background:#f5f6f8 !important;
+}
+
+
+body.route-analysis-mode
+.route-score-guide p{
+  margin:0 !important;
+
+  color:#6f7986 !important;
+
+  font-size:10px !important;
+  font-weight:650 !important;
+  line-height:1.45 !important;
+
+  word-break:keep-all !important;
+}
+
+
+body.route-analysis-mode
+.route-score-guide p + p{
+  margin-top:3px !important;
+}
+
+
+body.route-analysis-mode
+.route-score-guide b{
+  margin-right:4px !important;
+
+  color:#4d5764 !important;
+  font-weight:900 !important;
+}
+
+
+/* ==================================================
+   PC 화면
+================================================== */
+
+@media(min-width:768px){
+
+  body.route-analysis-mode
+  .route-analysis-page{
+    top:34vh !important;
+    padding-left:20px !important;
+    padding-right:20px !important;
+  }
+
+  body.route-analysis-mode
+  #routeAnalysisContent{
+    max-width:940px !important;
+  }
+
+  body.route-analysis-mode
+  .route-compare-table{
+    grid-template-columns:
+      105px
+      minmax(0,1fr) !important;
+
+    gap:10px !important;
+  }
+
+  body.route-analysis-mode
+  .route-compare-courses{
+    gap:10px !important;
+  }
+
+  body.route-analysis-mode
+  .route-compare-labels > div{
+    font-size:13px !important;
+  }
+
+  body.route-analysis-mode
+  .route-compare-value{
+    font-size:14px !important;
+  }
+
+  body.route-analysis-mode
+  .route-compare-course-title{
+    font-size:14px !important;
+  }
+}
+
+
+/* ==================================================
+   작은 모바일
+================================================== */
+
+@media(max-width:390px){
+
+  body.route-analysis-mode
+  .route-analysis-page{
+    top:37vh !important;
+
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+
+  body.route-analysis-mode
+  .compare-detail-new.always-open{
+    padding:10px !important;
+  }
+
+  body.route-analysis-mode
+  .route-compare-table{
+    grid-template-columns:
+      62px
+      minmax(0,1fr) !important;
+
+    gap:5px !important;
+  }
+
+  body.route-analysis-mode
+  .route-compare-courses{
+    gap:5px !important;
+  }
+
+  body.route-analysis-mode
+  .route-compare-labels > div{
+    padding:0 2px !important;
+
+    font-size:10.5px !important;
+  }
+
+  body.route-analysis-mode
+  .route-compare-value{
+    font-size:12px !important;
+  }
+
+  body.route-analysis-mode
+  .route-distance-value,
+  body.route-analysis-mode
+  .route-time-value{
+    font-size:12.5px !important;
+  }
+
+  body.route-analysis-mode
+  .route-course-summary strong{
+    font-size:10px !important;
+  }
+
+  body.route-analysis-mode
+  .route-course-summary span{
+    font-size:8.8px !important;
+  }
+
+  body.route-analysis-mode
+  .route-score-guide p{
+    font-size:8.8px !important;
+  }
+}
 </style>
 </head>
 
