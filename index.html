@@ -4644,7 +4644,308 @@ body.route-analysis-mode
 .route-point-pin.end span{
   transform:rotate(45deg);
 }
+/* ==================================================
+   최종 압축형 코스 비교표
+================================================== */
 
+body.route-analysis-mode
+.compare-detail-new.always-open{
+  padding:14px !important;
+}
+
+body.route-analysis-mode
+.route-compare-table{
+  display:grid;
+  grid-template-columns:68px minmax(0, 1fr);
+  gap:8px;
+  width:100%;
+}
+
+
+/* 왼쪽 항목명 */
+body.route-analysis-mode
+.route-compare-labels{
+  display:grid;
+  grid-template-rows:
+    38px
+    38px
+    38px
+    minmax(54px, auto)
+    38px
+    38px;
+}
+
+body.route-analysis-mode
+.route-compare-labels > div{
+  display:flex;
+  align-items:center;
+  padding:0 5px;
+  border-bottom:1px solid #e8ebef;
+  color:#7b8491;
+  font-size:10.5px;
+  font-weight:800;
+  box-sizing:border-box;
+}
+
+body.route-analysis-mode
+.route-compare-labels
+.route-compare-label-head{
+  border-bottom:1px solid #dfe4ea;
+  color:transparent;
+}
+
+
+/* 오른쪽 1·2코스 영역 */
+body.route-analysis-mode
+.route-compare-courses{
+  display:grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap:7px;
+  min-width:0;
+}
+
+body.route-analysis-mode
+.route-compare-table.single-course
+.route-compare-courses{
+  grid-template-columns:1fr;
+}
+
+
+/* 코스 한 열 */
+body.route-analysis-mode
+.route-compare-course{
+  display:grid !important;
+  grid-template-rows:
+    38px
+    38px
+    38px
+    minmax(54px, auto)
+    38px
+    38px
+    auto;
+
+  min-width:0 !important;
+  padding:0 !important;
+  overflow:hidden;
+
+  border:1px solid #e2e6eb !important;
+  border-radius:15px !important;
+  background:#fff !important;
+  box-sizing:border-box !important;
+  cursor:pointer;
+}
+
+
+/* 선택된 1코스 */
+body.route-analysis-mode
+.route-compare-course.recommend.selected-course{
+  border:1.5px solid var(--course1-main) !important;
+  background:#fbfcff !important;
+  box-shadow:0 5px 14px rgba(78,114,196,.10) !important;
+}
+
+
+/* 선택된 2코스 */
+body.route-analysis-mode
+.route-compare-course.alt.selected-course{
+  border:1.5px solid var(--course2-main) !important;
+  background:#fffafd !important;
+  box-shadow:0 5px 14px rgba(155,116,142,.10) !important;
+}
+
+
+/* 각 행 공통 */
+body.route-analysis-mode
+.route-compare-course-title,
+body.route-analysis-mode
+.route-compare-value,
+body.route-analysis-mode
+.route-compare-road{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  padding:5px 6px;
+  border-bottom:1px solid #e8ebef;
+  box-sizing:border-box;
+  text-align:center;
+}
+
+
+/* 코스명 */
+body.route-analysis-mode
+.route-compare-course-title{
+  font-size:15px;
+  font-weight:900;
+}
+
+body.route-analysis-mode
+.route-compare-course.recommend
+.route-compare-course-title{
+  color:var(--course1-main);
+}
+
+body.route-analysis-mode
+.route-compare-course.alt
+.route-compare-course-title{
+  color:var(--course2-main);
+}
+
+
+/* 숫자 */
+body.route-analysis-mode
+.route-compare-value{
+  color:#171a1f;
+  font-size:12.5px;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+body.route-analysis-mode
+.route-risk-value{
+  gap:3px;
+  font-weight:900;
+}
+
+
+/* 주요도로 */
+body.route-analysis-mode
+.route-compare-road{
+  align-items:center;
+  min-height:54px;
+}
+
+body.route-analysis-mode
+.route-compare-road
+.route-road-list{
+  justify-content:center !important;
+  min-height:0 !important;
+  gap:3px !important;
+}
+
+body.route-analysis-mode
+.route-compare-road
+.route-road-chip{
+  min-height:24px !important;
+  padding:3px 6px !important;
+  font-size:9.5px !important;
+  border-radius:7px !important;
+}
+
+body.route-analysis-mode
+.route-compare-road
+.route-road-info-icon{
+  width:13px !important;
+  height:13px !important;
+  font-size:8px !important;
+}
+
+body.route-analysis-mode
+.route-compare-road
+.general-road-text{
+  font-size:11px !important;
+  font-weight:800 !important;
+  line-height:1.35 !important;
+  text-align:center;
+}
+
+
+/* 카드 하단 코스 특징 */
+body.route-analysis-mode
+.route-course-summary{
+  min-height:70px;
+  padding:10px 7px;
+  box-sizing:border-box;
+  text-align:center;
+}
+
+body.route-analysis-mode
+.route-course-summary strong{
+  display:block;
+  font-size:11.5px;
+  font-weight:900;
+  line-height:1.4;
+}
+
+body.route-analysis-mode
+.route-course-summary span{
+  display:block;
+  margin-top:4px;
+  color:#667085;
+  font-size:10.5px;
+  font-weight:700;
+  line-height:1.4;
+  word-break:keep-all;
+}
+
+body.route-analysis-mode
+.route-compare-course.recommend
+.route-course-summary{
+  background:#f1f5ff;
+}
+
+body.route-analysis-mode
+.route-compare-course.alt
+.route-course-summary{
+  background:#faf0f6;
+}
+
+
+/* 위험점수·사고이력 설명 */
+body.route-analysis-mode
+.route-score-guide{
+  margin-top:10px !important;
+  padding:10px 11px !important;
+}
+
+body.route-analysis-mode
+.route-score-guide p{
+  margin:0;
+  color:#6b7480;
+  font-size:10.5px;
+  font-weight:650;
+  line-height:1.5;
+  word-break:keep-all;
+}
+
+body.route-analysis-mode
+.route-score-guide p + p{
+  margin-top:5px;
+}
+
+body.route-analysis-mode
+.route-score-guide b{
+  margin-right:4px;
+  color:#46505c;
+  font-weight:900;
+}
+
+
+/* 아주 작은 휴대전화 */
+@media(max-width:370px){
+
+  body.route-analysis-mode
+  .route-compare-table{
+    grid-template-columns:61px minmax(0, 1fr);
+    gap:6px;
+  }
+
+  body.route-analysis-mode
+  .route-compare-course-title{
+    font-size:14px;
+  }
+
+  body.route-analysis-mode
+  .route-compare-value{
+    font-size:11.5px;
+  }
+
+  body.route-analysis-mode
+  .route-compare-labels > div{
+    font-size:9.5px;
+  }
+}
 </style>
 </head>
 
@@ -7765,37 +8066,56 @@ lastRouteAnalysisHtml = `
   ${route2 ? "코스별 주요 정보" : "주요 경로 정보"}
 </div>
 
-<div class="compare-cards route-info-cards">
+<div class="
+  route-compare-table
+  ${route2 ? "" : "single-course"}
+">
 
-  ${makeRouteInfoCard(
-    route1,
-    1,
-    "recommend"
-  )}
+  <div class="route-compare-labels">
+    <div class="route-compare-label-head">
+      비교항목
+    </div>
 
-  ${route2
-    ? makeRouteInfoCard(
-        route2,
-        2,
-        "alt"
-      )
-    : ""
-  }
-
-</div>
-
-<div class="route-data-note">
-  ${route2
- ? `※ 사고이력과 사고심각도는 2023~2025년 제주 렌터카
-사고자료를 기준으로 제공. 사고 건수는 교통량의
-영향을 받을 수 있으며, 사고이력이 적더라도 도로 구조와
-기상상황에 따라 주의가 필요함.`
-: `※ 유의미한 대안경로가 확인되지 않아 하나의 경로만 안내.
-   사고이력은 2023~2025년 제주 렌터카 사고자료에서
-   확인된 중상 이상 사고를 기준으로 제공되는 참고정보.`
-  }
-</div>
+    <div>거리</div>
+    <div>시간</div>
+    <div>주요도로</div>
+    <div>사고이력</div>
+    <div>위험점수</div>
   </div>
+
+  <div class="route-compare-courses">
+
+    ${makeRouteInfoCard(
+      route1,
+      1,
+      "recommend"
+    )}
+
+    ${route2
+      ? makeRouteInfoCard(
+          route2,
+          2,
+          "alt"
+        )
+      : ""
+    }
+
+  </div>
+
+</div>
+
+<div class="route-data-note route-score-guide">
+  <p>
+    <b>위험점수</b>
+    사고 심각도와 도로 특성을 반영한 상대적 점수입니다.
+  </p>
+
+  <p>
+    <b>사고이력</b>
+    2023~2025년 제주 렌터카 사고자료를 기준으로 집계했습니다.
+  </p>
+</div>
+
   <div class="navi-section">
     <h3>내비게이션으로 길안내</h3>
 
@@ -9684,7 +10004,100 @@ function makeCourseFeature(route){
   );
 }
 
- function makeRouteInfoCard(
+  /* ===== 압축형 코스 비교용 데이터 ===== */
+
+/* 사고이력 전체 건수 */
+function getRouteAccidentCount(route){
+  return Number(
+    route?.accidentAnalysis?.totalCount || 0
+  );
+}
+
+
+/* 최종 위험점수 */
+function getRouteRiskScore(route){
+  const accident =
+    route?.accidentAnalysis || {};
+
+  return Math.round(
+    Number(
+      accident.finalAdjustedSeverityScore ||
+      accident.adjustedSeverityScore ||
+      accident.totalEpdo ||
+      0
+    )
+  );
+}
+
+/* 코스 특징을 짧은 2줄로 정리 */
+function getCompactCourseFeature(route){
+  const difficultRoads =
+    getDifficultRoadNames(route);
+
+  const roadNames =
+    Array.isArray(route?.roadNames)
+      ? route.roadNames.map(road => road.name)
+      : [];
+
+  const accident =
+    route?.accidentAnalysis || {};
+
+  if(
+    difficultRoads.includes("1100도로") ||
+    difficultRoads.includes("5·16도로") ||
+    difficultRoads.includes("산록남로") ||
+    difficultRoads.includes("산록북로")
+  ){
+    return {
+      icon:"🌲",
+      title:"산간도로 중심",
+      caution:"급커브·안개 주의"
+    };
+  }
+
+  if(
+    difficultRoads.includes("중산간서로") ||
+    difficultRoads.includes("중산간동로") ||
+    difficultRoads.includes("남조로") ||
+    roadNames.includes("중산간서로") ||
+    roadNames.includes("중산간동로") ||
+    roadNames.includes("남조로")
+  ){
+    return {
+      icon:"🌲",
+      title:"중산간도로 중심",
+      caution:"곡선구간·마을 진입부 주의"
+    };
+  }
+
+  if(
+    roadNames.includes("평화로") ||
+    roadNames.includes("번영로") ||
+    roadNames.includes("애조로")
+  ){
+    return {
+      icon:"🚙",
+      title:"간선도로 중심",
+      caution:"합류·차로변경 주의"
+    };
+  }
+
+  if((accident.pedestrianCount || 0) >= 3){
+    return {
+      icon:"🚗",
+      title:"도심·관광지 중심",
+      caution:"보행자·교차로 주의"
+    };
+  }
+
+  return {
+    icon:"🚗",
+    title:"일반도로 중심",
+    caution:"교차로·진출입 차량 주의"
+  };
+}
+
+  function makeRouteInfoCard(
   route,
   courseNumber,
   cardClass
@@ -9692,25 +10105,36 @@ function makeCourseFeature(route){
   if(!route){
     return `
       <div class="
-        compare-mini
-        route-info-card
+        route-compare-course
         ${cardClass}
       ">
-        <div class="compact-course-head">
-          <b>${courseNumber}코스</b>
+        <div class="route-compare-course-title">
+          ${courseNumber}코스
         </div>
 
-        <div class="compact-empty">
-          경로 정보가 없습니다.
+        <div class="route-compare-empty">
+          경로 정보 없음
         </div>
       </div>
     `;
   }
 
+  const accidentCount =
+    getRouteAccidentCount(route);
+
+  const riskScore =
+    getRouteRiskScore(route);
+
+  const riskMark =
+    getRouteRiskMark(riskScore);
+
+  const feature =
+    getCompactCourseFeature(route);
+
   return `
     <div
       class="
-        compare-mini
+        route-compare-course
         route-info-card
         ${cardClass}
         ${
@@ -9734,49 +10158,43 @@ function makeCourseFeature(route){
       "
     >
 
-      <div class="compact-course-head">
-        <b>${courseNumber}코스</b>
+      <div class="route-compare-course-title">
+        ${courseNumber}코스
+      </div>
 
+      <div class="route-compare-value">
+        ${route.distanceKm}km
+      </div>
+
+      <div class="route-compare-value">
+        ${route.durationMin}분
+      </div>
+
+      <div class="route-compare-road">
+        ${getRouteRoadHtml(
+          route,
+          courseNumber - 1
+        )}
+      </div>
+
+      <div class="route-compare-value">
+        ${accidentCount}건
+      </div>
+
+      <div class="route-compare-value route-risk-value">
+        <span>${riskMark}</span>
+        ${riskScore}점
+      </div>
+
+      <div class="route-course-summary">
         <strong>
-          ${route.distanceKm}km
-          <span>·</span>
-          ${route.durationMin}분
+          ${feature.icon}
+          ${feature.title}
         </strong>
-      </div>
 
-      <div class="compact-info-row">
-        <span>주요 통과도로</span>
-
-        <div class="route-road-list">
-         ${getRouteRoadHtml(
-  route,
-  courseNumber - 1
-)}
-        </div>
-      </div>
-
-      <div class="compact-info-row">
-        <span>교통환경</span>
-
-        <b>
-          ${getRouteTrafficEnvironmentText(route)}
-        </b>
-      </div>
-
-      <div class="compact-info-row">
-        <span>사고이력·심각도</span>
-
-        <b>
-          ${getAccidentHistoryText(route)}
-        </b>
-      </div>
-
-      <div class="compact-feature">
-        <span>코스 특성</span>
-
-        <p>
-          ${makeCourseFeature(route)}
-        </p>
+        <span>
+          ${feature.caution}
+        </span>
       </div>
 
     </div>
