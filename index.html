@@ -10423,7 +10423,7 @@ function getDifficultRoadText(route){
    사고지점별 AADT 보정계수
 ================================================== */
 
-const ACCIDENT_TRAFFIC_MATCH_RADIUS_M = 2000;
+const ACCIDENT_TRAFFIC_MATCH_RADIUS_M = 500;
 
 /*
   AADT 구간별 보정계수
@@ -10515,8 +10515,8 @@ function getTrafficCorrectionAtPoint(lat, lng){
   });
 
   /*
-    2km보다 먼 측정지점은
-    해당 사고지점의 교통량으로 사용하지 않음
+  500m보다 먼 측정지점은
+  해당 사고지점의 교통량으로 사용하지 않음
   */
   if(
     !nearestPoint ||
@@ -10686,7 +10686,7 @@ function getRouteDifficultyCorrection(route){
 
     "서성로":1.12,
 
-    "번영로":1.05,
+   "번영로":1.00,
 
     "평화로":1.00,
     "애조로":1.00,
@@ -11156,7 +11156,7 @@ line.setStyle({
   /* ===== 코스별 사고 특성 분석 ===== */
 
 function analyzeRouteAccidents(coords){
-  const SEARCH_RADIUS_M = 250;
+  const SEARCH_RADIUS_M = 100;
   const matchedAccidents = new Set();
   const matchedList = [];
 
@@ -11190,10 +11190,10 @@ function analyzeRouteAccidents(coords){
       p2[1]
     );
 
-    const sampleCount = Math.max(
-      1,
-      Math.ceil((segmentKm * 1000) / 250)
-    );
+const sampleCount = Math.max(
+  1,
+  Math.ceil((segmentKm * 1000) / 100)
+);
 
     for(let s = 0; s <= sampleCount; s++){
       const t = s / sampleCount;
