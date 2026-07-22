@@ -8446,16 +8446,16 @@ allRoadNames.forEach(road => {
       : 0;
 
   /*
-    주요 통과도로는
-    최소 3km 이상이면서
-    전체 경로의 10% 이상 이용한 경우만 인정
-  */
-  if(
-    road.distanceKm < 3.0 ||
-    roadShare < 0.10
-  ){
-    return;
-  }
+  주요 통과도로는
+  최소 1km 이상이면서
+  전체 경로의 5% 이상 이용한 경우만 인정
+*/
+if(
+  road.distanceKm < 1.0 ||
+  roadShare < 0.05
+){
+  return;
+}
 
   /*
     ORS 도로명을 제주 대표도로와 연결
