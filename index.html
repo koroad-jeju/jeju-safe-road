@@ -6576,15 +6576,15 @@ body.tourism-news-mode #map{
     <b>경로분석</b>
   </button>
 
-  <button class="bottom-item" onclick="showRiskMap()">
-    <img src="heart-plus.png">
-    <b>위험지도</b>
-  </button>
+  <button class="bottom-item" onclick="showTourismNews()">
+  <img src="bell.svg">
+  <b>관광소식</b>
+</button>
 
-  <button class="bottom-item" onclick="showSafetyGuide()">
-    <img src="map-2.png">
-    <b>관광소식</b>
-  </button>
+<button class="bottom-item" onclick="showSafetyGuide()">
+  <img src="map-2.png">
+  <b>안내수칙</b>
+</button>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -12623,6 +12623,7 @@ function goHome(){
   document.body.classList.remove("safety-guide-mode");
   document.body.classList.remove("route-analysis-mode");
   document.body.classList.remove("route-fallback-mode");
+  document.body.classList.remove("tourism-news-mode");
   document.getElementById("adminStatsPage").classList.remove("active");
 
   document.querySelector(".panel").classList.remove("route-mode");
@@ -12846,28 +12847,35 @@ function closeAdminStats(){
 }
 function showSafetyGuide(){
 
-document.body.classList.remove("route-active");
-document.body.classList.remove("risk-map-mode");
-document.body.classList.remove("route-analysis-mode");
-document.body.classList.add("safety-guide-mode");
-  document.body.classList.remove("tourism-news-mode");
+  document.body.classList.remove(
+    "route-active",
+    "risk-map-mode",
+    "route-analysis-mode",
+    "route-fallback-mode",
+    "tourism-news-mode"
+  );
 
-  document.querySelectorAll(".bottom-item").forEach(btn=>{
-    btn.classList.remove("active");
-  });
+  document.body.classList.add(
+    "safety-guide-mode"
+  );
 
-  document.querySelectorAll(".bottom-item")[3].classList.add("active");
+  document
+    .querySelectorAll(".bottom-item")
+    .forEach(button => {
+      button.classList.remove("active");
+    });
+
+  const buttons =
+    document.querySelectorAll(
+      ".bottom-item"
+    );
+
+  if(buttons[3]){
+    buttons[3].classList.add(
+      "active"
+    );
+  }
 }
-let riskMiniMap = null;
-let riskMiniLayer = null;
-  
-function getRiskColor(epdo){
-  if(epdo >= 12) return "#ef4444";
-  if(epdo >= 6) return "#f97316";
-  if(epdo >= 3) return "#facc15";
-  return "#10b981";
-}
-
 function getRiskRadius(epdo){
   if(epdo >= 12) return 7;
   if(epdo >= 6) return 5;
