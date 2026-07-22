@@ -8406,6 +8406,15 @@ routes.forEach((route,index)=>{
   totalCount:accidentAnalysis.totalCount || 0,
   totalEpdo:0
 };
+  console.log(`===== ${index + 1}코스 =====`);
+
+console.log({
+  사고건수: accidentAnalysis.totalCount,
+  EPDO합계: accidentAnalysis.totalEpdo,
+  AADT보정점수: accidentAnalysis.adjustedSeverityScore,
+  교통량매칭사고: accidentAnalysis.trafficMatchedAccidentCount,
+  평균AADT: accidentAnalysis.averageAccidentAadt
+});
 
 /*
   경로 API가 반환한 전체 도로 목록
