@@ -5508,6 +5508,355 @@ body.route-analysis-mode
     transform:rotate(360deg);
   }
 }
+  /* ==================================================
+   제주 관광소식 페이지
+================================================== */
+
+.tourism-news-page{
+  display:none;
+  position:fixed;
+  inset:56px 0 66px 0;
+  z-index:10000;
+
+  padding:18px 14px 32px;
+  box-sizing:border-box;
+
+  background:#f7f9fb;
+
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+body.tourism-news-mode .tourism-news-page{
+  display:block;
+}
+
+/* 관광소식 화면에서 다른 페이지 숨기기 */
+body.tourism-news-mode .panel,
+body.tourism-news-mode .risk-map-page,
+body.tourism-news-mode .safety-guide-page,
+body.tourism-news-mode .route-analysis-page,
+body.tourism-news-mode #map{
+  display:none !important;
+}
+
+
+/* 상단 제목 */
+
+.tourism-news-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+
+  margin-bottom:15px;
+}
+
+.tourism-news-title-wrap{
+  min-width:0;
+}
+
+.tourism-news-title{
+  color:#17202c;
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:-.7px;
+}
+
+.tourism-news-sub{
+  margin-top:5px;
+
+  color:#7b8592;
+  font-size:12px;
+  font-weight:650;
+  line-height:1.5;
+
+  word-break:keep-all;
+}
+
+.tourism-news-source{
+  flex:0 0 auto;
+
+  margin-top:4px;
+  padding:6px 9px;
+
+  border-radius:999px;
+  background:#eef4f5;
+  color:#64727c;
+
+  font-size:9.5px;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+
+/* 관광소식 전체 목록 */
+
+.tourism-news-list{
+  display:flex;
+  flex-direction:column;
+  gap:11px;
+}
+
+
+/* 첫 번째 큰 카드 */
+
+.tourism-news-hero{
+  position:relative;
+  height:330px;
+
+  overflow:hidden;
+
+  border-radius:22px;
+  background:#dce7eb;
+
+  box-shadow:0 9px 24px rgba(15,23,42,.12);
+}
+
+.tourism-news-hero-image{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.tourism-news-hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+
+  background:linear-gradient(
+    180deg,
+    rgba(5,20,30,.03) 25%,
+    rgba(6,26,39,.28) 55%,
+    rgba(5,22,34,.92) 100%
+  );
+
+  pointer-events:none;
+}
+
+.tourism-news-badge{
+  position:absolute;
+  top:14px;
+  left:14px;
+  z-index:2;
+
+  padding:6px 10px;
+
+  border-radius:999px;
+  background:#0c8f87;
+  color:#fff;
+
+  font-size:10.5px;
+  font-weight:900;
+
+  box-shadow:0 4px 10px rgba(15,23,42,.14);
+}
+
+.tourism-news-hero-content{
+  position:absolute;
+  left:17px;
+  right:17px;
+  bottom:16px;
+  z-index:2;
+}
+
+.tourism-news-date{
+  color:#52d0c4;
+  font-size:11px;
+  font-weight:900;
+}
+
+.tourism-news-hero-title{
+  margin-top:7px;
+
+  color:#fff;
+  font-size:20px;
+  font-weight:900;
+  line-height:1.35;
+  letter-spacing:-.6px;
+
+  word-break:keep-all;
+}
+
+.tourism-news-hero-text{
+  margin:7px 0 0;
+  padding-right:108px;
+
+  color:rgba(255,255,255,.9);
+  font-size:12px;
+  font-weight:650;
+  line-height:1.55;
+
+  word-break:keep-all;
+}
+
+.tourism-news-hero-link{
+  position:absolute;
+  right:0;
+  bottom:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+
+  min-width:98px;
+  height:43px;
+  padding:0 12px;
+  box-sizing:border-box;
+
+  border-radius:14px;
+  background:#fff;
+  color:#176f70;
+
+  font-size:11.5px;
+  font-weight:900;
+  text-decoration:none;
+
+  box-shadow:0 5px 14px rgba(15,23,42,.15);
+}
+
+
+/* 아래 작은 카드 4개 */
+
+.tourism-news-card{
+  display:grid;
+  grid-template-columns:115px minmax(0,1fr);
+  gap:12px;
+
+  min-height:126px;
+  padding:10px;
+  box-sizing:border-box;
+
+  border:1px solid #e7ebef;
+  border-radius:20px;
+
+  background:#fff;
+
+  box-shadow:0 7px 20px rgba(15,23,42,.065);
+}
+
+.tourism-news-card-image-wrap{
+  position:relative;
+  min-width:0;
+  overflow:hidden;
+  border-radius:15px;
+  background:#e5e7eb;
+}
+
+.tourism-news-card-image{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.tourism-news-card-badge{
+  position:absolute;
+  top:7px;
+  left:7px;
+
+  padding:4px 7px;
+
+  border-radius:999px;
+  background:rgba(8,143,134,.94);
+  color:#fff;
+
+  font-size:8px;
+  font-weight:900;
+}
+
+.tourism-news-card-content{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  padding:3px 2px 1px 0;
+}
+
+.tourism-news-card-date{
+  color:#15877f;
+  font-size:9.5px;
+  font-weight:900;
+}
+
+.tourism-news-card-title{
+  margin-top:5px;
+
+  color:#17202c;
+  font-size:14px;
+  font-weight:900;
+  line-height:1.35;
+  letter-spacing:-.35px;
+
+  word-break:keep-all;
+}
+
+.tourism-news-card-text{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+
+  margin:5px 0 0;
+
+  color:#697382;
+  font-size:10.5px;
+  font-weight:650;
+  line-height:1.45;
+
+  word-break:keep-all;
+}
+
+.tourism-news-card-link{
+  align-self:flex-end;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+
+  min-width:88px;
+  height:33px;
+  margin-top:auto;
+  padding:0 10px;
+  box-sizing:border-box;
+
+  border:1px solid #e4e8ec;
+  border-radius:11px;
+
+  background:#fff;
+  color:#16766f;
+
+  font-size:10.5px;
+  font-weight:900;
+  text-decoration:none;
+
+  box-shadow:0 3px 9px rgba(15,23,42,.055);
+}
+
+
+/* 작은 휴대전화 */
+
+@media(max-width:370px){
+
+  .tourism-news-card{
+    grid-template-columns:102px minmax(0,1fr);
+    gap:9px;
+  }
+
+  .tourism-news-card-title{
+    font-size:12.5px;
+  }
+
+  .tourism-news-card-text{
+    font-size:9.5px;
+  }
+
+  .tourism-news-hero{
+    height:305px;
+  }
+}
 </style>
 </head>
 
@@ -5871,6 +6220,276 @@ body.route-analysis-mode
 </div>
 </div>
   </div>
+
+  <div id="tourismNewsPage" class="tourism-news-page">
+
+  <div class="tourism-news-head">
+
+    <div class="tourism-news-title-wrap">
+
+      <div class="tourism-news-title">
+        제주 관광소식
+      </div>
+
+      <div class="tourism-news-sub">
+        제주 여행에 도움이 되는 최신 관광 정보를 확인하세요.
+      </div>
+
+    </div>
+
+    <div class="tourism-news-source">
+      출처: 제주관광공사
+    </div>
+
+  </div>
+
+
+  <div class="tourism-news-list">
+
+    <!-- ======================================
+         1번 소식 : 큰 대표 카드
+    ======================================= -->
+
+    <article class="tourism-news-hero">
+
+      <img
+        src="tourism-news-01.png"
+        alt="제주 관광소식"
+        class="tourism-news-hero-image"
+      >
+
+      <div class="tourism-news-badge">
+        제주관광공사
+      </div>
+
+      <div class="tourism-news-hero-content">
+
+        <div class="tourism-news-date">
+          2026년 8월
+        </div>
+
+        <div class="tourism-news-hero-title">
+          추천 제주 관광
+        </div>
+
+        <p class="tourism-news-hero-text">
+          지금이 가장 좋은 제철 제주, 여름
+        </p>
+
+        <a
+          href="https://www.visitjeju.net/u/K8f"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="tourism-news-hero-link"
+        >
+          자세히 보기
+          <span>›</span>
+        </a>
+
+      </div>
+
+    </article>
+
+
+    <!-- ======================================
+         2번 소식
+    ======================================= -->
+
+    <article class="tourism-news-card">
+
+      <div class="tourism-news-card-image-wrap">
+
+        <img
+          src="tourism-news-02.png"
+          alt="제주 관광소식"
+          class="tourism-news-card-image"
+        >
+
+        <div class="tourism-news-card-badge">
+          제주관광공사
+        </div>
+
+      </div>
+
+      <div class="tourism-news-card-content">
+
+        <div class="tourism-news-card-date">
+          2026년 8월
+        </div>
+
+        <div class="tourism-news-card-title">
+         응원의 설렘을 더하는 서귀포 여행
+        </div>
+
+        <p class="tourism-news-card-text">
+          축구 경기와 함께 즐거운 
+          서귀포 여행을 만나보세요.
+        </p>
+
+        <a
+          href="https://두번째-관광소식-주소"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="tourism-news-card-link"
+        >
+          자세히 보기
+          <span>›</span>
+        </a>
+
+      </div>
+
+    </article>
+
+
+    <!-- ======================================
+         3번 소식
+    ======================================= -->
+
+    <article class="tourism-news-card">
+
+      <div class="tourism-news-card-image-wrap">
+
+        <img
+          src="tourism-news-03.png"
+          alt="제주 관광소식"
+          class="tourism-news-card-image"
+        >
+
+        <div class="tourism-news-card-badge">
+          제주관광공사
+        </div>
+
+      </div>
+
+      <div class="tourism-news-card-content">
+
+        <div class="tourism-news-card-date">
+          2026년 8월
+        </div>
+
+        <div class="tourism-news-card-title">
+          여름 제주를 200% 즐기는 법
+        </div>
+
+        <p class="tourism-news-card-text">
+          시원한 여름 제주 여행을 만나보세요.
+        </p>
+
+        <a
+          href="https://세번째-관광소식-주소"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="tourism-news-card-link"
+        >
+          자세히 보기
+          <span>›</span>
+        </a>
+
+      </div>
+
+    </article>
+
+
+    <!-- ======================================
+         4번 소식
+    ======================================= -->
+
+    <article class="tourism-news-card">
+
+      <div class="tourism-news-card-image-wrap">
+
+        <img
+          src="tourism-news-04.png"
+          alt="제주 관광소식"
+          class="tourism-news-card-image"
+        >
+
+        <div class="tourism-news-card-badge">
+          제주관광공사
+        </div>
+
+      </div>
+
+      <div class="tourism-news-card-content">
+
+        <div class="tourism-news-card-date">
+          2026년 8월
+        </div>
+
+        <div class="tourism-news-card-title">
+          제주여행 멤버십 나우다
+        </div>
+
+        <p class="tourism-news-card-text">
+          다양한 여행 혜택을 즐기세요
+        </p>
+
+        <a
+          href="https://네번째-관광소식-주소"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="tourism-news-card-link"
+        >
+          자세히 보기
+          <span>›</span>
+        </a>
+
+      </div>
+
+    </article>
+
+
+    <!-- ======================================
+         5번 소식
+    ======================================= -->
+
+    <article class="tourism-news-card">
+
+      <div class="tourism-news-card-image-wrap">
+
+        <img
+          src="tourism-news-05.png"
+          alt="제주 관광소식"
+          class="tourism-news-card-image"
+        >
+
+        <div class="tourism-news-card-badge">
+          제주관광공사
+        </div>
+
+      </div>
+
+      <div class="tourism-news-card-content">
+
+        <div class="tourism-news-card-date">
+          2026년 8월
+        </div>
+
+        <div class="tourism-news-card-title">
+          제주 축제와 행사
+        </div>
+
+        <p class="tourism-news-card-text">
+          지금 열리는 축제와 행사를 확인해보세요.
+        </p>
+
+        <a
+          href="https://다섯번째-관광소식-주소"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="tourism-news-card-link"
+        >
+          자세히 보기
+          <span>›</span>
+        </a>
+
+      </div>
+
+    </article>
+
+  </div>
+
+</div>
 <div id="safetyGuidePage" class="safety-guide-page">
   <div class="safety-guide-card">
 
@@ -5964,7 +6583,7 @@ body.route-analysis-mode
 
   <button class="bottom-item" onclick="showSafetyGuide()">
     <img src="map-2.png">
-    <b>안내수칙</b>
+    <b>관광소식</b>
   </button>
 </div>
 
@@ -12194,12 +12813,44 @@ document.getElementById("statBad").innerText =
 function closeAdminStats(){
   document.getElementById("adminStatsPage").classList.remove("active");
 }
+  function showTourismNews(){
+
+  document.body.classList.remove(
+    "route-active",
+    "risk-map-mode",
+    "safety-guide-mode",
+    "route-analysis-mode",
+    "route-fallback-mode"
+  );
+
+  document.body.classList.add(
+    "tourism-news-mode"
+  );
+
+  document
+    .querySelectorAll(".bottom-item")
+    .forEach(button => {
+      button.classList.remove("active");
+    });
+
+  const buttons =
+    document.querySelectorAll(
+      ".bottom-item"
+    );
+
+  if(buttons[2]){
+    buttons[2].classList.add(
+      "active"
+    );
+  }
+}
 function showSafetyGuide(){
 
 document.body.classList.remove("route-active");
 document.body.classList.remove("risk-map-mode");
 document.body.classList.remove("route-analysis-mode");
 document.body.classList.add("safety-guide-mode");
+  document.body.classList.remove("tourism-news-mode");
 
   document.querySelectorAll(".bottom-item").forEach(btn=>{
     btn.classList.remove("active");
@@ -12439,13 +13090,14 @@ function showRiskMap(){
  document.body.classList.remove("route-active");
 document.body.classList.remove("safety-guide-mode");
 document.body.classList.remove("route-analysis-mode");
+  document.body.classList.remove("tourism-news-mode");
 document.body.classList.add("risk-map-mode");
+  
   
   document.querySelectorAll(".bottom-item").forEach(btn=>{
     btn.classList.remove("active");
   });
 
-  document.querySelectorAll(".bottom-item")[2].classList.add("active");
   updateAccidentStats();
 
   setTimeout(initRiskMiniMap, 200);
@@ -12455,9 +13107,9 @@ function showRouteAnalysis(){
   document.body.classList.remove(
     "risk-map-mode",
     "safety-guide-mode",
+    "tourism-news-mode",
     "route-active"
   );
-
   document.body.classList.add("route-analysis-mode");
 
   document.querySelectorAll(".bottom-item").forEach(btn => {
