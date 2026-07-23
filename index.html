@@ -13403,13 +13403,31 @@ if(type === "risk"){
       return;
     }
 
-    mapBox.removeAttribute("id");
-    mapBox.classList.add(
-      "risk-mini-map-popup"
-    );
+/*
+  복사되어 들어온 기존 Leaflet 지도 흔적 제거
+*/
+mapBox.innerHTML = "";
 
-    mapBox.style.width = "100%";
-    mapBox.style.height = "260px";
+mapBox.removeAttribute("id");
+mapBox.removeAttribute("style");
+
+mapBox.className =
+  "risk-mini-map-popup";
+
+mapBox.style.width =
+  "100%";
+
+mapBox.style.height =
+  "285px";
+
+mapBox.style.minHeight =
+  "285px";
+
+mapBox.style.borderRadius =
+  "22px";
+
+mapBox.style.overflow =
+  "hidden";
 
     /*
       실제 요소를 지도 함수에 전달
