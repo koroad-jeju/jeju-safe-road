@@ -12944,24 +12944,36 @@ weight:1
   let riskMiniMapPopup = null;
 let riskMiniLayerPopup = null;
 
-function initRiskMiniMapPopup(){
+function initRiskMiniMapPopup(mapElement){
+
+  /*
+    이전 팝업 지도가 있으면 완전히 제거
+  */
   if(riskMiniMapPopup){
     riskMiniMapPopup.remove();
     riskMiniMapPopup = null;
+    riskMiniLayerPopup = null;
   }
 
-  riskMiniMapPopup = L.map("riskMiniMapPopup", {
+  /*
+    문자열 id가 아니라
+    실제 팝업 안 지도 요소를 직접 전달
+  */
+  if(!mapElement){
+    console.error("팝업 위험지도 영역을 찾지 못했습니다.");
+    return;
+  }
+
+  /*
+    Leaflet이 이전에 남긴 지도 식별값 제거
+  */
+  if(mapElement._leaflet_id){
+    delete mapElement._leaflet_id;
+  }
+
+  riskMiniMapPopup = L.map(mapElement, {
     zoomControl:true,
     attributionControl:false
-  }).setView([33.36,126.55], 9);
-
-  const jejuBounds = L.latLngBounds(
-    [33.18,126.15],
-    [33.58,126.98]
-  );
-
-  riskMiniMapPopup.fitBounds(jejuBounds, {
-    padding:[5,5]
   });
 
   L.tileLayer(
@@ -12972,80 +12984,165 @@ function initRiskMiniMapPopup(){
     }
   ).addTo(riskMiniMapPopup);
 
-  riskMiniLayerPopup = L.layerGroup().addTo(riskMiniMapPopup);
+  riskMiniLayerPopup =
+    L.layerGroup().addTo(riskMiniMapPopup);
 
-  accidentData.forEach(accident => {
-    const epdo = accident.epdo || 1;
-    const color = getRiskColor(epdo);
+  /*
+    사고자료가 정상 배열일 때만 사고점 생성
+  */
+  if(Array.isArray(accidentData)){
 
-    L.circleMarker([accident.lat, accident.lng], {
-      radius:getRiskRadius(epdo),
-      color:color,
-      fillColor:color,
-      fillOpacity:.68,
-      weight:1
-    })
-    .bindPopup(
-      "<b>사고 정보</b><br>" +
-      "피해정도: " + (accident.severity || "-") + "<br>" +
-      "법규위반: " + (accident.violation || "-") + "<br>" +
-      "사고유형: " + (accident.type || accident.accidentType || accident.crashType || "-")
-    )
-    .addTo(riskMiniLayerPopup);
-  });
+    accidentData.forEach(accident => {
+
+      const lat = Number(accident.lat);
+      const lng = Number(accident.lng);
+
+      /*
+        좌표가 잘못된 사고자료는 건너뜀
+        하나의 잘못된 좌표 때문에 지도 전체가 멈추는 것 방지
+      */
+      if(
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ){
+        return;
+      }
+
+      const epdo =
+        Number(accident.epdo) || 1;
+
+      const color =
+        getRiskColor(epdo);
+
+      L.circleMarker(
+        [lat, lng],
+        {
+          radius:getRiskRadius(epdo),
+          color:color,
+          fillColor:color,
+          fillOpacity:.68,
+          weight:1
+        }
+      )
+      .bindPopup(
+        "<b>사고 정보</b><br>" +
+        "피해정도: " +
+        (accident.severity || "-") +
+        "<br>" +
+        "법규위반: " +
+        (accident.violation || "-") +
+        "<br>" +
+        "사고유형: " +
+        (
+          accident.type ||
+          accident.accidentType ||
+          accident.crashType ||
+          "-"
+        )
+      )
+      .addTo(riskMiniLayerPopup);
+    });
+  }
+
+  const jejuBounds = L.latLngBounds(
+    [33.18,126.15],
+    [33.58,126.98]
+  );
 
   setTimeout(() => {
+
+    if(!riskMiniMapPopup){
+      return;
+    }
+
     riskMiniMapPopup.invalidateSize();
-  }, 300);
+
+    riskMiniMapPopup.fitBounds(
+      jejuBounds,
+      {
+        padding:[5,5],
+        animate:false
+      }
+    );
+
+  }, 200);
 }
-
+  
 function updateAccidentStatsPopup(content){
-  if(!Array.isArray(accidentData)) return;
 
-  const total = accidentData.length;
+  if(
+    !content ||
+    !Array.isArray(accidentData)
+  ){
+    return;
+  }
 
-  const death = accidentData.filter(
-    accident =>
-      (accident.severity || "").includes("사망")
-  ).length;
+  const total =
+    accidentData.length;
 
-  const serious = accidentData.filter(
-    accident =>
-      (accident.severity || "").includes("중상")
-  ).length;
+  const death =
+    accidentData.filter(accident =>
+      String(
+        accident.severity || ""
+      ).includes("사망")
+    ).length;
 
-  const minor = accidentData.filter(
-    accident =>
-      (accident.severity || "").includes("경상")
-  ).length;
+  const serious =
+    accidentData.filter(accident =>
+      String(
+        accident.severity || ""
+      ).includes("중상")
+    ).length;
+
+  const minor =
+    accidentData.filter(accident =>
+      String(
+        accident.severity || ""
+      ).includes("경상")
+    ).length;
 
   const totalEl =
-    content.querySelector("#totalAccidentCount");
+    content.querySelector(
+      "#popupTotalAccidentCount"
+    );
 
   const deathEl =
-    content.querySelector("#deathCount");
+    content.querySelector(
+      "#popupDeathCount"
+    );
 
   const seriousEl =
-    content.querySelector("#seriousCount");
+    content.querySelector(
+      "#popupSeriousCount"
+    );
 
   const minorEl =
-    content.querySelector("#minorCount");
+    content.querySelector(
+      "#popupMinorCount"
+    );
 
   if(totalEl){
     totalEl.textContent =
-      total.toLocaleString() + "건";
+      total.toLocaleString("ko-KR") +
+      "건";
   }
 
   if(deathEl){
-    deathEl.textContent = death + "건";
+    deathEl.textContent =
+      death.toLocaleString("ko-KR") +
+      "건";
   }
 
   if(seriousEl){
-    seriousEl.textContent = serious + "건";
+    seriousEl.textContent =
+      serious.toLocaleString("ko-KR") +
+      "건";
   }
 
   if(minorEl){
-    minorEl.textContent = minor + "건";
+    minorEl.textContent =
+      minor.toLocaleString("ko-KR") +
+      "건";
   }
 }
 function updateAccidentStats(){
@@ -13226,22 +13323,101 @@ function openMenuPopup(type){
   */
   popup.classList.remove("road-info-mode");
 
-  if(type === "risk"){
-    title.innerText = "사고 위험 지도";
-    content.innerHTML = document.getElementById("riskMapPage").innerHTML;
-    popup.classList.add("active");
-setTimeout(() => {
-  const mapBox = content.querySelector("#riskMiniMap");
+if(type === "risk"){
 
-  if(mapBox){
-    mapBox.id = "riskMiniMapPopup";
-    mapBox.style.width = "100%";
-    initRiskMiniMapPopup();
+  title.innerText = "사고 위험 지도";
+
+  /*
+    원본 위험지도 내용을 복사
+  */
+  content.innerHTML =
+    document.getElementById(
+      "riskMapPage"
+    ).innerHTML;
+
+  /*
+    복사된 통계 id를 팝업 전용 id로 변경
+    원본 화면 id와 중복되는 문제 방지
+  */
+  const totalEl =
+    content.querySelector(
+      "#totalAccidentCount"
+    );
+
+  const deathEl =
+    content.querySelector(
+      "#deathCount"
+    );
+
+  const seriousEl =
+    content.querySelector(
+      "#seriousCount"
+    );
+
+  const minorEl =
+    content.querySelector(
+      "#minorCount"
+    );
+
+  if(totalEl){
+    totalEl.id =
+      "popupTotalAccidentCount";
   }
 
+  if(deathEl){
+    deathEl.id =
+      "popupDeathCount";
+  }
+
+  if(seriousEl){
+    seriousEl.id =
+      "popupSeriousCount";
+  }
+
+  if(minorEl){
+    minorEl.id =
+      "popupMinorCount";
+  }
+
+  /*
+    팝업을 먼저 화면에 표시
+  */
+  popup.classList.add("active");
+
+  /*
+    지도와 관계없이 숫자는 즉시 표시
+  */
   updateAccidentStatsPopup(content);
-}, 300);
-  }
+
+  setTimeout(() => {
+
+    const mapBox =
+      content.querySelector(
+        "#riskMiniMap"
+      );
+
+    if(!mapBox){
+      console.error(
+        "팝업 지도 영역이 없습니다."
+      );
+      return;
+    }
+
+    mapBox.removeAttribute("id");
+    mapBox.classList.add(
+      "risk-mini-map-popup"
+    );
+
+    mapBox.style.width = "100%";
+    mapBox.style.height = "260px";
+
+    /*
+      실제 요소를 지도 함수에 전달
+    */
+    initRiskMiniMapPopup(mapBox);
+
+  }, 150);
+}
 
 if(type === "roadGuide"){
   title.innerText = "제주 주요 도로 안내";
