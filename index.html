@@ -12880,6 +12880,25 @@ function showSafetyGuide(){
     );
   }
 }
+
+  function getRiskColor(epdo){
+  const score = Number(epdo) || 0;
+
+  if(score >= 12){
+    return "#ef4444";
+  }
+
+  if(score >= 6){
+    return "#f97316";
+  }
+
+  if(score >= 3){
+    return "#facc15";
+  }
+
+  return "#10b981";
+}
+  
 function getRiskRadius(epdo){
   if(epdo >= 12) return 7;
   if(epdo >= 6) return 5;
