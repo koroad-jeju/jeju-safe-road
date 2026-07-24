@@ -12986,7 +12986,12 @@ function sendRouteAnalysisLog(){
           )
         : 0
   };
-
+console.log(
+  "경로분석결과 전송 시작:",
+  feedbackApiUrl,
+  data
+);
+  
 fetch(feedbackApiUrl,{
   method:"POST",
   mode:"no-cors",
