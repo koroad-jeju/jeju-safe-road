@@ -6918,6 +6918,13 @@ let lastRouteSummaries = [];
 let lastFeedbackData = {};
 let selectedRouteIndex = 0;
 let ratingSubmitted = false;
+
+/*
+  새 데이터 수집용
+*/
+let currentAnalysisId = "";
+let currentActionOrder = 0;
+let currentRouteProvider = "";
   
 /*
   ORS 요청 중복·백그라운드 재시도 관리
@@ -12728,34 +12735,288 @@ body:JSON.stringify({
 })
   });
 }
+function createAnalysisId(){
+
+  return (
+    "A_" +
+    Date.now() +
+    "_" +
+    Math.random()
+      .toString(36)
+      .slice(2, 8)
+  );
+}
+
+
+function getRouteRoadNamesForLog(route){
+
+  if(!Array.isArray(route?.roadNames)){
+    return "";
+  }
+
+  return route.roadNames
+    .map(road => {
+
+      if(typeof road === "string"){
+        return road;
+      }
+
+      return road?.name || "";
+    })
+    .filter(Boolean)
+    .join(", ");
+}
+
+
+function compareCourseNumber(
+  route1Value,
+  route2Value
+){
+
+  const value1 =
+    Number(route1Value);
+
+  const value2 =
+    Number(route2Value);
+
+  if(
+    !Number.isFinite(value1) ||
+    !Number.isFinite(value2)
+  ){
+    return "";
+  }
+
+  if(value1 < value2){
+    return 1;
+  }
+
+  if(value2 < value1){
+    return 2;
+  }
+
+  /*
+    두 값이 같을 때
+  */
+  return 0;
+}
+
+
 function sendRouteAnalysisLog(){
+
+  if(
+    !Array.isArray(lastRouteSummaries) ||
+    lastRouteSummaries.length === 0
+  ){
+    return;
+  }
+
+  const route1 =
+    lastRouteSummaries[0];
+
+  const route2 =
+    lastRouteSummaries[1] || null;
+
+  const route1Risk =
+    Math.round(
+      Number(route1?.risk?.score || 0)
+    );
+
+  const route2Risk =
+    route2
+      ? Math.round(
+          Number(route2?.risk?.score || 0)
+        )
+      : "";
+
+  /*
+    분석마다 새로운 고유번호 생성
+  */
+  currentAnalysisId =
+    createAnalysisId();
+
+  currentActionOrder = 0;
+
+  /*
+    ORS인지 카카오 백업인지 확인
+  */
+  currentRouteProvider =
+    route1?.provider ||
+    route1?.feature?.properties?.provider ||
+    "ORS";
+
+  const data = {
+
+    recordType:
+      "route_analysis",
+
+    analysisId:
+      currentAnalysisId,
+
+    start:
+      lastStart?.name || "",
+
+    end:
+      lastEnd?.name || "",
+
+    startArea:
+      customStartArea || "기타",
+
+    endArea:
+      customEndArea || "기타",
+
+    provider:
+      currentRouteProvider,
+
+    routeCount:
+      lastRouteSummaries.length,
+
+
+    /*
+      1코스
+    */
+    route1Distance:
+      Number(route1?.distanceKm || 0),
+
+    route1Time:
+      Number(route1?.durationMin || 0),
+
+    route1AccidentCount:
+      Number(
+        route1?.risk?.totalCount || 0
+      ),
+
+    route1Epdo:
+      Number(
+        route1?.risk?.totalEpdo || 0
+      ),
+
+    route1Risk:
+      route1Risk,
+
+    route1Roads:
+      getRouteRoadNamesForLog(route1),
+
+    route1DifficultRoads:
+      getDifficultRoadNames(route1)
+        .join(", "),
+
+
+    /*
+      2코스
+    */
+    route2Distance:
+      route2
+        ? Number(route2.distanceKm || 0)
+        : "",
+
+    route2Time:
+      route2
+        ? Number(route2.durationMin || 0)
+        : "",
+
+    route2AccidentCount:
+      route2
+        ? Number(
+            route2?.risk?.totalCount || 0
+          )
+        : "",
+
+    route2Epdo:
+      route2
+        ? Number(
+            route2?.risk?.totalEpdo || 0
+          )
+        : "",
+
+    route2Risk:
+      route2Risk,
+
+    route2Roads:
+      route2
+        ? getRouteRoadNamesForLog(route2)
+        : "",
+
+    route2DifficultRoads:
+      route2
+        ? getDifficultRoadNames(route2)
+            .join(", ")
+        : "",
+
+
+    /*
+      자동 비교값
+    */
+    fasterCourse:
+      route2
+        ? compareCourseNumber(
+            route1.durationMin,
+            route2.durationMin
+          )
+        : 1,
+
+    shorterCourse:
+      route2
+        ? compareCourseNumber(
+            route1.distanceKm,
+            route2.distanceKm
+          )
+        : 1,
+
+    lowerRiskCourse:
+      route2
+        ? compareCourseNumber(
+            route1Risk,
+            route2Risk
+          )
+        : 1,
+
+    timeGap:
+      route2
+        ? Math.abs(
+            Number(route1.durationMin) -
+            Number(route2.durationMin)
+          )
+        : 0,
+
+    distanceGap:
+      route2
+        ? Number(
+            Math.abs(
+              Number(route1.distanceKm) -
+              Number(route2.distanceKm)
+            ).toFixed(1)
+          )
+        : 0,
+
+    riskGap:
+      route2
+        ? Math.abs(
+            route1Risk -
+            Number(route2Risk)
+          )
+        : 0
+  };
 
   fetch(feedbackApiUrl,{
     method:"POST",
     mode:"no-cors",
     keepalive:true,
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      start:lastFeedbackData.start,
-      end:lastFeedbackData.end,
-      route:lastFeedbackData.route,
-      distance:lastFeedbackData.distance,
-      time:lastFeedbackData.time,
-      count:lastFeedbackData.count,
-      epdo:lastFeedbackData.epdo,
-      risk:lastFeedbackData.risk,
-      feedback:"경로분석",
 
-      routeChoice:lastFeedbackData.routeChoice,
-      altRisk:lastFeedbackData.altRisk,
-      riskDiff:lastFeedbackData.riskDiff,
-      altTime:lastFeedbackData.altTime,
-      timeDiff:lastFeedbackData.timeDiff,
-      navigation:"",
-      currentArea:lastFeedbackData.currentArea
-    })
+    headers:{
+      "Content-Type":
+        "application/json"
+    },
+
+    body:
+      JSON.stringify(data)
+  })
+  .catch(error => {
+
+    console.warn(
+      "경로분석결과 저장 실패:",
+      error
+    );
+
   });
 }
   function sendNavigationLog(navigationName){
