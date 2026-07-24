@@ -11790,6 +11790,13 @@ line.setStyle({
     선택 경로 기준으로 통계 저장값도 변경
   */
   updateLastFeedbackData(index);
+      /*
+  사용자가 실제로 누른 코스 기록
+*/
+sendUserAction(
+  "course_click",
+  index + 1
+);
 }
 
   /* ===== 코스별 사고 특성 분석 ===== */
@@ -12708,32 +12715,15 @@ if(card){
   `;
 }
 
-  fetch(feedbackApiUrl,{
-    method:"POST",
-    mode:"no-cors",
-    headers:{
-      "Content-Type":"application/json"
-    },
-body:JSON.stringify({
-  start:lastFeedbackData.start,
-  end:lastFeedbackData.end,
-  route:lastFeedbackData.route,
-  distance:lastFeedbackData.distance,
-  time:lastFeedbackData.time,
-  count:lastFeedbackData.count,
-  epdo:lastFeedbackData.epdo,
-  risk:lastFeedbackData.risk,
-  feedback:"별점 " + score,
-
-  routeChoice:lastFeedbackData.routeChoice,
-  altRisk:lastFeedbackData.altRisk,
-  riskDiff:lastFeedbackData.riskDiff,
-  altTime:lastFeedbackData.altTime,
-  timeDiff:lastFeedbackData.timeDiff,
-  navigation:lastFeedbackData.navigation,
-  currentArea:lastFeedbackData.currentArea
-})
-  });
+/*
+  별점 행동로그 저장
+*/
+sendUserAction(
+  "feedback",
+  "",
+  "",
+  score
+);
 }
 function createAnalysisId(){
 
@@ -13019,36 +13009,99 @@ function sendRouteAnalysisLog(){
 
   });
 }
-  function sendNavigationLog(navigationName){
+  function sendUserAction(
+  eventType,
+  course = "",
+  navigation = "",
+  rating = ""
+){
 
-  lastNavigation = navigationName;
+  /*
+    경로분석이 정상적으로 저장된 이후에만
+    행동로그를 저장
+  */
+  if(!currentAnalysisId){
+    console.warn(
+      "AnalysisID가 없어 행동로그를 저장하지 않습니다."
+    );
+
+    return;
+  }
+
+  currentActionOrder += 1;
+
+  const data = {
+    recordType:"user_action",
+
+    analysisId:
+      currentAnalysisId,
+
+    actionOrder:
+      currentActionOrder,
+
+    eventType:
+      eventType,
+
+    course:
+      course,
+
+    activeCourse:
+      selectedRouteIndex + 1,
+
+    navigation:
+      navigation,
+
+    rating:
+      rating
+  };
+
+  console.log(
+    "행동로그 전송:",
+    data
+  );
 
   fetch(feedbackApiUrl,{
     method:"POST",
     mode:"no-cors",
     keepalive:true,
+
+    /*
+      Apps Script 전송 오류 방지를 위해
+      text/plain 사용
+    */
     headers:{
-      "Content-Type":"application/json"
+      "Content-Type":
+        "text/plain;charset=utf-8"
     },
-    body:JSON.stringify({
-      start:lastStart?.name || "",
-      end:lastEnd?.name || "",
-      route:"내비 자체경로",
-      distance:"",
-      time:"",
-      count:"",
-      epdo:"",
-      risk:"",
-      feedback:"길안내",
-      routeChoice:"내비 앱 자체경로",
-      altRisk:"",
-      riskDiff:"",
-      altTime:"",
-      timeDiff:"",
-      navigation:navigationName,
-      currentArea:customStartArea || "기타"
-    })
+
+    body:
+      JSON.stringify(data)
+  })
+  .catch(error => {
+
+    console.warn(
+      "행동로그 저장 실패:",
+      error
+    );
+
   });
+}
+  function sendNavigationLog(
+  navigationName
+){
+
+  lastNavigation =
+    navigationName;
+
+  /*
+    내비를 누른 당시
+    화면에서 활성화되어 있던 코스 기록
+  */
+  sendUserAction(
+    "navigation_click",
+    selectedRouteIndex + 1,
+    navigationName
+  );
 }
   function openAdminStats(){
   const input = prompt("관리자 비밀번호를 입력하세요.");
