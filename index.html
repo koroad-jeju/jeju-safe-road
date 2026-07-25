@@ -8788,47 +8788,69 @@ slowLoadingTimer = setTimeout(() => {
   try{
 /*
   최종적으로 사용할 경로 데이터
-  ORS 또는 카카오 중 성공한 결과가 들어감
+  카카오를 우선 사용하고,
+  카카오 실패 시 ORS를 보조로 사용
 */
 let data = null;
-let routeProvider = "ors";
+let routeProvider = "kakao";
 
 try{
 
   /*
-    백그라운드 복구 요청은 ORS만 다시 확인
-    최초 사용자 요청일 때만 카카오 백업 사용
+    최초 경로분석은 카카오를 먼저 요청
   */
-  const response =
-    await requestOrsRoute(
-      body,
-      {
-        overallTimeoutMs:12000,
-        maxAttempts:2
-      }
+  if(!isBackgroundRetry){
+
+    data =
+      await requestKakaoBackupRoute(
+        startLng,
+        startLat,
+        endLng,
+        endLat
+      );
+
+    routeProvider = "kakao";
+
+    console.log(
+      "[실시간 경로 제공자] 카카오 메인"
     );
 
-  data =
-    await response.json();
+  }else{
 
-  routeProvider = "ors";
+    /*
+      백그라운드 재시도는 ORS만 확인
+    */
+    const response =
+      await requestOrsRoute(
+        body,
+        {
+          overallTimeoutMs:8500,
+          maxAttempts:1
+        }
+      );
 
-  console.log(
-    "[실시간 경로 제공자] ORS"
-  );
+    data =
+      await response.json();
 
-}catch(orsError){
+    routeProvider = "ors";
+
+    console.log(
+      "[백그라운드 경로 제공자] ORS"
+    );
+  }
+
+}catch(kakaoOrBackgroundError){
 
   console.error(
     isBackgroundRetry
       ? "백그라운드 ORS 재분석 실패:"
-      : "ORS 경로 요청 실패:",
-    orsError
+      : "카카오 메인 경로 요청 실패:",
+    kakaoOrBackgroundError
   );
 
   /*
     사용자가 이미 다른 경로를 검색했다면
-    과거 요청 결과는 모두 무시
+    이전 요청 결과는 무시
   */
   if(
     requestToken !==
@@ -8838,8 +8860,7 @@ try{
   }
 
   /*
-    백그라운드 요청에서는
-    카카오를 다시 부르지 않고 ORS만 재확인
+    백그라운드 ORS 재시도 실패
   */
   if(isBackgroundRetry){
 
@@ -8854,26 +8875,29 @@ try{
   }
 
   /*
-    최초 ORS 실패 시
-    카카오 백업 경로를 즉시 요청
+    카카오 실패 시 ORS 보조 요청
   */
   try{
 
-    data =
-      await requestKakaoBackupRoute(
-        startLng,
-        startLat,
-        endLng,
-        endLat
+    const response =
+      await requestOrsRoute(
+        body,
+        {
+          overallTimeoutMs:12000,
+          maxAttempts:2
+        }
       );
 
-    routeProvider = "kakao";
+    data =
+      await response.json();
+
+    routeProvider = "ors";
 
     console.log(
-      "[실시간 경로 제공자] 카카오 백업"
+      "[실시간 경로 제공자] ORS 보조"
     );
 
-  }catch(kakaoError){
+  }catch(orsError){
 
     if(slowLoadingTimer){
       clearTimeout(
@@ -8882,22 +8906,15 @@ try{
     }
 
     console.error(
-      "ORS와 카카오 경로가 모두 실패했습니다.",
+      "카카오와 ORS 경로가 모두 실패했습니다.",
       {
-        ors:orsError,
-        kakao:kakaoError
+        kakao:kakaoOrBackgroundError,
+        ors:orsError
       }
     );
 
-    /*
-      두 API가 모두 실패한 경우에만
-      최근 성공 결과 또는 권역 안내 표시
-    */
     showRouteFallback();
 
-    /*
-      화면 뒤에서는 ORS 복구 여부를 재확인
-    */
     scheduleBackgroundRouteRetry(
       requestToken,
       1
@@ -8906,8 +8923,6 @@ try{
     return;
   }
 }
-
-
 /*
   ORS 또는 카카오 중 하나가 성공한 경우
   로딩 지연 안내 타이머 제거
