@@ -8987,11 +8987,27 @@ if(isBackgroundRetry){
   );
 }
 
-   let routes = data.features;
+  let routes = data.features;
 
-routes = filterMeaningfulAlternativeRoutes(routes);
+/*
+  카카오는 백업 서버에서 이미
+  서로 다른 2개 경로를 받아오므로 그대로 사용합니다.
 
-console.log("최종 표시 경로 개수:", routes.length);
+  ORS 경로만 지나치게 유사한 대안경로를 정리합니다.
+*/
+if(routeProvider === "kakao"){
+  routes = routes.slice(0, 2);
+}else{
+  routes =
+    filterMeaningfulAlternativeRoutes(
+      routes
+    );
+}
+
+console.log(
+  "최종 표시 경로 개수:",
+  routes.length
+);
 console.log(
   routeProvider === "kakao"
     ? "카카오 백업 전체 응답:"
@@ -9173,6 +9189,10 @@ const roadProfiles =
   );
 
 routeSummaries[index] = {
+   provider:
+    routeProvider === "kakao"
+      ? "KAKAO"
+      : "ORS",
   coords:coords,
   distanceKm:distanceKm,
   durationMin:durationMin,
@@ -12873,10 +12893,12 @@ const route2Risk =
   /*
     ORS인지 카카오 백업인지 확인
   */
-  currentRouteProvider =
+currentRouteProvider =
+  String(
     route1?.provider ||
     route1?.feature?.properties?.provider ||
-    "ORS";
+    "ORS"
+  ).toUpperCase();
 
   const data = {
 
