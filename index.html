@@ -13108,31 +13108,150 @@ fetch(feedbackApiUrl,{
     navigationName
   );
 }
-  function openAdminStats(){
-  const input = prompt("관리자 비밀번호를 입력하세요.");
+function openAdminStats(){
+
+  const input =
+    prompt(
+      "관리자 비밀번호를 입력하세요."
+    );
 
   if(input !== adminPassword){
-    alert("비밀번호가 올바르지 않습니다.");
+
+    alert(
+      "비밀번호가 올바르지 않습니다."
+    );
+
     return;
   }
 
-  document.getElementById("adminStatsPage").classList.add("active");
-   fetch(feedbackApiUrl)
-  .then(res => res.json())
-  .then(data => {
+  const page =
+    document.getElementById(
+      "adminStatsPage"
+    );
 
-   document.getElementById("statTotal").innerText =
-  data.totalRoute;
+  page.classList.add(
+    "active"
+  );
 
-document.getElementById("statGoodRate").innerText =
-  "⭐ " + data.avgRating;
+  /*
+    불러오는 동안 표시
+  */
+  document.getElementById(
+    "statTotal"
+  ).innerText = "불러오는 중";
 
-document.getElementById("statGood").innerText =
-  data.ratingCount + "건";
+  document.getElementById(
+    "statGoodRate"
+  ).innerText = "불러오는 중";
 
-document.getElementById("statBad").innerText =
-  data.fiveStarRate + "%";
-  });
+  document.getElementById(
+    "statGood"
+  ).innerText = "불러오는 중";
+
+  document.getElementById(
+    "statBad"
+  ).innerText = "불러오는 중";
+
+  fetch(
+    feedbackApiUrl +
+    "?mode=stats&t=" +
+    Date.now(),
+    {
+      method:"GET",
+      cache:"no-store"
+    }
+  )
+    .then(response => {
+
+      if(!response.ok){
+
+        throw new Error(
+          "통계 서버 응답 오류: " +
+          response.status
+        );
+
+      }
+
+      return response.json();
+
+    })
+    .then(data => {
+
+      if(data.ok === false){
+
+        throw new Error(
+          data.message ||
+          "통계 조회에 실패했습니다."
+        );
+
+      }
+
+      const totalRoute =
+        Number(data.totalRoute) || 0;
+
+      const avgRating =
+        Number(data.avgRating) || 0;
+
+      const ratingCount =
+        Number(data.ratingCount) || 0;
+
+      const fiveStarRate =
+        Number(data.fiveStarRate) || 0;
+
+      document.getElementById(
+        "statTotal"
+      ).innerText =
+        totalRoute.toLocaleString();
+
+      document.getElementById(
+        "statGoodRate"
+      ).innerText =
+        "⭐ " +
+        avgRating.toFixed(1);
+
+      document.getElementById(
+        "statGood"
+      ).innerText =
+        ratingCount.toLocaleString() +
+        "건";
+
+      document.getElementById(
+        "statBad"
+      ).innerText =
+        fiveStarRate.toFixed(1) +
+        "%";
+
+    })
+    .catch(error => {
+
+      console.error(
+        "관리자 통계 조회 실패:",
+        error
+      );
+
+      document.getElementById(
+        "statTotal"
+      ).innerText = "0";
+
+      document.getElementById(
+        "statGoodRate"
+      ).innerText = "⭐ 0.0";
+
+      document.getElementById(
+        "statGood"
+      ).innerText = "0건";
+
+      document.getElementById(
+        "statBad"
+      ).innerText = "0.0%";
+
+      alert(
+        "통계를 불러오지 못했습니다.\n" +
+        "Apps Script 배포 상태를 확인해주세요."
+      );
+
+    });
+
 }
 function closeAdminStats(){
   document.getElementById("adminStatsPage").classList.remove("active");
