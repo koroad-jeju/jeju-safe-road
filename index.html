@@ -6555,15 +6555,21 @@ body.tourism-news-mode #map{
     </div>
   </div>
 
-  <div class="admin-list-card">
-    <h3>인기 목적지 TOP</h3>
-    <p>Google Sheets 통계 연결 후 자동 표시됩니다.</p>
-  </div>
+<div class="admin-list-card">
+  <h3>인기 목적지 TOP 5</h3>
 
-  <div class="admin-list-card">
-    <h3>최근 이용 기록</h3>
-    <p>Google Sheets 통계 연결 후 자동 표시됩니다.</p>
+  <div id="popularDestinationList">
+    <p>통계를 불러오는 중입니다.</p>
   </div>
+</div>
+
+<div class="admin-list-card">
+  <h3>최근 이용 기록</h3>
+
+  <div id="recentRouteList">
+    <p>최근 기록을 불러오는 중입니다.</p>
+  </div>
+</div>
 </div>
   <button class="admin-floating-btn" onclick="openAdminStats()">
  <img src="chart-bar.svg">
@@ -13108,6 +13114,7 @@ fetch(feedbackApiUrl,{
     navigationName
   );
 }
+
 function openAdminStats(){
 
   const input =
@@ -13133,6 +13140,7 @@ function openAdminStats(){
     "active"
   );
 
+
   /*
     불러오는 동안 표시
   */
@@ -13151,6 +13159,28 @@ function openAdminStats(){
   document.getElementById(
     "statBad"
   ).innerText = "불러오는 중";
+
+
+  const popularList =
+    document.getElementById(
+      "popularDestinationList"
+    );
+
+  const recentList =
+    document.getElementById(
+      "recentRouteList"
+    );
+
+  if(popularList){
+    popularList.innerHTML =
+      "<p>통계를 불러오는 중입니다.</p>";
+  }
+
+  if(recentList){
+    recentList.innerHTML =
+      "<p>최근 기록을 불러오는 중입니다.</p>";
+  }
+
 
   fetch(
     feedbackApiUrl +
@@ -13186,6 +13216,10 @@ function openAdminStats(){
 
       }
 
+
+      /*
+        상단 통계
+      */
       const totalRoute =
         Number(data.totalRoute) || 0;
 
@@ -13197,6 +13231,7 @@ function openAdminStats(){
 
       const fiveStarRate =
         Number(data.fiveStarRate) || 0;
+
 
       document.getElementById(
         "statTotal"
@@ -13221,6 +13256,115 @@ function openAdminStats(){
         fiveStarRate.toFixed(1) +
         "%";
 
+
+      /*
+        인기 목적지 TOP 5
+      */
+      const popularDestinations =
+        Array.isArray(
+          data.popularDestinations
+        )
+          ? data.popularDestinations
+          : [];
+
+      if(popularList){
+
+        if(
+          popularDestinations.length === 0
+        ){
+
+          popularList.innerHTML =
+            "<p>아직 집계된 목적지가 없습니다.</p>";
+
+        }else{
+
+          popularList.innerHTML =
+            popularDestinations
+              .map((item, index) => {
+
+                const name =
+                  item.name || "목적지 없음";
+
+                const count =
+                  Number(item.count) || 0;
+
+                return `
+                  <p>
+                    <b>${index + 1}위</b>
+                    ${name}
+                    · ${count.toLocaleString()}회
+                  </p>
+                `;
+
+              })
+              .join("");
+
+        }
+      }
+
+
+      /*
+        최근 경로분석 기록
+      */
+      const recentRoutes =
+        Array.isArray(
+          data.recentRoutes
+        )
+          ? data.recentRoutes
+          : [];
+
+      if(recentList){
+
+        if(recentRoutes.length === 0){
+
+          recentList.innerHTML =
+            "<p>최근 이용 기록이 없습니다.</p>";
+
+        }else{
+
+          recentList.innerHTML =
+            recentRoutes
+              .map(route => {
+
+                const start =
+                  route.start ||
+                  "출발지 없음";
+
+                const end =
+                  route.end ||
+                  "목적지 없음";
+
+                const provider =
+                  route.provider ||
+                  "-";
+
+                const savedAt =
+                  route.savedAt ||
+                  "";
+
+                const routeCount =
+                  Number(
+                    route.routeCount
+                  ) || 0;
+
+                return `
+                  <p>
+                    <b>
+                      ${start} → ${end}
+                    </b>
+                    <br>
+                    ${savedAt}
+                    · ${provider}
+                    · ${routeCount}개 코스
+                  </p>
+                `;
+
+              })
+              .join("");
+
+        }
+      }
+
     })
     .catch(error => {
 
@@ -13244,6 +13388,16 @@ function openAdminStats(){
       document.getElementById(
         "statBad"
       ).innerText = "0.0%";
+
+      if(popularList){
+        popularList.innerHTML =
+          "<p>통계를 불러오지 못했습니다.</p>";
+      }
+
+      if(recentList){
+        recentList.innerHTML =
+          "<p>최근 기록을 불러오지 못했습니다.</p>";
+      }
 
       alert(
         "통계를 불러오지 못했습니다.\n" +
