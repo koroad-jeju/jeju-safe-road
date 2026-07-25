@@ -8359,15 +8359,82 @@ throw new Error(
 );
 }
 
-/* ==================================================
-   카카오 백업 경로
-   카카오 응답을 기존 ORS GeoJSON 구조로 변환
-================================================== */
 
-  /* ==================================================
-   카카오 백업 경로
-   카카오 응답을 기존 ORS GeoJSON 구조로 변환
-================================================== */
+  function calculateRouteSimilarity(
+  routeA,
+  routeB,
+  {
+    sampleStep = 8,
+    matchDistanceMeters = 120
+  } = {}
+){
+  const coordsA =
+    routeA?.geometry?.coordinates || [];
+
+  const coordsB =
+    routeB?.geometry?.coordinates || [];
+
+  if(
+    coordsA.length < 2 ||
+    coordsB.length < 2
+  ){
+    return 0;
+  }
+
+  const sampledA =
+    coordsA.filter(
+      (_, index) =>
+        index % sampleStep === 0
+    );
+
+  const sampledB =
+    coordsB.filter(
+      (_, index) =>
+        index % sampleStep === 0
+    );
+
+  if(
+    sampledA.length === 0 ||
+    sampledB.length === 0
+  ){
+    return 0;
+  }
+
+  let matchedCount = 0;
+
+  sampledA.forEach(coordA => {
+
+    const lngA = Number(coordA[0]);
+    const latA = Number(coordA[1]);
+
+    const hasNearbyPoint =
+      sampledB.some(coordB => {
+
+        const lngB = Number(coordB[0]);
+        const latB = Number(coordB[1]);
+
+        const distance =
+          map.distance(
+            [latA, lngA],
+            [latB, lngB]
+          );
+
+        return (
+          distance <=
+          matchDistanceMeters
+        );
+      });
+
+    if(hasNearbyPoint){
+      matchedCount++;
+    }
+  });
+
+  return (
+    matchedCount /
+    sampledA.length
+  );
+}
 
 function convertKakaoRouteToOrsFormat(
   kakaoData
@@ -8963,6 +9030,44 @@ if(
   !Array.isArray(data.features) ||
   data.features.length === 0
 ){
+  /*
+  카카오 1·2코스 유사도 확인
+*/
+if(
+  routeProvider === "kakao" &&
+  Array.isArray(data.features) &&
+  data.features.length >= 2
+){
+  const kakaoSimilarity =
+    calculateRouteSimilarity(
+      data.features[0],
+      data.features[1]
+    );
+
+  console.log(
+    "[카카오 경로 유사도]",
+    Math.round(
+      kakaoSimilarity * 100
+    ) + "%"
+  );
+
+  if(kakaoSimilarity >= 0.9){
+    console.warn(
+      "[카카오 대안경로 판정]",
+      "두 경로가 매우 유사합니다."
+    );
+  }else if(kakaoSimilarity >= 0.75){
+    console.log(
+      "[카카오 대안경로 판정]",
+      "일부 구간이 유사하지만 비교 가능한 경로입니다."
+    );
+  }else{
+    console.log(
+      "[카카오 대안경로 판정]",
+      "서로 다른 경로입니다."
+    );
+  }
+}
   throw new Error(
     "사용 가능한 경로 데이터가 없습니다."
   );
