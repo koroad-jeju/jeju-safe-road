@@ -12746,21 +12746,49 @@ function createAnalysisId(){
 
 function getRouteRoadNamesForLog(route){
 
-  if(!Array.isArray(route?.roadNames)){
-    return "";
+  /*
+    화면용 주요도로가 있으면 우선 저장
+  */
+  const displayedRoads =
+    Array.isArray(route?.roadNames)
+      ? route.roadNames
+          .map(road => {
+            if(typeof road === "string"){
+              return road;
+            }
+
+            return road?.name || "";
+          })
+          .filter(Boolean)
+      : [];
+
+  if(displayedRoads.length > 0){
+    return [...new Set(displayedRoads)]
+      .slice(0, 3)
+      .join(", ");
   }
 
-  return route.roadNames
-    .map(road => {
+  /*
+    화면용 도로가 없으면
+    탐지된 제주 도로 프로필로 보완
+  */
+  const profileRoads =
+    Array.isArray(route?.roadProfiles)
+      ? route.roadProfiles
+          .map(profile => profile?.name || "")
+          .filter(Boolean)
+      : [];
 
-      if(typeof road === "string"){
-        return road;
-      }
+  if(profileRoads.length > 0){
+    return [...new Set(profileRoads)]
+      .slice(0, 3)
+      .join(", ");
+  }
 
-      return road?.name || "";
-    })
-    .filter(Boolean)
-    .join(", ");
+  /*
+    그래도 없으면 일반도로로 기록
+  */
+  return "일반도로";
 }
 
 
@@ -12812,17 +12840,13 @@ function sendRouteAnalysisLog(){
   const route2 =
     lastRouteSummaries[1] || null;
 
-  const route1Risk =
-    Math.round(
-      Number(route1?.risk?.score || 0)
-    );
+const route1Risk =
+  getRouteRiskScore(route1);
 
-  const route2Risk =
-    route2
-      ? Math.round(
-          Number(route2?.risk?.score || 0)
-        )
-      : "";
+const route2Risk =
+  route2
+    ? getRouteRiskScore(route2)
+    : "";
 
   /*
     분석마다 새로운 고유번호 생성
@@ -12854,11 +12878,21 @@ function sendRouteAnalysisLog(){
     end:
       lastEnd?.name || "",
 
-    startArea:
-      customStartArea || "기타",
-
+   startArea:
+  customStartArea !== "기타"
+    ? customStartArea
+    : (
+        (lastStart?.name || "").includes("공항")
+          ? "공항권"
+          : "기타"
+      ),
     endArea:
-      customEndArea || "기타",
+  customEndArea !== "기타"
+    ? customEndArea
+    : getDestinationRegion(
+        lastEnd?.name || "",
+        "기타"
+      ),
 
     provider:
       currentRouteProvider,
@@ -12882,9 +12916,9 @@ function sendRouteAnalysisLog(){
       ),
 
     route1Epdo:
-      Number(
-        route1?.risk?.totalEpdo || 0
-      ),
+  Number(
+    route1?.accidentAnalysis?.totalEpdo || 0
+  ),
 
     route1Risk:
       route1Risk,
@@ -12917,13 +12951,12 @@ function sendRouteAnalysisLog(){
           )
         : "",
 
-    route2Epdo:
-      route2
-        ? Number(
-            route2?.risk?.totalEpdo || 0
-          )
-        : "",
-
+   route2Epdo:
+  route2
+    ? Number(
+        route2?.accidentAnalysis?.totalEpdo || 0
+      )
+    : "",
     route2Risk:
       route2Risk,
 
