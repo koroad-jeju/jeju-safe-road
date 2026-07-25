@@ -9069,14 +9069,16 @@ if(
 }
 
 /*
-  카카오 1·2코스 유사도 확인
-  경로 데이터가 정상적으로 존재할 때 실행
+  카카오 경로 유사도 확인
+  유사하거나 1개뿐이면 ORS 대안경로를 시험 탐색
 */
+let kakaoSimilarity = 0;
+
 if(
   routeProvider === "kakao" &&
   data.features.length >= 2
 ){
-  const kakaoSimilarity =
+  kakaoSimilarity =
     calculateRouteSimilarity(
       data.features[0],
       data.features[1]
@@ -9096,15 +9098,89 @@ if(
     );
 
   }else if(kakaoSimilarity >= 0.65){
-    console.log(
+    console.warn(
       "[카카오 대안경로 판정]",
-      "일부 구간이 유사하지만 비교 가능한 경로입니다."
+      "두 경로의 상당 구간이 유사하여 ORS 대안을 확인합니다."
     );
 
   }else{
     console.log(
       "[카카오 대안경로 판정]",
       "서로 다른 경로입니다."
+    );
+  }
+}
+
+/*
+  카카오 경로가 1개이거나
+  두 경로 유사도가 65% 이상이면
+  ORS 대안경로를 보조로 확인
+*/
+const shouldCheckOrsAlternative =
+  !isBackgroundRetry &&
+  routeProvider === "kakao" &&
+  (
+    data.features.length < 2 ||
+    kakaoSimilarity >= 0.65
+  );
+
+if(shouldCheckOrsAlternative){
+
+  console.log(
+    "[ORS 대안경로 보조 탐색 시작]"
+  );
+
+  try{
+    const orsAlternativeResponse =
+      await requestOrsRoute(
+        body,
+        {
+          overallTimeoutMs:9000,
+          maxAttempts:1
+        }
+      );
+
+    const orsAlternativeData =
+      await orsAlternativeResponse.json();
+
+    const orsAlternativeRoutes =
+      Array.isArray(
+        orsAlternativeData?.features
+      )
+        ? orsAlternativeData.features
+        : [];
+
+    console.log(
+      "[ORS 대안경로 수]",
+      orsAlternativeRoutes.length
+    );
+
+    /*
+      카카오 1코스와 각 ORS 경로의
+      유사도를 비교
+    */
+    orsAlternativeRoutes.forEach(
+      (orsRoute, index) => {
+
+        const similarity =
+          calculateRouteSimilarity(
+            data.features[0],
+            orsRoute
+          );
+
+        console.log(
+          `[카카오 1코스 ↔ ORS ${index + 1}코스 유사도]`,
+          Math.round(
+            similarity * 100
+          ) + "%"
+        );
+      }
+    );
+
+  }catch(orsAlternativeError){
+    console.warn(
+      "[ORS 대안경로 보조 탐색 실패]",
+      orsAlternativeError.message
     );
   }
 }
