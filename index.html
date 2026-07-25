@@ -9025,17 +9025,25 @@ if(backgroundRouteRetryTimer){
   backgroundRouteRetryTimer = null;
 }
 
+/*
+  사용할 수 있는 경로 데이터가 없는 경우
+*/
 if(
   !data ||
   !Array.isArray(data.features) ||
   data.features.length === 0
 ){
-  /*
+  throw new Error(
+    "사용 가능한 경로 데이터가 없습니다."
+  );
+}
+
+/*
   카카오 1·2코스 유사도 확인
+  경로 데이터가 정상적으로 존재할 때 실행
 */
 if(
   routeProvider === "kakao" &&
-  Array.isArray(data.features) &&
   data.features.length >= 2
 ){
   const kakaoSimilarity =
@@ -9056,21 +9064,19 @@ if(
       "[카카오 대안경로 판정]",
       "두 경로가 매우 유사합니다."
     );
+
   }else if(kakaoSimilarity >= 0.75){
     console.log(
       "[카카오 대안경로 판정]",
       "일부 구간이 유사하지만 비교 가능한 경로입니다."
     );
+
   }else{
     console.log(
       "[카카오 대안경로 판정]",
       "서로 다른 경로입니다."
     );
   }
-}
-  throw new Error(
-    "사용 가능한 경로 데이터가 없습니다."
-  );
 }
 
 /*
