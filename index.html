@@ -9028,12 +9028,26 @@ routes.forEach((route,index)=>{
       1000
     ).toFixed(1);
 
-  const durationMin =
-    Math.round(
+/*
+  ORS 예상시간은 실제 내비게이션보다
+  짧게 표시되는 경향이 있어 1.2배 보정
+
+  카카오 백업 경로는 이미 실시간 교통시간을
+  반영하므로 보정하지 않음
+*/
+const durationCorrectionRate =
+  routeProvider === "kakao"
+    ? 1
+    : 1.2;
+
+const durationMin =
+  Math.round(
+    (
       route.properties.summary.duration /
       60
-    );
-
+    ) *
+    durationCorrectionRate
+  );
   const accidentAnalysis =
     routeAccidentAnalyses[index];
 
@@ -9673,7 +9687,7 @@ lastRouteAnalysisHtml = `
     </div>
 
     <div class="tmap-note">
-      ※ 길안내 경로는 각 내비게이션 앱의 설정과 교통상황에 따라 달라질 수 있습니다.
+      ※ 예상시간은 참고용이며, 실제 시간은 교통상황에 따라 달라질 수 있습니다.
     </div>
   </div>
 
