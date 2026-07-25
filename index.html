@@ -8360,12 +8360,12 @@ throw new Error(
 }
 
 
-  function calculateRouteSimilarity(
+ function calculateRouteSimilarity(
   routeA,
   routeB,
   {
-    sampleStep = 8,
-    matchDistanceMeters = 120
+    sampleStep = 5,
+    matchDistanceMeters = 150
   } = {}
 ){
   const coordsA =
@@ -8393,49 +8393,79 @@ throw new Error(
         index % sampleStep === 0
     );
 
-  if(
-    sampledA.length === 0 ||
-    sampledB.length === 0
+  function getMatchRate(
+    sourceCoords,
+    targetCoords
   ){
-    return 0;
+    if(
+      sourceCoords.length === 0 ||
+      targetCoords.length === 0
+    ){
+      return 0;
+    }
+
+    let matchedCount = 0;
+
+    sourceCoords.forEach(sourceCoord => {
+
+      const sourceLng =
+        Number(sourceCoord[0]);
+
+      const sourceLat =
+        Number(sourceCoord[1]);
+
+      const hasNearbyPoint =
+        targetCoords.some(targetCoord => {
+
+          const targetLng =
+            Number(targetCoord[0]);
+
+          const targetLat =
+            Number(targetCoord[1]);
+
+          const distance =
+            map.distance(
+              [sourceLat, sourceLng],
+              [targetLat, targetLng]
+            );
+
+          return (
+            distance <=
+            matchDistanceMeters
+          );
+        });
+
+      if(hasNearbyPoint){
+        matchedCount++;
+      }
+    });
+
+    return (
+      matchedCount /
+      sourceCoords.length
+    );
   }
 
-  let matchedCount = 0;
+  const similarityAToB =
+    getMatchRate(
+      sampledA,
+      sampledB
+    );
 
-  sampledA.forEach(coordA => {
+  const similarityBToA =
+    getMatchRate(
+      sampledB,
+      sampledA
+    );
 
-    const lngA = Number(coordA[0]);
-    const latA = Number(coordA[1]);
-
-    const hasNearbyPoint =
-      sampledB.some(coordB => {
-
-        const lngB = Number(coordB[0]);
-        const latB = Number(coordB[1]);
-
-        const distance =
-          map.distance(
-            [latA, lngA],
-            [latB, lngB]
-          );
-
-        return (
-          distance <=
-          matchDistanceMeters
-        );
-      });
-
-    if(hasNearbyPoint){
-      matchedCount++;
-    }
-  });
-
+  /*
+    양쪽 방향 유사도의 평균
+  */
   return (
-    matchedCount /
-    sampledA.length
-  );
+    similarityAToB +
+    similarityBToA
+  ) / 2;
 }
-
 function convertKakaoRouteToOrsFormat(
   kakaoData
 ){
@@ -9059,13 +9089,13 @@ if(
     ) + "%"
   );
 
-  if(kakaoSimilarity >= 0.9){
+  if(kakaoSimilarity >= 0.8){
     console.warn(
       "[카카오 대안경로 판정]",
       "두 경로가 매우 유사합니다."
     );
 
-  }else if(kakaoSimilarity >= 0.75){
+  }else if(kakaoSimilarity >= 0.65){
     console.log(
       "[카카오 대안경로 판정]",
       "일부 구간이 유사하지만 비교 가능한 경로입니다."
