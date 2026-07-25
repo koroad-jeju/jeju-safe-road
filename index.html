@@ -8178,8 +8178,8 @@ function completeLoadingSteps(){
 async function requestOrsRoute(
   body,
   {
-    overallTimeoutMs = 15000,
-    maxAttempts = 3
+overallTimeoutMs = 22000,
+maxAttempts = 2
   } = {}
 ){
   let lastStatus = "";
@@ -8238,7 +8238,7 @@ if(remainingTime <= 0){
 */
 const singleRequestTimeout =
   Math.min(
-    6500,
+    10000,
     remainingTime
   );
     /*
