@@ -11019,10 +11019,46 @@ function showDifficultRoadsOnMap(){
 
   lastRouteSummaries.forEach(
     (route, routeIndex) => {
+/*
+  지도에서 주황색으로 표시할 도로는
+  아래 6개로만 제한
+*/
+const orangeRoadNames = [
+  "평화로",
+  "번영로",
+  "애조로",
+  "비자림로",
+  "1100도로",
+  "5·16도로"
+];
 
-      const difficultRoadNames =
-        getDifficultRoadNames(route);
+/*
+  주요도로 판정 결과와
+  좌표로 감지된 산간도로 결과를 합침
+*/
+const detectedRoadNames = [
+  ...new Set([
+    ...(Array.isArray(route?.roadNames)
+      ? route.roadNames.map(
+          road => road.name
+        )
+      : []),
 
+    ...getDifficultRoadNames(route)
+  ])
+];
+
+/*
+  위 6개에 해당하는 도로만
+  주황색 표시 대상으로 사용
+*/
+const difficultRoadNames =
+  detectedRoadNames.filter(
+    roadName =>
+      orangeRoadNames.includes(
+        roadName
+      )
+  );
       difficultRoadNames.forEach(
         roadName => {
 
