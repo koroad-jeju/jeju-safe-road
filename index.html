@@ -6603,12 +6603,6 @@ body.tourism-news-mode #map{
   <script src="traffic_points.js"></script>
 
 <script>
-  const orsApiKeys = [
-"eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImVkN2QwYzg1M2JlNjRhMjliZWY0ZGUxYTBhMGMzM2Q0IiwiaCI6Im11cm11cjY0In0=",
-  "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImRiMzFkNmI2YzExODQxNWQ4MmI2YmQwNTdhYTIyYjY4IiwiaCI6Im11cm11cjY0In0="
-
-
-];
   const feedbackApiUrl = "https://script.google.com/macros/s/AKfycbxvg16aBc1kM5Sg65arHS2WUuFftohNm1pN3mXmivt8TNZSBdN2BnTY_Up-vsWkFjswFg/exec";
   const kakaoRouteProxyUrl =
 "https://script.google.com/macros/s/AKfycbwyDjSeadap2_f-BZQAAUN3kPR70iCGsYgLbg-e2nmppvgMZhn1HPVj3n_ZqIxnxfBCIQ/exec";
@@ -8181,191 +8175,6 @@ function completeLoadingSteps(){
   });
 }
 
-async function requestOrsRoute(
-  body,
-  {
-overallTimeoutMs = 22000,
-maxAttempts = 2
-  } = {}
-){
-  let lastStatus = "";
-  let lastErrorText = "";
-
-  /*
-    ORS 공식 주소와 보조 주소를 번갈아 사용
-  */
-  const orsUrls = [
-    "https://api.openrouteservice.org/v2/directions/driving-car/geojson"
-  ];
-
-  /*
-    주소와 API 키 조합 생성
-  */
-  const requestCandidates = [];
-
-  orsUrls.forEach(url => {
-    orsApiKeys.forEach(key => {
-      requestCandidates.push({
-        url:url,
-        key:key
-      });
-    });
-  });
-
-  if(requestCandidates.length === 0){
-    throw new Error("사용 가능한 ORS 요청 정보가 없습니다.");
-  }
-
-  const overallStartTime = Date.now();
-
-/*
-  maxAttempts에 지정된 횟수만큼 요청
-*/
-  for(
-    let attempt = 1;
-    attempt <= maxAttempts;
-    attempt++
-  ){
-    const elapsedTime =
-      Date.now() - overallStartTime;
-
-    const remainingTime =
-      overallTimeoutMs - elapsedTime;
-
-if(remainingTime <= 0){
-  throw new Error(
-    `ORS 전체 요청 시간 ${overallTimeoutMs}ms 초과`
-  );
-}
-
-    /*
-  남은 전체 제한시간 안에서
-  개별 요청은 최대 6.5초 진행
-*/
-const singleRequestTimeout =
-  Math.min(
-    10000,
-    remainingTime
-  );
-    /*
-      요청할 때마다 주소·키 조합 변경
-    */
-    const candidate =
-      requestCandidates[
-        (attempt - 1) %
-        requestCandidates.length
-      ];
-
-    console.log(
-      `[ORS ${attempt}/${maxAttempts}차 요청]`,
-      candidate.url,
-      `제한시간 ${singleRequestTimeout}ms`
-    );
-
-    try{
-      const response =
-        await fetchWithTimeout(
-          candidate.url,
-          {
-            method:"POST",
-
-            headers:{
-              "Authorization":candidate.key,
-              "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify(body)
-          },
-          singleRequestTimeout
-        );
-
-      if(response.ok){
-        console.log(
-          `[ORS ${attempt}차 요청 성공]`,
-          candidate.url
-        );
-
-        return response;
-      }
-
-      lastStatus = response.status;
-
-      lastErrorText =
-        await response.text();
-
-      console.error(
-        `[ORS ${attempt}차 요청 실패]`,
-        candidate.url,
-        response.status,
-        lastErrorText
-      );
-
-      /*
-        400번대 요청 오류는 반복해도
-        성공 가능성이 낮으므로 즉시 중단
-
-        단, 408·429는 일시 오류일 수 있어 재시도
-      */
-      if(
-        response.status >= 400 &&
-        response.status < 500 &&
-        response.status !== 408 &&
-        response.status !== 429
-      ){
-        throw new Error(
-          "ORS 요청값 오류 / 상태:" +
-          response.status
-        );
-      }
-
-    }catch(error){
-      lastErrorText =
-        error.name === "AbortError"
-          ? "요청 시간 초과"
-          : error.message;
-
-      console.error(
-        `[ORS ${attempt}차 요청 오류]`,
-        candidate.url,
-        lastErrorText
-      );
-
-      /*
-        요청 형식 오류는 재시도하지 않음
-      */
-      if(
-        String(error.message || "")
-          .includes("ORS 요청값 오류")
-      ){
-        throw error;
-      }
-    }
-
-    /*
-      마지막 시도가 아니라면 짧게 대기 후 재시도
-    */
-    if(attempt < maxAttempts){
-      const elapsedAfterRequest =
-        Date.now() - overallStartTime;
-
-      if(
-        elapsedAfterRequest + 300 <
-        overallTimeoutMs
-      ){
-        await wait(300);
-      }
-    }
-  }
-
-throw new Error(
-  `ORS ${maxAttempts}회 요청 실패 / 상태:` +
-  (lastStatus || "-") +
-  " / " +
-  lastErrorText
-);
-}
-
-
  function calculateRouteSimilarity(
   routeA,
   routeB,
@@ -8893,19 +8702,6 @@ slowLoadingTimer = setTimeout(() => {
     "route-active"
   );
 
-  const body = {
-  coordinates:[
-    [startLng,startLat],
-    [endLng,endLat]
-  ],
-  radiuses:[1500,1500],
-  alternative_routes:{
-    target_count:2,
-    weight_factor:2,
-    share_factor:0.6
-  },
-  instructions:true,
-};
   try{
 /*
   카카오 경로만 사용
@@ -8955,7 +8751,7 @@ try{
   return;
 }
 /*
-  ORS 또는 카카오 중 하나가 성공한 경우
+  카카오 경로 요청이 성공한 경우
   로딩 지연 안내 타이머 제거
 */
 if(slowLoadingTimer){
@@ -8992,8 +8788,7 @@ if(
 }
 
 /*
-  카카오 경로 유사도 확인
-  유사하거나 1개뿐이면 ORS 대안경로를 시험 탐색
+ 카카오에서 받은 2개 경로의 유사도 확인
 */
 let kakaoSimilarity = 0;
 
@@ -9035,7 +8830,7 @@ if(
 }
 
 /*
-  ORS 성공이 확인된 뒤에만
+새 카카오 경로가 확인된 뒤
   이전 지도 경로를 제거
 */
 if(routeLayer){
@@ -10779,24 +10574,6 @@ function getRouteRoadHtml(
       <span class="route-road-arrow">→</span>
     `);
 }
-  /* ==================================================
-   선택한 주요도로 지도 강조
-================================================== */
-
-function clearRoadHighlight(){
-
-  if(
-    roadHighlightLayer &&
-    map.hasLayer(roadHighlightLayer)
-  ){
-    map.removeLayer(
-      roadHighlightLayer
-    );
-  }
-
-  roadHighlightLayer = null;
-}
-
 
 /* ==================================================
    경로분석 완료 후 주의도로 자동 표시
@@ -11874,23 +11651,7 @@ function getRouteRiskScore(route){
     )
   );
 }
-function getRouteRiskMark(score){
-  const value = Number(score) || 0;
 
-  if(value >= 500){
-    return "🔴";
-  }
-
-  if(value >= 400){
-    return "🟠";
-  }
-
-  if(value >= 300){
-    return "🟡";
-  }
-
-  return "🟢";
-}
 /* 코스 특징을 짧은 2줄로 정리 */
 function getCompactCourseFeature(route){
   const difficultRoads =
@@ -12925,52 +12686,7 @@ customEndArea = getDestinationRegion(customEndName, "기타");
   document.getElementById("info").innerHTML =
     "목적지가 '" + data[0] + "'(으)로 설정되었습니다.";
 }
-  function selectPopularTourButton(
-  name,
-  lng,
-  lat
-){
-  customEnd = {
-    lng:Number(lng),
-    lat:Number(lat)
-  };
 
-  customEndName = name;
-
-  customEndArea =
-    getDestinationRegion(
-      customEndName,
-      "기타"
-    );
-
-  document
-    .getElementById("endInput")
-    .value = name;
-
-  document
-    .getElementById("endResults")
-    .innerHTML = "";
-
-  document
-    .getElementById("endResults")
-    .style.display = "none";
-
-  document
-    .querySelectorAll(".popular-chip")
-    .forEach(button => {
-      button.classList.toggle(
-        "active",
-        button.textContent.trim() === name
-      );
-    });
-
-  document
-    .getElementById("info")
-    .innerHTML =
-      "목적지가 '" +
-      name +
-      "'(으)로 설정되었습니다.";
-}
 function goHome(){
 
   document.body.classList.remove("risk-map-mode");
@@ -14171,23 +13887,7 @@ function updateAccidentStats(){
     minorEl.textContent = minor + "건";
   }
 }
-function showRiskMap(){
 
- document.body.classList.remove("route-active");
-document.body.classList.remove("safety-guide-mode");
-document.body.classList.remove("route-analysis-mode");
-  document.body.classList.remove("tourism-news-mode");
-document.body.classList.add("risk-map-mode");
-  
-  
-  document.querySelectorAll(".bottom-item").forEach(btn=>{
-    btn.classList.remove("active");
-  });
-
-  updateAccidentStats();
-
-  setTimeout(initRiskMiniMap, 200);
-}
 function showRouteAnalysis(){
 
   document.body.classList.remove(
