@@ -6936,6 +6936,12 @@ let currentRouteProvider = "";
   중복 경로 요청 관리
 */
 let activeRouteRequestToken = 0;
+
+/*
+  기존 백그라운드 재시도 코드의
+  남은 참조로 인한 오류 방지
+*/
+let backgroundRouteRetryTimer = null;
   
   /*
   사용자가 경로분석 버튼을
