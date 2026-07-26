@@ -12646,7 +12646,7 @@ async function searchDestination(){
 
 const resultBox =
   document.getElementById(
-    "startResults"
+    "endResults"
   );
 
 /*
@@ -12701,13 +12701,19 @@ resultBox.style.display = "none";
 
     resultBox.innerHTML = "";
 
-    if(documents.length === 0){
+if(documents.length === 0){
 
-      resultBox.innerHTML =
-        "검색 결과가 없습니다.";
+  resultBox.style.display =
+    "block";
 
-      return;
-    }
+  resultBox.innerHTML =
+    "검색 결과가 없습니다.";
+
+  return;
+}
+
+resultBox.style.display =
+  "block";
 
     /*
   실제 검색 결과가 있을 때만
@@ -12907,13 +12913,22 @@ resultBox.style.display = "none";
 
     resultBox.innerHTML = "";
 
-    if(documents.length === 0){
+if(documents.length === 0){
 
-      resultBox.innerHTML =
-        "검색 결과가 없습니다.";
+  resultBox.style.display =
+    "block";
 
-      return;
-    }
+  resultBox.innerHTML =
+    "검색 결과가 없습니다.";
+
+  return;
+}
+
+/*
+  검색 결과가 있을 때만 목록 표시
+*/
+resultBox.style.display =
+  "block";
 
     documents.forEach(place => {
 
