@@ -6933,10 +6933,10 @@ let currentActionOrder = 0;
 let currentRouteProvider = "";
   
 /*
-  ORS 요청 중복·백그라운드 재시도 관리
+  중복 경로 요청 관리
 */
 let activeRouteRequestToken = 0;
-let backgroundRouteRetryTimer = null;
+  
   /*
   사용자가 경로분석 버튼을
   여러 번 연속으로 누르는 것을 방지
@@ -8884,69 +8884,40 @@ slowLoadingTimer = setTimeout(() => {
 };
   try{
 /*
-  최종적으로 사용할 경로 데이터
-  카카오를 우선 사용하고,
-  카카오 실패 시 ORS를 보조로 사용
+  카카오 경로만 사용
 */
 let data = null;
-let routeProvider = "kakao";
+const routeProvider = "kakao";
 
 try{
 
-  /*
-    최초 경로분석은 카카오를 먼저 요청
-  */
-  if(!isBackgroundRetry){
-
-    data =
-      await requestKakaoBackupRoute(
-        startLng,
-        startLat,
-        endLng,
-        endLat
-      );
-
-    routeProvider = "kakao";
-
-    console.log(
-      "[실시간 경로 제공자] 카카오 메인"
+  data =
+    await requestKakaoBackupRoute(
+      startLng,
+      startLat,
+      endLng,
+      endLat
     );
 
-  }else{
+  console.log(
+    "[실시간 경로 제공자] 카카오 메인"
+  );
 
-    /*
-      백그라운드 재시도는 ORS만 확인
-    */
-    const response =
-      await requestOrsRoute(
-        body,
-        {
-          overallTimeoutMs:8500,
-          maxAttempts:1
-        }
-      );
+}catch(kakaoError){
 
-    data =
-      await response.json();
-
-    routeProvider = "ors";
-
-    console.log(
-      "[백그라운드 경로 제공자] ORS"
+  if(slowLoadingTimer){
+    clearTimeout(
+      slowLoadingTimer
     );
   }
 
-}catch(kakaoOrBackgroundError){
-
   console.error(
-    isBackgroundRetry
-      ? "백그라운드 ORS 재분석 실패:"
-      : "카카오 메인 경로 요청 실패:",
-    kakaoOrBackgroundError
+    "카카오 경로 요청 실패:",
+    kakaoError
   );
 
   /*
-    사용자가 이미 다른 경로를 검색했다면
+    사용자가 이미 새로운 검색을 시작했다면
     이전 요청 결과는 무시
   */
   if(
@@ -8956,69 +8927,8 @@ try{
     return;
   }
 
-  /*
-    백그라운드 ORS 재시도 실패
-  */
-  if(isBackgroundRetry){
-
-    if(backgroundAttempt < 2){
-      scheduleBackgroundRouteRetry(
-        requestToken,
-        backgroundAttempt + 1
-      );
-    }
-
-    return;
-  }
-
-  /*
-    카카오 실패 시 ORS 보조 요청
-  */
-  try{
-
-    const response =
-      await requestOrsRoute(
-        body,
-        {
-          overallTimeoutMs:12000,
-          maxAttempts:2
-        }
-      );
-
-    data =
-      await response.json();
-
-    routeProvider = "ors";
-
-    console.log(
-      "[실시간 경로 제공자] ORS 보조"
-    );
-
-  }catch(orsError){
-
-    if(slowLoadingTimer){
-      clearTimeout(
-        slowLoadingTimer
-      );
-    }
-
-    console.error(
-      "카카오와 ORS 경로가 모두 실패했습니다.",
-      {
-        kakao:kakaoOrBackgroundError,
-        ors:orsError
-      }
-    );
-
-    showRouteFallback();
-
-    scheduleBackgroundRouteRetry(
-      requestToken,
-      1
-    );
-
-    return;
-  }
+  showRouteFallback();
+  return;
 }
 /*
   ORS 또는 카카오 중 하나가 성공한 경우
@@ -9042,17 +8952,6 @@ if(
   );
 
   return;
-}
-
-/*
-  백그라운드 재시도 예약 제거
-*/
-if(backgroundRouteRetryTimer){
-  clearTimeout(
-    backgroundRouteRetryTimer
-  );
-
-  backgroundRouteRetryTimer = null;
 }
 
 /*
@@ -9097,90 +8996,16 @@ if(
       "두 경로가 매우 유사합니다."
     );
 
-  }else if(kakaoSimilarity >= 0.65){
-    console.warn(
-      "[카카오 대안경로 판정]",
-      "두 경로의 상당 구간이 유사하여 ORS 대안을 확인합니다."
-    );
+ }else if(kakaoSimilarity >= 0.65){
+  console.warn(
+    "[카카오 대안경로 판정]",
+    "두 경로의 상당 구간이 유사합니다."
+  );
 
   }else{
     console.log(
       "[카카오 대안경로 판정]",
       "서로 다른 경로입니다."
-    );
-  }
-}
-
-/*
-  카카오 경로가 1개이거나
-  두 경로 유사도가 65% 이상이면
-  ORS 대안경로를 보조로 확인
-*/
-const shouldCheckOrsAlternative =
-  !isBackgroundRetry &&
-  routeProvider === "kakao" &&
-  (
-    data.features.length < 2 ||
-    kakaoSimilarity >= 0.65
-  );
-
-if(shouldCheckOrsAlternative){
-
-  console.log(
-    "[ORS 대안경로 보조 탐색 시작]"
-  );
-
-  try{
-    const orsAlternativeResponse =
-      await requestOrsRoute(
-        body,
-        {
-          overallTimeoutMs:9000,
-          maxAttempts:1
-        }
-      );
-
-    const orsAlternativeData =
-      await orsAlternativeResponse.json();
-
-    const orsAlternativeRoutes =
-      Array.isArray(
-        orsAlternativeData?.features
-      )
-        ? orsAlternativeData.features
-        : [];
-
-    console.log(
-      "[ORS 대안경로 수]",
-      orsAlternativeRoutes.length
-    );
-
-    /*
-      카카오 1코스와 각 ORS 경로의
-      유사도를 비교
-    */
-    orsAlternativeRoutes.forEach(
-      (orsRoute, index) => {
-
-        const similarity =
-          calculateRouteSimilarity(
-            data.features[0],
-            orsRoute
-          );
-
-        console.log(
-          `[카카오 1코스 ↔ ORS ${index + 1}코스 유사도]`,
-          Math.round(
-            similarity * 100
-          ) + "%"
-        );
-      }
-    );
-
-  }catch(orsAlternativeError){
-    console.warn(
-      "[ORS 대안경로 보조 탐색 실패]",
-      orsAlternativeError.message
     );
   }
 }
