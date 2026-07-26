@@ -12644,16 +12644,17 @@ async function searchDestination(){
     return;
   }
 
-  const resultBox =
-    document.getElementById(
-      "endResults"
-    );
+const resultBox =
+  document.getElementById(
+    "startResults"
+  );
 
-  resultBox.style.display =
-    "block";
-
-  resultBox.innerHTML =
-    "검색중...";
+/*
+  출발지 검색 중에는 결과 영역에
+  '검색중...' 문구를 표시하지 않음
+*/
+resultBox.innerHTML = "";
+resultBox.style.display = "none";
 
   try{
 
@@ -12708,6 +12709,13 @@ async function searchDestination(){
       return;
     }
 
+    /*
+  실제 검색 결과가 있을 때만
+  출발지 결과 영역 표시
+*/
+resultBox.style.display =
+  "block";
+    
     documents.forEach(place => {
 
       const div =
@@ -12851,11 +12859,8 @@ async function searchDestination(){
       "startResults"
     );
 
-  resultBox.style.display =
-    "block";
-
-  resultBox.innerHTML =
-    "검색중...";
+resultBox.innerHTML = "";
+resultBox.style.display = "none";
 
   try{
 
