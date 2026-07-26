@@ -6614,7 +6614,7 @@ const isAdmin =
 if(isAdmin){
   document.body.classList.add("admin-mode");
 }
-  const kakaoKey = "0afebb6a8bf4c82114b49b25efea0399";
+
   const kakaoJsKey = "c244e1e25b12c9b2a6c68f6af9116b5b";
 if(window.Kakao){
   Kakao.init(kakaoJsKey);
@@ -8056,72 +8056,191 @@ function clearEndPlace(){
 };
   
 function useCurrentLocation(){
+
   if(!navigator.geolocation){
-    alert("현재 위치 기능을 지원하지 않는 브라우저입니다.");
+    alert(
+      "현재 위치 기능을 지원하지 않는 브라우저입니다."
+    );
+
     return;
   }
 
-  document.getElementById("info").innerHTML = "현재 위치를 확인하는 중입니다...";
+  const info =
+    document.getElementById("info");
+
+  if(info){
+    info.innerHTML =
+      "현재 위치를 확인하는 중입니다...";
+  }
 
   navigator.geolocation.getCurrentPosition(
+
     async function(position){
-      const lng = position.coords.longitude;
-      const lat = position.coords.latitude;
+
+      const lng =
+        position.coords.longitude;
+
+      const lat =
+        position.coords.latitude;
 
       customStart = {
-        lng: lng,
-        lat: lat
+        lng:lng,
+        lat:lat
       };
 
-      customStartName = "현재 위치";
+      customStartName =
+        "현재 위치";
+
+      customStartArea =
+        "기타";
 
       try{
-        const response = await fetch(
-          "https://dapi.kakao.com/v2/local/geo/coord2address.json?x=" +
-          lng + "&y=" + lat,
-          {
-            headers:{
-              Authorization:"KakaoAK " + kakaoKey
+
+        const params =
+          new URLSearchParams({
+            mode:"coord2address",
+            lng:String(lng),
+            lat:String(lat)
+          });
+
+        const response =
+          await fetch(
+            kakaoRouteProxyUrl +
+              "?" +
+              params.toString(),
+            {
+              method:"GET",
+              cache:"no-store"
             }
+          );
+
+        if(!response.ok){
+          throw new Error(
+            "주소변환 서버 응답 오류: " +
+            response.status
+          );
+        }
+
+        const result =
+          await response.json();
+
+        if(!result?.ok){
+          throw new Error(
+            result?.message ||
+            "현재 위치 주소를 확인하지 못했습니다."
+          );
+        }
+
+        const documents =
+          Array.isArray(
+            result?.data?.documents
+          )
+            ? result.data.documents
+            : [];
+
+        if(documents.length > 0){
+
+          const firstDocument =
+            documents[0];
+
+          const address =
+            firstDocument
+              ?.road_address
+              ?.address_name ||
+
+            firstDocument
+              ?.address
+              ?.address_name ||
+
+            "";
+
+          const areaAddress =
+            firstDocument
+              ?.address
+              ?.address_name ||
+
+            firstDocument
+              ?.road_address
+              ?.address_name ||
+
+            "";
+
+          if(address){
+            customStartName =
+              address;
           }
+
+          if(areaAddress){
+            customStartArea =
+              getJejuRegion(
+                areaAddress
+              );
+          }
+        }
+
+      }catch(error){
+
+        console.warn(
+          "현재 위치 주소변환 실패:",
+          error
         );
 
-        const data = await response.json();
+        customStartName =
+          "현재 위치(" +
+          lat.toFixed(5) +
+          "," +
+          lng.toFixed(5) +
+          ")";
 
-        if(data.documents && data.documents.length > 0){
-const address =
-  data.documents[0].road_address?.address_name ||
-  data.documents[0].address?.address_name;
+        customStartArea =
+          "기타";
+      }
 
-const areaAddress =
-  data.documents[0].address?.address_name ||
-  data.documents[0].road_address?.address_name ||
-  "";
+      const startInput =
+        document.getElementById(
+          "startInput"
+        );
 
-if(address){
-  customStartName = address;
-  customStartArea = getJejuRegion(areaAddress);
-}
-        }
-     }catch(error){
-  customStartName = "현재 위치(" + lat.toFixed(5) + "," + lng.toFixed(5) + ")";
-  customStartArea = "기타";
-}
-      document.getElementById("startInput").value = customStartName;
-      document.getElementById("startInput").placeholder = "현재 위치로 설정됨";
-      document.getElementById("startResults").innerHTML = "";
-      document.getElementById("startResults").style.display = "none";
+      const startResults =
+        document.getElementById(
+          "startResults"
+        );
 
-      document.getElementById("info").innerHTML =
-        "출발지가 '" + customStartName + "'(으)로 설정되었습니다.";
+      if(startInput){
+        startInput.value =
+          customStartName;
+
+        startInput.placeholder =
+          "현재 위치로 설정됨";
+      }
+
+      if(startResults){
+        startResults.innerHTML = "";
+        startResults.style.display =
+          "none";
+      }
+
+      if(info){
+        info.innerHTML =
+          "출발지가 '" +
+          customStartName +
+          "'(으)로 설정되었습니다.";
+      }
     },
+
     function(){
-      alert("현재 위치를 가져오지 못했어요. 위치 권한을 허용해주세요.");
-      document.getElementById("info").innerHTML = "";
+
+      alert(
+        "현재 위치를 가져오지 못했어요. 위치 권한을 허용해주세요."
+      );
+
+      if(info){
+        info.innerHTML = "";
+      }
     }
   );
 }
-
+  
 function fetchWithTimeout(
   url,
   options = {},
@@ -12506,161 +12625,370 @@ function openKakaoNavi(){
   openNavigationApp(url);
 }
 async function searchDestination(){
-console.log("검색 함수 실행");
-  const keyword = document.getElementById("endInput").value.trim();
+
+  console.log(
+    "목적지 검색 함수 실행"
+  );
+
+  const keyword =
+    document
+      .getElementById("endInput")
+      .value
+      .trim();
 
   if(keyword === ""){
-    alert("목적지를 입력해주세요.");
+    alert(
+      "목적지를 입력해주세요."
+    );
+
     return;
   }
 
- const resultBox = document.getElementById("endResults");
-resultBox.style.display = "block";
-resultBox.innerHTML = "검색중...";
-
-  try{
-    const response = await fetch(
-      "https://dapi.kakao.com/v2/local/search/keyword.json?query=" +
-     encodeURIComponent("제주 " + keyword),
-      {
-        headers:{
-          Authorization:"KakaoAK " + kakaoKey
-        }
-      }
+  const resultBox =
+    document.getElementById(
+      "endResults"
     );
 
-    const data = await response.json();
+  resultBox.style.display =
+    "block";
+
+  resultBox.innerHTML =
+    "검색중...";
+
+  try{
+
+    const params =
+      new URLSearchParams({
+        mode:"keyword",
+        query:"제주 " + keyword
+      });
+
+    const response =
+      await fetch(
+        kakaoRouteProxyUrl +
+          "?" +
+          params.toString(),
+        {
+          method:"GET",
+          cache:"no-store"
+        }
+      );
+
+    if(!response.ok){
+      throw new Error(
+        "장소검색 서버 응답 오류: " +
+        response.status
+      );
+    }
+
+    const result =
+      await response.json();
+
+    if(!result?.ok){
+      throw new Error(
+        result?.message ||
+        "카카오 장소검색에 실패했습니다."
+      );
+    }
+
+    const documents =
+      Array.isArray(
+        result?.data?.documents
+      )
+        ? result.data.documents
+        : [];
 
     resultBox.innerHTML = "";
 
-    if(!data.documents || data.documents.length === 0){
-      resultBox.innerHTML = "검색 결과가 없습니다.";
+    if(documents.length === 0){
+
+      resultBox.innerHTML =
+        "검색 결과가 없습니다.";
+
       return;
     }
 
-    data.documents.forEach(place=>{
-      const div = document.createElement("div");
-      div.className = "address-result";
+    documents.forEach(place => {
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+      div.className =
+        "address-result";
 
       div.innerHTML =
-        "<b>" + place.place_name + "</b><br>" +
-        (place.road_address_name || place.address_name);
+        "<b>" +
+        place.place_name +
+        "</b><br>" +
+        (
+          place.road_address_name ||
+          place.address_name ||
+          ""
+        );
 
       div.onclick = function(){
-        const fixedKey = Object.keys(fixedDestinationCoords).find(key =>
-  place.place_name.includes(key) || keyword.includes(key)
-);
 
-if(fixedKey){
-  customEnd = fixedDestinationCoords[fixedKey];
-  customEndName = fixedKey;
-}else{
-  customEnd = {
-    lat: parseFloat(place.y),
-    lng: parseFloat(place.x)
-  };
+        const fixedKey =
+          Object
+            .keys(
+              fixedDestinationCoords
+            )
+            .find(key => {
+              return (
+                place.place_name
+                  .includes(key) ||
 
-  customEndName = place.place_name;
-}
+                keyword.includes(key)
+              );
+            });
 
-customEndArea = getJejuRegion(
-  place.road_address_name ||
-  place.address_name ||
-  place.place_name
-);
+        if(fixedKey){
 
-/*
-  일부 관광지는 행정주소 대신 관광지 이름으로 권역 보정
-*/
-customEndArea = getDestinationRegion(
-  customEndName,
-  customEndArea
-);
+          customEnd =
+            fixedDestinationCoords[
+              fixedKey
+            ];
 
-       document.getElementById("endInput").value = place.place_name;
-      
-resultBox.innerHTML = "";
-resultBox.style.display = "none";
+          customEndName =
+            fixedKey;
 
-        document.getElementById("info").innerHTML =
-          "목적지가 '" + place.place_name + "'(으)로 설정되었습니다.";
+        }else{
+
+          customEnd = {
+            lat:
+              parseFloat(
+                place.y
+              ),
+
+            lng:
+              parseFloat(
+                place.x
+              )
+          };
+
+          customEndName =
+            place.place_name;
+        }
+
+        customEndArea =
+          getJejuRegion(
+            place.road_address_name ||
+            place.address_name ||
+            place.place_name
+          );
+
+        /*
+          일부 관광지는 이름으로
+          목적지 권역을 다시 보정
+        */
+        customEndArea =
+          getDestinationRegion(
+            customEndName,
+            customEndArea
+          );
+
+        document
+          .getElementById(
+            "endInput"
+          )
+          .value =
+          place.place_name;
+
+        resultBox.innerHTML = "";
+        resultBox.style.display =
+          "none";
+
+        document
+          .getElementById(
+            "info"
+          )
+          .innerHTML =
+          "목적지가 '" +
+          place.place_name +
+          "'(으)로 설정되었습니다.";
       };
 
-      resultBox.appendChild(div);
+      resultBox.appendChild(
+        div
+      );
     });
 
   }catch(error){
-    alert("목적지 검색 중 오류가 발생했어요.\n\n" + error.message);
+
+    resultBox.innerHTML =
+      "검색 중 오류가 발생했습니다.";
+
+    alert(
+      "목적지 검색 중 오류가 발생했어요.\n\n" +
+      error.message
+    );
   }
 }
   
-  async function searchStartPlace(){
+ async function searchStartPlace(){
 
-  const keyword = document.getElementById("startInput").value.trim();
+  const keyword =
+    document
+      .getElementById(
+        "startInput"
+      )
+      .value
+      .trim();
 
   if(keyword === ""){
-    alert("출발지를 입력해주세요.");
+
+    alert(
+      "출발지를 입력해주세요."
+    );
+
     return;
   }
 
-  const resultBox = document.getElementById("startResults");
-resultBox.style.display = "block";
-resultBox.innerHTML = "검색중...";
-
-  try{
-    const response = await fetch(
-      "https://dapi.kakao.com/v2/local/search/keyword.json?query=" +
-      encodeURIComponent("제주 " + keyword),
-      {
-        headers:{
-          Authorization:"KakaoAK " + kakaoKey
-        }
-      }
+  const resultBox =
+    document.getElementById(
+      "startResults"
     );
 
-    const data = await response.json();
+  resultBox.style.display =
+    "block";
+
+  resultBox.innerHTML =
+    "검색중...";
+
+  try{
+
+    const params =
+      new URLSearchParams({
+        mode:"keyword",
+        query:"제주 " + keyword
+      });
+
+    const response =
+      await fetch(
+        kakaoRouteProxyUrl +
+          "?" +
+          params.toString(),
+        {
+          method:"GET",
+          cache:"no-store"
+        }
+      );
+
+    if(!response.ok){
+      throw new Error(
+        "장소검색 서버 응답 오류: " +
+        response.status
+      );
+    }
+
+    const result =
+      await response.json();
+
+    if(!result?.ok){
+      throw new Error(
+        result?.message ||
+        "카카오 장소검색에 실패했습니다."
+      );
+    }
+
+    const documents =
+      Array.isArray(
+        result?.data?.documents
+      )
+        ? result.data.documents
+        : [];
 
     resultBox.innerHTML = "";
 
-    if(!data.documents || data.documents.length === 0){
-      resultBox.innerHTML = "검색 결과가 없습니다.";
+    if(documents.length === 0){
+
+      resultBox.innerHTML =
+        "검색 결과가 없습니다.";
+
       return;
     }
 
-    data.documents.forEach(place=>{
-      const div = document.createElement("div");
-      div.className = "address-result";
+    documents.forEach(place => {
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+      div.className =
+        "address-result";
 
       div.innerHTML =
-        "<b>" + place.place_name + "</b><br>" +
-        (place.road_address_name || place.address_name || "");
+        "<b>" +
+        place.place_name +
+        "</b><br>" +
+        (
+          place.road_address_name ||
+          place.address_name ||
+          ""
+        );
 
       div.onclick = function(){
+
         customStart = {
-          lat: parseFloat(place.y),
-          lng: parseFloat(place.x)
+          lat:
+            parseFloat(
+              place.y
+            ),
+
+          lng:
+            parseFloat(
+              place.x
+            )
         };
 
-        customStartName = place.place_name;
-        customStartArea = getJejuRegion(
-  place.road_address_name ||
-  place.address_name ||
-  place.place_name
-);
+        customStartName =
+          place.place_name;
 
-document.getElementById("startInput").value = place.place_name;
-resultBox.innerHTML = "";
-resultBox.style.display = "none";
+        customStartArea =
+          getJejuRegion(
+            place.road_address_name ||
+            place.address_name ||
+            place.place_name
+          );
 
-document.getElementById("info").innerHTML =
-          "출발지가 '" + place.place_name + "'(으)로 설정되었습니다.";
+        document
+          .getElementById(
+            "startInput"
+          )
+          .value =
+          place.place_name;
+
+        resultBox.innerHTML = "";
+        resultBox.style.display =
+          "none";
+
+        document
+          .getElementById(
+            "info"
+          )
+          .innerHTML =
+          "출발지가 '" +
+          place.place_name +
+          "'(으)로 설정되었습니다.";
       };
 
-      resultBox.appendChild(div);
+      resultBox.appendChild(
+        div
+      );
     });
 
   }catch(error){
-    alert("출발지 검색 중 오류가 발생했어요.\n\n" + error.message);
+
+    resultBox.innerHTML =
+      "검색 중 오류가 발생했습니다.";
+
+    alert(
+      "출발지 검색 중 오류가 발생했어요.\n\n" +
+      error.message
+    );
   }
 }
 function selectPopularTour(){
