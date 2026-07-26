@@ -5858,6 +5858,42 @@ body.tourism-news-mode #map{
     height:305px;
   }
 }
+  /* ===== 장소검색 버튼 로딩 표시 ===== */
+
+.mini-btn.place-searching{
+  position:relative;
+  cursor:default;
+  opacity:1 !important;
+}
+
+.mini-btn.place-searching::after{
+  content:"";
+
+  width:13px;
+  height:13px;
+
+  border:2px solid #d7e8e5;
+  border-top-color:#15978d;
+  border-radius:50%;
+
+  box-sizing:border-box;
+
+  animation:
+    placeSearchSpin
+    .7s
+    linear
+    infinite;
+}
+
+@keyframes placeSearchSpin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+.mini-btn:disabled{
+  pointer-events:none;
+}
 </style>
 </head>
 
@@ -12644,17 +12680,39 @@ async function searchDestination(){
     return;
   }
 
-const resultBox =
-  document.getElementById(
-    "endResults"
-  );
+  const resultBox =
+    document.getElementById(
+      "endResults"
+    );
 
-/*
-  출발지 검색 중에는 결과 영역에
-  '검색중...' 문구를 표시하지 않음
-*/
-resultBox.innerHTML = "";
-resultBox.style.display = "none";
+  const searchButton =
+    document.querySelector(
+      ".end-row .mini-btn"
+    );
+
+  const searchButtonImage =
+    searchButton?.querySelector("img");
+
+  /*
+    검색 시작 전 결과창은 숨김
+  */
+  resultBox.innerHTML = "";
+  resultBox.style.display = "none";
+
+  /*
+    검색 버튼 로딩 상태
+  */
+  if(searchButton){
+    searchButton.disabled = true;
+    searchButton.classList.add(
+      "place-searching"
+    );
+  }
+
+  if(searchButtonImage){
+    searchButtonImage.style.display =
+      "none";
+  }
 
   try{
 
@@ -12701,27 +12759,20 @@ resultBox.style.display = "none";
 
     resultBox.innerHTML = "";
 
-if(documents.length === 0){
+    if(documents.length === 0){
 
-  resultBox.style.display =
-    "block";
+      resultBox.style.display =
+        "block";
 
-  resultBox.innerHTML =
-    "검색 결과가 없습니다.";
+      resultBox.innerHTML =
+        "검색 결과가 없습니다.";
 
-  return;
-}
+      return;
+    }
 
-resultBox.style.display =
-  "block";
+    resultBox.style.display =
+      "block";
 
-    /*
-  실제 검색 결과가 있을 때만
-  출발지 결과 영역 표시
-*/
-resultBox.style.display =
-  "block";
-    
     documents.forEach(place => {
 
       const div =
@@ -12793,10 +12844,6 @@ resultBox.style.display =
             place.place_name
           );
 
-        /*
-          일부 관광지는 이름으로
-          목적지 권역을 다시 보정
-        */
         customEndArea =
           getDestinationRegion(
             customEndName,
@@ -12831,6 +12878,9 @@ resultBox.style.display =
 
   }catch(error){
 
+    resultBox.style.display =
+      "block";
+
     resultBox.innerHTML =
       "검색 중 오류가 발생했습니다.";
 
@@ -12838,10 +12888,23 @@ resultBox.style.display =
       "목적지 검색 중 오류가 발생했어요.\n\n" +
       error.message
     );
+
+  }finally{
+
+    if(searchButton){
+      searchButton.disabled = false;
+      searchButton.classList.remove(
+        "place-searching"
+      );
+    }
+
+    if(searchButtonImage){
+      searchButtonImage.style.display =
+        "block";
+    }
   }
 }
-  
- async function searchStartPlace(){
+async function searchStartPlace(){
 
   const keyword =
     document
@@ -12865,8 +12928,34 @@ resultBox.style.display =
       "startResults"
     );
 
-resultBox.innerHTML = "";
-resultBox.style.display = "none";
+  const searchButton =
+    document.querySelector(
+      ".start-row .mini-btn"
+    );
+
+  const searchButtonImage =
+    searchButton?.querySelector("img");
+
+  /*
+    검색 시작 전 결과창은 숨김
+  */
+  resultBox.innerHTML = "";
+  resultBox.style.display = "none";
+
+  /*
+    검색 버튼 로딩 상태
+  */
+  if(searchButton){
+    searchButton.disabled = true;
+    searchButton.classList.add(
+      "place-searching"
+    );
+  }
+
+  if(searchButtonImage){
+    searchButtonImage.style.display =
+      "none";
+  }
 
   try{
 
@@ -12913,22 +13002,19 @@ resultBox.style.display = "none";
 
     resultBox.innerHTML = "";
 
-if(documents.length === 0){
+    if(documents.length === 0){
 
-  resultBox.style.display =
-    "block";
+      resultBox.style.display =
+        "block";
 
-  resultBox.innerHTML =
-    "검색 결과가 없습니다.";
+      resultBox.innerHTML =
+        "검색 결과가 없습니다.";
 
-  return;
-}
+      return;
+    }
 
-/*
-  검색 결과가 있을 때만 목록 표시
-*/
-resultBox.style.display =
-  "block";
+    resultBox.style.display =
+      "block";
 
     documents.forEach(place => {
 
@@ -13002,6 +13088,9 @@ resultBox.style.display =
 
   }catch(error){
 
+    resultBox.style.display =
+      "block";
+
     resultBox.innerHTML =
       "검색 중 오류가 발생했습니다.";
 
@@ -13009,6 +13098,20 @@ resultBox.style.display =
       "출발지 검색 중 오류가 발생했어요.\n\n" +
       error.message
     );
+
+  }finally{
+
+    if(searchButton){
+      searchButton.disabled = false;
+      searchButton.classList.remove(
+        "place-searching"
+      );
+    }
+
+    if(searchButtonImage){
+      searchButtonImage.style.display =
+        "block";
+    }
   }
 }
 function selectPopularTour(){
