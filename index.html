@@ -10900,7 +10900,99 @@ function getRoadSegmentsForMap(
   );
 }
 
+/*
+  카카오가 잘게 나눈 동일 도로 구간을
+  하나의 연속된 선으로 연결
+*/
+function mergeConnectedRoadSegments(
+  roadSegments,
+  maxGapMeters = 80
+){
+  if(
+    !Array.isArray(roadSegments) ||
+    roadSegments.length === 0
+  ){
+    return [];
+  }
 
+  const validSegments =
+    roadSegments.filter(segment => {
+      return (
+        Array.isArray(segment) &&
+        segment.length >= 2
+      );
+    });
+
+  if(validSegments.length === 0){
+    return [];
+  }
+
+  const mergedSegments = [];
+  let currentSegment = [
+    ...validSegments[0]
+  ];
+
+  for(
+    let index = 1;
+    index < validSegments.length;
+    index++
+  ){
+    const nextSegment =
+      validSegments[index];
+
+    const currentEnd =
+      currentSegment[
+        currentSegment.length - 1
+      ];
+
+    const nextStart =
+      nextSegment[0];
+
+    const gapDistance =
+      map.distance(
+        currentEnd,
+        nextStart
+      );
+
+    /*
+      앞 조각과 다음 조각이 가까우면
+      하나의 선으로 연결
+    */
+    if(gapDistance <= maxGapMeters){
+
+      const firstNextPoint =
+        nextSegment[0];
+
+      const isSamePoint =
+        currentEnd[0] === firstNextPoint[0] &&
+        currentEnd[1] === firstNextPoint[1];
+
+      currentSegment.push(
+        ...(
+          isSamePoint
+            ? nextSegment.slice(1)
+            : nextSegment
+        )
+      );
+
+    }else{
+      mergedSegments.push(
+        currentSegment
+      );
+
+      currentSegment = [
+        ...nextSegment
+      ];
+    }
+  }
+
+  mergedSegments.push(
+    currentSegment
+  );
+
+  return mergedSegments;
+}
+  
 /*
   1코스·2코스의 주의도로를
   한꺼번에 지도에 표시
@@ -10934,12 +11026,17 @@ function showDifficultRoadsOnMap(){
       difficultRoadNames.forEach(
         roadName => {
 
-          const roadSegments =
-            getRoadSegmentsForMap(
-              route,
-              roadName
-            );
+const originalRoadSegments =
+  getRoadSegmentsForMap(
+    route,
+    roadName
+  );
 
+const roadSegments =
+  mergeConnectedRoadSegments(
+    originalRoadSegments,
+    100
+  );
           if(
             !Array.isArray(roadSegments) ||
             roadSegments.length === 0
