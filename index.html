@@ -11268,7 +11268,19 @@ function highlightDifficultRoad(
   ){
     return;
   }
+/*
+  도로가 강조되는 동안
+  1코스·2코스 라벨 잠시 숨김
+*/
+routeLabelMarkers.forEach(marker => {
 
+  if(
+    marker &&
+    map.hasLayer(marker)
+  ){
+    map.removeLayer(marker);
+  }
+});
   /*
     색상은 그대로 유지하고
     굵기만 키워 강조
@@ -11304,6 +11316,19 @@ function highlightDifficultRoad(
         });
       });
 
+      /*
+  강조가 끝나면
+  1코스·2코스 라벨 다시 표시
+*/
+routeLabelMarkers.forEach(marker => {
+
+  if(
+    marker &&
+    !map.hasLayer(marker)
+  ){
+    marker.addTo(map);
+  }
+});
       difficultRoadHighlightTimer = null;
 
     }, 3000);
