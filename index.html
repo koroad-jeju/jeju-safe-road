@@ -11030,14 +11030,7 @@ function mergeConnectedRoadSegments(
       return segment.length >= 2;
     });
 }
-/*
-  1코스·2코스의 주의도로를
-  한꺼번에 지도에 표시
-*/
-/*
-  1코스·2코스의 주의도로를
-  빨간색으로 지도에 표시
-*/
+
 function showDifficultRoadsOnMap(){
 
   clearDifficultRoadMap();
@@ -11207,7 +11200,114 @@ function showDifficultRoadsOnMap(){
     }
   );
 }
-  
+
+  /* ==================================================
+   도로 정보 클릭 시
+   기존 빨간 주의도로 선만 굵게 강조
+================================================== */
+
+function highlightDifficultRoad(
+  roadName,
+  routeIndex = selectedRouteIndex
+){
+
+  /*
+    이전 타이머가 남아 있으면 제거
+  */
+  if(difficultRoadHighlightTimer){
+    clearTimeout(
+      difficultRoadHighlightTimer
+    );
+
+    difficultRoadHighlightTimer = null;
+  }
+
+  /*
+    기존에 강조되어 있던 모든 빨간 선을
+    원래 굵기로 먼저 복구
+  */
+  Object.values(
+    difficultRoadLines
+  ).forEach(lines => {
+
+    if(!Array.isArray(lines)){
+      return;
+    }
+
+    lines.forEach(line => {
+
+      line.setStyle({
+        color:"#F87171",
+        weight:8,
+        opacity:0.9
+      });
+    });
+  });
+
+  /*
+    코스 번호와 도로명으로
+    해당 빨간 선 찾기
+  */
+  const roadKey =
+    routeIndex +
+    "::" +
+    roadName;
+
+  const selectedLines =
+    difficultRoadLines[
+      roadKey
+    ];
+
+  /*
+    빨간색 표시 대상이 아닌 도로는
+    설명 팝업만 표시
+  */
+  if(
+    !Array.isArray(selectedLines) ||
+    selectedLines.length === 0
+  ){
+    return;
+  }
+
+  /*
+    색상은 그대로 유지하고
+    굵기만 키워 강조
+  */
+  selectedLines.forEach(line => {
+
+    line.setStyle({
+      color:"#F87171",
+      weight:14,
+      opacity:1
+    });
+
+    if(
+      typeof line.bringToFront ===
+      "function"
+    ){
+      line.bringToFront();
+    }
+  });
+
+  /*
+    3초 후 원래 굵기로 복구
+  */
+  difficultRoadHighlightTimer =
+    setTimeout(() => {
+
+      selectedLines.forEach(line => {
+
+        line.setStyle({
+          color:"#F87171",
+          weight:8,
+          opacity:0.9
+        });
+      });
+
+      difficultRoadHighlightTimer = null;
+
+    }, 3000);
+}
 function showRoadInfo(
   roadName,
   routeIndex = selectedRouteIndex
