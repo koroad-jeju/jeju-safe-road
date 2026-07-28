@@ -6939,6 +6939,13 @@ let routeLabelMarkers = [];
   주의도로를 자동 표시하는 지도 레이어
 */
 let difficultRoadMapLayer = null;
+
+  /*
+  사용자가 주요도로를 눌렀을 때
+  해당 도로를 밝게 표시하는 레이어
+*/
+let roadHighlightLayer = null;
+let roadHighlightTimer = null;
 let customStart = null;
 let customEnd = null;
 let customStartName = null;
@@ -10709,27 +10716,195 @@ function getRouteRoadHtml(
     `;
   }
 
- return route.roadNames
+  return route.roadNames
     .map(road => `
       <button
         type="button"
         class="route-road-chip"
         onclick="
           event.stopPropagation();
-          showRoadInfo(
+
+          selectRouteCourse(
+            ${routeIndex}
+          );
+
+          highlightRoadOnMap(
             '${road.name}',
             ${routeIndex}
           );
-        ">
+        "
+      >
         ${road.name}
-        <span class="route-road-info-icon">i</span>
+
+        <span
+          class="route-road-info-icon"
+          onclick="
+            event.stopPropagation();
+
+            showRoadInfo(
+              '${road.name}',
+              ${routeIndex}
+            );
+          "
+        >
+          i
+        </span>
       </button>
     `)
     .join(`
       <span class="route-road-arrow">→</span>
     `);
 }
+/* ==================================================
+   주요도로 버튼 클릭 시 지도에서 밝게 강조
+================================================== */
 
+function clearRoadHighlight(){
+
+  if(roadHighlightTimer){
+    clearTimeout(roadHighlightTimer);
+    roadHighlightTimer = null;
+  }
+
+  if(
+    roadHighlightLayer &&
+    map.hasLayer(roadHighlightLayer)
+  ){
+    map.removeLayer(roadHighlightLayer);
+  }
+
+  roadHighlightLayer = null;
+}
+
+
+function highlightRoadOnMap(
+  roadName,
+  routeIndex = selectedRouteIndex
+){
+
+  clearRoadHighlight();
+
+  const route =
+    Array.isArray(lastRouteSummaries)
+      ? lastRouteSummaries[routeIndex]
+      : null;
+
+  if(!route){
+    console.warn(
+      "강조할 경로를 찾지 못했습니다.",
+      routeIndex
+    );
+    return;
+  }
+
+  const originalSegments =
+    getRoadSegmentsForMap(
+      route,
+      roadName
+    );
+
+  const roadSegments =
+    mergeConnectedRoadSegments(
+      originalSegments,
+      route.coords,
+      500
+    );
+
+  if(
+    !Array.isArray(roadSegments) ||
+    roadSegments.length === 0
+  ){
+    console.warn(
+      roadName +
+      "의 지도 좌표를 찾지 못했습니다."
+    );
+    return;
+  }
+
+  roadHighlightLayer =
+    L.layerGroup().addTo(map);
+
+  const highlightBounds = [];
+
+  roadSegments.forEach(segmentCoords => {
+
+    if(
+      !Array.isArray(segmentCoords) ||
+      segmentCoords.length < 2
+    ){
+      return;
+    }
+
+    /*
+      바깥쪽 흰색 빛 효과
+    */
+    L.polyline(
+      segmentCoords,
+      {
+        color:"#FFFFFF",
+        weight:18,
+        opacity:0.92,
+        lineCap:"round",
+        lineJoin:"round",
+        interactive:false
+      }
+    ).addTo(roadHighlightLayer);
+
+    /*
+      안쪽 밝은 노란색 강조선
+    */
+    L.polyline(
+      segmentCoords,
+      {
+        color:"#FFD43B",
+        weight:11,
+        opacity:1,
+        lineCap:"round",
+        lineJoin:"round",
+        interactive:false
+      }
+    ).addTo(roadHighlightLayer);
+
+    segmentCoords.forEach(coord => {
+      highlightBounds.push(coord);
+    });
+  });
+
+  /*
+    강조선이 다른 경로선보다 위에 보이도록 처리
+  */
+  roadHighlightLayer.eachLayer(layer => {
+    if(typeof layer.bringToFront === "function"){
+      layer.bringToFront();
+    }
+  });
+
+  /*
+    도로가 지도에 잘 보이도록 살짝 위치 조정
+    지나치게 확대되지는 않도록 maxZoom 설정
+  */
+  if(highlightBounds.length >= 2){
+
+    map.fitBounds(
+      L.latLngBounds(highlightBounds),
+      {
+        paddingTopLeft:[25, 70],
+        paddingBottomRight:[25, 210],
+        maxZoom:13,
+        animate:true,
+        duration:0.45
+      }
+    );
+  }
+
+  /*
+    3초 후 원래 지도 상태로 복귀
+  */
+  roadHighlightTimer =
+    setTimeout(() => {
+      clearRoadHighlight();
+    }, 3000);
+}
 /* ==================================================
    경로분석 완료 후 주의도로 자동 표시
 ================================================== */
