@@ -11285,21 +11285,21 @@ routeLabelMarkers.forEach(marker => {
     색상은 그대로 유지하고
     굵기만 키워 강조
   */
-  selectedLines.forEach(line => {
+selectedLines.forEach(line => {
 
-    line.setStyle({
-      color:"#F87171",
-      weight:14,
-      opacity:1
-    });
-
-    if(
-      typeof line.bringToFront ===
-      "function"
-    ){
-      line.bringToFront();
-    }
+  line.setStyle({
+    color:"#EF4444",
+    weight:12,
+    opacity:0.95
   });
+
+  if(
+    typeof line.bringToFront ===
+    "function"
+  ){
+    line.bringToFront();
+  }
+});
 
   /*
     3초 후 원래 굵기로 복구
