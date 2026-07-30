@@ -5894,6 +5894,113 @@ body.tourism-news-mode #map{
 .mini-btn:disabled{
   pointer-events:none;
 }
+  /* ==================================================
+   주요도로 클릭 시 지도 위 도로명 라벨
+================================================== */
+
+.road-location-label-marker{
+  background:transparent !important;
+  border:0 !important;
+}
+
+/* 도로명 라벨 본체 */
+.road-location-label{
+  position:relative;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  min-width:54px;
+  height:27px;
+  padding:0 10px;
+
+  box-sizing:border-box;
+  border:1.5px solid #4E72C4;
+  border-radius:8px;
+
+  background:#ffffff;
+  color:#3D5EAA;
+
+  font-family:
+    'Pretendard',
+    'SUIT',
+    sans-serif;
+
+  font-size:11.5px;
+  font-weight:900;
+  line-height:1;
+  white-space:nowrap;
+
+  box-shadow:
+    0 4px 11px
+    rgba(15,23,42,.16);
+}
+
+/* 라벨 아래쪽 꼬리 */
+.road-location-label::before{
+  content:"";
+
+  position:absolute;
+  left:50%;
+  bottom:-6px;
+
+  width:10px;
+  height:10px;
+
+  background:#ffffff;
+
+  border-right:1.5px solid #4E72C4;
+  border-bottom:1.5px solid #4E72C4;
+
+  transform:
+    translateX(-50%)
+    rotate(45deg);
+}
+
+/* 경로선과 맞닿는 작은 점 */
+.road-location-label::after{
+  content:"";
+
+  position:absolute;
+  left:50%;
+  bottom:-12px;
+
+  width:6px;
+  height:6px;
+
+  border-radius:50%;
+  background:#4E72C4;
+
+  transform:translateX(-50%);
+}
+
+/* 2코스에서 누른 도로 */
+.road-location-label.course-2{
+  border-color:#9B748E;
+  color:#805E77;
+}
+
+.road-location-label.course-2::before{
+  border-right-color:#9B748E;
+  border-bottom-color:#9B748E;
+}
+
+.road-location-label.course-2::after{
+  background:#9B748E;
+}
+
+/* 모바일에서는 약간 작게 */
+@media(max-width:480px){
+
+  .road-location-label{
+    min-width:50px;
+    height:25px;
+    padding:0 9px;
+
+    font-size:10.5px;
+  }
+}
 </style>
 </head>
 
@@ -6934,6 +7041,15 @@ return {
 let routeLayer;
   let routePolylines = [];
 let routeLabelMarkers = [];
+  /*
+  주요도로 클릭 시 표시되는 도로명 라벨
+*/
+let roadInfoLabelMarker = null;
+
+/*
+  1코스·2코스 라벨 복귀용 타이머
+*/
+let routeLabelRestoreTimer = null;
 /*
   경로분석 완료 후
   주의도로를 자동 표시하는 지도 레이어
@@ -10721,18 +10837,14 @@ function getRouteRoadHtml(
       <button
         type="button"
         class="route-road-chip"
-        onclick="
-          event.stopPropagation();
+onclick="
+  event.stopPropagation();
 
-          selectRouteCourse(
-            ${routeIndex}
-          );
-
-          showRoadInfo(
-            '${road.name}',
-            ${routeIndex}
-          );
-        "
+  showRoadInfo(
+    '${road.name}',
+    ${routeIndex}
+  );
+"
       >
         ${road.name}
         <span class="route-road-info-icon">i</span>
@@ -11333,20 +11445,291 @@ routeLabelMarkers.forEach(marker => {
 
     }, 3000);
 }
+  /* ==================================================
+   주요도로 지도 라벨 관리
+================================================== */
+
+/*
+  이전에 표시된 주요도로 라벨 제거
+*/
+function clearRoadInfoLabel(){
+
+  if(!roadInfoLabelMarker){
+    return;
+  }
+
+  /*
+    routeLayer에 들어 있는 경우
+  */
+  if(
+    routeLayer &&
+    typeof routeLayer.hasLayer === "function" &&
+    routeLayer.hasLayer(roadInfoLabelMarker)
+  ){
+    routeLayer.removeLayer(
+      roadInfoLabelMarker
+    );
+
+  /*
+    예외적으로 지도에 직접 들어 있는 경우
+  */
+  }else if(
+    map.hasLayer(roadInfoLabelMarker)
+  ){
+    map.removeLayer(
+      roadInfoLabelMarker
+    );
+  }
+
+  roadInfoLabelMarker = null;
+}
+
+
+/*
+  1코스·2코스 라벨을 잠시 숨겼다가 복구
+*/
+function temporarilyHideRouteLabels(){
+
+  /*
+    이전 복귀 타이머가 남아 있으면 제거
+  */
+  if(routeLabelRestoreTimer){
+    clearTimeout(
+      routeLabelRestoreTimer
+    );
+
+    routeLabelRestoreTimer = null;
+  }
+
+  /*
+    현재 지도에 보이는 코스 라벨 제거
+  */
+  routeLabelMarkers.forEach(marker => {
+
+    if(!marker){
+      return;
+    }
+
+    if(
+      routeLayer &&
+      typeof routeLayer.hasLayer === "function" &&
+      routeLayer.hasLayer(marker)
+    ){
+      routeLayer.removeLayer(marker);
+
+    }else if(map.hasLayer(marker)){
+      map.removeLayer(marker);
+    }
+  });
+
+  /*
+    3초 후 1코스·2코스 라벨 복구
+  */
+  routeLabelRestoreTimer =
+    setTimeout(() => {
+
+      routeLabelMarkers.forEach(marker => {
+
+        if(!marker){
+          return;
+        }
+
+        /*
+          새 경로가 분석되어 routeLayer가 바뀐 경우를 대비
+        */
+        if(
+          routeLayer &&
+          typeof routeLayer.hasLayer === "function" &&
+          !routeLayer.hasLayer(marker)
+        ){
+          marker.addTo(routeLayer);
+        }
+      });
+
+      routeLabelRestoreTimer = null;
+
+    }, 3000);
+}
+
+
+/*
+  여러 구간 중 지도 라벨을 놓을
+  가장 적절한 중앙 좌표 찾기
+*/
+function getRoadLabelPoint(
+  roadName,
+  routeIndex
+){
+
+  const route =
+    lastRouteSummaries?.[routeIndex];
+
+  if(!route){
+    return null;
+  }
+
+  const roadSegments =
+    getRoadSegmentsForMap(
+      route,
+      roadName
+    );
+
+  if(
+    !Array.isArray(roadSegments) ||
+    roadSegments.length === 0
+  ){
+    console.warn(
+      roadName +
+      " 지도 라벨 좌표를 찾지 못했습니다."
+    );
+
+    return null;
+  }
+
+  /*
+    카카오가 같은 도로를 여러 조각으로 나눈 경우
+    좌표가 가장 많은 구간을 대표 구간으로 사용
+  */
+  const validSegments =
+    roadSegments.filter(segment => {
+      return (
+        Array.isArray(segment) &&
+        segment.length >= 2
+      );
+    });
+
+  if(validSegments.length === 0){
+    return null;
+  }
+
+  const longestSegment =
+    validSegments.reduce(
+      (longest, current) => {
+
+        return (
+          current.length >
+          longest.length
+        )
+          ? current
+          : longest;
+      }
+    );
+
+  const middleIndex =
+    Math.floor(
+      longestSegment.length / 2
+    );
+
+  return longestSegment[middleIndex];
+}
+
+
+/*
+  선택한 주요도로 중앙에
+  도로명 캡슐 라벨 표시
+*/
+function showRoadInfoLabel(
+  roadName,
+  routeIndex
+){
+
+  /*
+    이전 도로 라벨 제거
+  */
+  clearRoadInfoLabel();
+
+  const labelPoint =
+    getRoadLabelPoint(
+      roadName,
+      routeIndex
+    );
+
+  /*
+    좌표를 찾지 못해도
+    도로정보 팝업은 정상 표시
+  */
+  if(!labelPoint){
+    return;
+  }
+
+  const courseClass =
+    routeIndex === 1
+      ? "course-2"
+      : "course-1";
+
+  roadInfoLabelMarker =
+    L.marker(
+      labelPoint,
+      {
+        icon:L.divIcon({
+          className:
+            "road-location-label-marker",
+
+          html:`
+            <div class="
+              road-location-label
+              ${courseClass}
+            ">
+              ${roadName}
+            </div>
+          `,
+
+          /*
+            도로명이 길어져도
+            잘리지 않도록 넉넉하게 설정
+          */
+          iconSize:[100, 40],
+
+          /*
+            라벨 중앙 하단이
+            해당 도로 좌표를 가리키도록 설정
+          */
+          iconAnchor:[50, 40]
+        }),
+
+        interactive:false,
+
+        /*
+          기존 코스 라벨과 겹칠 때
+          주요도로 라벨이 위에 표시되도록 설정
+        */
+        zIndexOffset:1000
+      }
+    );
+
+  if(routeLayer){
+    roadInfoLabelMarker.addTo(
+      routeLayer
+    );
+  }else{
+    roadInfoLabelMarker.addTo(map);
+  }
+}
 function showRoadInfo(
   roadName,
   routeIndex = selectedRouteIndex
 ){
+  /*
+    클릭한 코스를 선택 상태로 전환
+  */
+  selectRouteCourse(
+    routeIndex
+  );
 
   /*
-    평화로·1100도로 등 빨간 표시 도로라면
-    기존 빨간 선 자체만 굵게 강조
+    지도 위 해당 도로 중앙에
+    도로명 라벨 표시
   */
-  highlightDifficultRoad(
+  showRoadInfoLabel(
     roadName,
     routeIndex
   );
 
+  /*
+    애조로 등 도로명 위치가 잘 보이도록
+    1코스·2코스 라벨을 3초간 숨김
+  */
+  temporarilyHideRouteLabels();
   const profile =
     jejuRoadProfiles.find(road =>
       road.name === roadName
@@ -14767,8 +15150,11 @@ if(type === "roadGuide"){
 }
 
 function closeMenuPopup(){
+
   const popup =
-    document.getElementById("menuPopup");
+    document.getElementById(
+      "menuPopup"
+    );
 
   popup.classList.remove(
     "active",
@@ -14776,6 +15162,42 @@ function closeMenuPopup(){
     "difficult-road-mode",
     "road-guide-mode"
   );
+
+  /*
+    도로정보 팝업을 닫으면
+    지도 위 도로명 라벨도 제거
+  */
+  clearRoadInfoLabel();
+
+  /*
+    3초 복귀 타이머가 남아 있으면 제거
+  */
+  if(routeLabelRestoreTimer){
+    clearTimeout(
+      routeLabelRestoreTimer
+    );
+
+    routeLabelRestoreTimer = null;
+  }
+
+  /*
+    팝업을 3초 전에 닫아도
+    1코스·2코스 라벨은 즉시 다시 표시
+  */
+  routeLabelMarkers.forEach(marker => {
+
+    if(!marker){
+      return;
+    }
+
+    if(
+      routeLayer &&
+      typeof routeLayer.hasLayer === "function" &&
+      !routeLayer.hasLayer(marker)
+    ){
+      marker.addTo(routeLayer);
+    }
+  });
 }
 </script>
 </body>
