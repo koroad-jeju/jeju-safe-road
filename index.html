@@ -5894,8 +5894,8 @@ body.tourism-news-mode #map{
 .mini-btn:disabled{
   pointer-events:none;
 }
-  /* ==================================================
-   주요도로 클릭 시 지도 위 도로명 라벨
+/* ==================================================
+   주요도로 클릭 시 지도 위 위치 핀
 ================================================== */
 
 .road-location-label-marker{
@@ -5903,102 +5903,224 @@ body.tourism-news-mode #map{
   border:0 !important;
 }
 
-/* 도로명 라벨 본체 */
-.road-location-label{
+/*
+  핀과 도로명을 세로로 배치
+*/
+.road-location-wrap{
+  width:90px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  pointer-events:none;
+}
+
+/*
+  작은 청록색 위치 핀
+*/
+.road-location-pin{
   position:relative;
 
-  display:inline-flex;
+  width:25px;
+  height:25px;
+
+  border:2px solid #ffffff;
+  border-radius:50% 50% 50% 7px;
+
+  background:#15978D;
+
+  box-sizing:border-box;
+
+  transform:rotate(-45deg);
+
+  box-shadow:
+    0 4px 10px
+    rgba(15,23,42,.22);
+}
+
+/*
+  핀 내부 흰 점
+*/
+.road-location-pin::after{
+  content:"";
+
+  position:absolute;
+  top:50%;
+  left:50%;
+
+  width:7px;
+  height:7px;
+
+  border-radius:50%;
+  background:#ffffff;
+
+  transform:
+    translate(-50%,-50%);
+}
+
+/*
+  도로명 캡슐
+*/
+.road-location-name{
+  margin-top:5px;
+
+  min-width:48px;
+  max-width:88px;
+  height:23px;
+
+  padding:0 8px;
+
+  display:flex;
   align-items:center;
   justify-content:center;
 
-  min-width:54px;
-  height:27px;
-  padding:0 10px;
-
   box-sizing:border-box;
-  border:1.5px solid #4E72C4;
+
+  border:1px solid #7BCBC3;
   border-radius:8px;
 
   background:#ffffff;
-  color:#3D5EAA;
+  color:#176D64;
 
   font-family:
     'Pretendard',
     'SUIT',
     sans-serif;
 
-  font-size:11.5px;
+  font-size:10.5px;
   font-weight:900;
   line-height:1;
+
   white-space:nowrap;
 
   box-shadow:
-    0 4px 11px
-    rgba(15,23,42,.16);
+    0 3px 8px
+    rgba(15,23,42,.13);
 }
 
-/* 라벨 아래쪽 꼬리 */
-.road-location-label::before{
-  content:"";
 
-  position:absolute;
-  left:50%;
-  bottom:-6px;
+/* ==================================================
+   도로정보 팝업 모바일 UX
+================================================== */
 
-  width:10px;
-  height:10px;
-
-  background:#ffffff;
-
-  border-right:1.5px solid #4E72C4;
-  border-bottom:1.5px solid #4E72C4;
-
-  transform:
-    translateX(-50%)
-    rotate(45deg);
-}
-
-/* 경로선과 맞닿는 작은 점 */
-.road-location-label::after{
-  content:"";
-
-  position:absolute;
-  left:50%;
-  bottom:-12px;
-
-  width:6px;
-  height:6px;
-
-  border-radius:50%;
-  background:#4E72C4;
-
-  transform:translateX(-50%);
-}
-
-/* 2코스에서 누른 도로 */
-.road-location-label.course-2{
-  border-color:#9B748E;
-  color:#805E77;
-}
-
-.road-location-label.course-2::before{
-  border-right-color:#9B748E;
-  border-bottom-color:#9B748E;
-}
-
-.road-location-label.course-2::after{
-  background:#9B748E;
-}
-
-/* 모바일에서는 약간 작게 */
 @media(max-width:480px){
 
-  .road-location-label{
-    min-width:50px;
-    height:25px;
-    padding:0 9px;
+  /*
+    전체 화면을 너무 어둡게 하지 않음
+  */
+  .menu-popup.road-info-mode{
+    align-items:flex-end !important;
+    justify-content:center !important;
 
-    font-size:10.5px;
+    padding:
+      0
+      10px
+      calc(76px + env(safe-area-inset-bottom))
+      !important;
+
+    background:
+      rgba(15,23,42,.20) !important;
+  }
+
+  /*
+    중앙 팝업 대신 하단 바텀시트
+  */
+  .menu-popup.road-info-mode
+  .menu-popup-card{
+    width:100% !important;
+    max-width:none !important;
+
+    height:auto !important;
+    max-height:38dvh !important;
+
+    border-radius:20px !important;
+
+    box-shadow:
+      0 12px 32px
+      rgba(15,23,42,.22) !important;
+  }
+
+  /*
+    제목 영역 축소
+  */
+  .menu-popup.road-info-mode
+  .menu-popup-head{
+    height:48px !important;
+    min-height:48px !important;
+
+    padding:
+      0 11px
+      0 15px !important;
+
+    font-size:16px !important;
+  }
+
+  .menu-popup.road-info-mode
+  .menu-popup-head button{
+    width:31px !important;
+    height:31px !important;
+
+    font-size:19px !important;
+  }
+
+  /*
+    내용 영역 축소
+  */
+  .menu-popup.road-info-mode
+  .menu-popup-content{
+    padding:11px !important;
+  }
+
+  .menu-popup.road-info-mode
+  .road-info-content{
+    padding:13px 14px !important;
+    border-radius:15px !important;
+  }
+
+  .menu-popup.road-info-mode
+  .road-info-guide{
+    font-size:12.5px !important;
+    line-height:1.55 !important;
+  }
+
+  .menu-popup.road-info-mode
+  .road-info-feature-list{
+    margin-top:10px !important;
+    padding-top:8px !important;
+  }
+
+  .menu-popup.road-info-mode
+  .road-info-feature{
+    margin-top:5px !important;
+  }
+
+  .menu-popup.road-info-mode
+  .road-info-feature > p{
+    font-size:12px !important;
+    line-height:1.45 !important;
+  }
+
+  /*
+    모바일 위치 핀은 출발·도착보다 작게
+  */
+  .road-location-pin{
+    width:22px;
+    height:22px;
+  }
+
+  .road-location-pin::after{
+    width:6px;
+    height:6px;
+  }
+
+  .road-location-name{
+    height:21px;
+    min-width:45px;
+
+    padding:0 7px;
+
+    font-size:9.8px;
   }
 }
 </style>
@@ -11553,8 +11675,8 @@ function temporarilyHideRouteLabels(){
 
 
 /*
-  여러 구간 중 지도 라벨을 놓을
-  가장 적절한 중앙 좌표 찾기
+  도로 구간의 실제 거리 기준으로
+  가장 긴 구간의 중앙 좌표 찾기
 */
 function getRoadLabelPoint(
   roadName,
@@ -11580,16 +11702,12 @@ function getRoadLabelPoint(
   ){
     console.warn(
       roadName +
-      " 지도 라벨 좌표를 찾지 못했습니다."
+      " 지도 표시 좌표를 찾지 못했습니다."
     );
 
     return null;
   }
 
-  /*
-    카카오가 같은 도로를 여러 조각으로 나눈 경우
-    좌표가 가장 많은 구간을 대표 구간으로 사용
-  */
   const validSegments =
     roadSegments.filter(segment => {
       return (
@@ -11602,31 +11720,92 @@ function getRoadLabelPoint(
     return null;
   }
 
-  const longestSegment =
-    validSegments.reduce(
-      (longest, current) => {
+  /*
+    좌표 개수가 아니라
+    실제 지리적 거리로 가장 긴 구간 선택
+  */
+  const segmentInfos =
+    validSegments.map(segment => {
 
-        return (
-          current.length >
-          longest.length
-        )
-          ? current
-          : longest;
+      let totalDistance = 0;
+
+      for(
+        let index = 1;
+        index < segment.length;
+        index++
+      ){
+        totalDistance +=
+          map.distance(
+            segment[index - 1],
+            segment[index]
+          );
       }
-    );
 
-  const middleIndex =
+      return {
+        segment:segment,
+        totalDistance:totalDistance
+      };
+    });
+
+  segmentInfos.sort(
+    (a, b) =>
+      b.totalDistance -
+      a.totalDistance
+  );
+
+  const longestSegment =
+    segmentInfos[0].segment;
+
+  const totalDistance =
+    segmentInfos[0].totalDistance;
+
+  const halfDistance =
+    totalDistance / 2;
+
+  let accumulatedDistance = 0;
+
+  /*
+    가장 긴 도로 구간의
+    실제 거리상 중앙 좌표 반환
+  */
+  for(
+    let index = 1;
+    index < longestSegment.length;
+    index++
+  ){
+    const previousPoint =
+      longestSegment[index - 1];
+
+    const currentPoint =
+      longestSegment[index];
+
+    const sectionDistance =
+      map.distance(
+        previousPoint,
+        currentPoint
+      );
+
+    if(
+      accumulatedDistance +
+      sectionDistance >=
+      halfDistance
+    ){
+      return currentPoint;
+    }
+
+    accumulatedDistance +=
+      sectionDistance;
+  }
+
+  return longestSegment[
     Math.floor(
       longestSegment.length / 2
-    );
-
-  return longestSegment[middleIndex];
+    )
+  ];
 }
-
-
 /*
   선택한 주요도로 중앙에
-  도로명 캡슐 라벨 표시
+  작은 청록색 핀과 도로명 표시
 */
 function showRoadInfoLabel(
   roadName,
@@ -11634,7 +11813,7 @@ function showRoadInfoLabel(
 ){
 
   /*
-    이전 도로 라벨 제거
+    이전 표시 제거
   */
   clearRoadInfoLabel();
 
@@ -11646,16 +11825,11 @@ function showRoadInfoLabel(
 
   /*
     좌표를 찾지 못해도
-    도로정보 팝업은 정상 표시
+    설명 팝업은 정상 표시
   */
   if(!labelPoint){
     return;
   }
-
-  const courseClass =
-    routeIndex === 1
-      ? "course-2"
-      : "course-1";
 
   roadInfoLabelMarker =
     L.marker(
@@ -11666,34 +11840,39 @@ function showRoadInfoLabel(
             "road-location-label-marker",
 
           html:`
-            <div class="
-              road-location-label
-              ${courseClass}
-            ">
-              ${roadName}
+            <div class="road-location-wrap">
+
+              <div
+                class="road-location-pin"
+                aria-hidden="true">
+              </div>
+
+              <div class="road-location-name">
+                ${roadName}
+              </div>
+
             </div>
           `,
 
           /*
-            도로명이 길어져도
-            잘리지 않도록 넉넉하게 설정
+            핀과 도로명이 잘리지 않도록
+            충분한 영역 확보
           */
-          iconSize:[100, 40],
+          iconSize:[90, 56],
 
           /*
-            라벨 중앙 하단이
-            해당 도로 좌표를 가리키도록 설정
+            핀의 뾰족한 끝이
+            실제 도로 좌표를 가리키도록 설정
           */
-          iconAnchor:[50, 40]
+          iconAnchor:[45, 27]
         }),
 
         interactive:false,
 
         /*
-          기존 코스 라벨과 겹칠 때
-          주요도로 라벨이 위에 표시되도록 설정
+          코스 라벨과 경로선보다 위에 표시
         */
-        zIndexOffset:1000
+        zIndexOffset:1400
       }
     );
 
@@ -11702,7 +11881,9 @@ function showRoadInfoLabel(
       routeLayer
     );
   }else{
-    roadInfoLabelMarker.addTo(map);
+    roadInfoLabelMarker.addTo(
+      map
+    );
   }
 }
 function showRoadInfo(
