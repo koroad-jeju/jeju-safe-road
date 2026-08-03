@@ -7103,6 +7103,12 @@ if(
 
 let regionLayer;
 
+/*
+  경로가 어떤 동·리를 통과하는지
+  스마트 브리핑에서 확인하기 위한 원본 GeoJSON
+*/
+let jejuRegionGeoJsonData = null;
+  
 fetch("jeju_regions.geojson")
   .then(response => {
 
@@ -7116,7 +7122,14 @@ fetch("jeju_regions.geojson")
     return response.json();
   })
   .then(data => {
-    regionLayer = L.geoJSON(data, {
+
+  /*
+    지도 표시뿐 아니라
+    경로 통과지역 분석에도 사용
+  */
+  jejuRegionGeoJsonData = data;
+
+  regionLayer = L.geoJSON(data, {
       style: function(feature){
         const name =
           feature.properties.adm_nm ||
@@ -12537,7 +12550,238 @@ function getRouteRiskScore(route){
     )
   );
 }
+/* ==================================================
+   회전교차로 안내지역 분석
+================================================== */
 
+/*
+  해당 지역 전체가 회전교차로라는 뜻이 아니라,
+  해당 지역의 주요 도로를 통과할 때
+  회전교차로 진입에 유의하도록 안내하는 대상
+*/
+const roundaboutGuideAreas = [
+  "서귀동",
+  "동홍동",
+  "서홍동",
+  "강정동",
+  "법환동",
+  "서호동",
+
+  "보성리",
+  "구억리",
+  "신평리",
+
+  "애월리",
+  "하귀리",
+  "신엄리",
+  "고내리"
+];
+
+
+/*
+  GeoJSON 속성에서 행정동·리 이름 가져오기
+*/
+function getRegionFeatureName(feature){
+
+  return (
+    feature?.properties?.adm_nm ||
+    feature?.properties?.name ||
+    feature?.properties?.EMD_NM ||
+    feature?.properties?.SIG_KOR_NM ||
+    ""
+  );
+}
+
+
+/*
+  점이 하나의 다각형 안에 있는지 판별
+  lng = 경도, lat = 위도
+*/
+function isPointInsidePolygon(
+  lng,
+  lat,
+  polygonCoordinates
+){
+  let inside = false;
+
+  for(
+    let i = 0,
+        j = polygonCoordinates.length - 1;
+    i < polygonCoordinates.length;
+    j = i++
+  ){
+    const xi = polygonCoordinates[i][0];
+    const yi = polygonCoordinates[i][1];
+
+    const xj = polygonCoordinates[j][0];
+    const yj = polygonCoordinates[j][1];
+
+    const intersects =
+      (
+        (yi > lat) !==
+        (yj > lat)
+      ) &&
+      (
+        lng <
+        (
+          (xj - xi) *
+          (lat - yi) /
+          ((yj - yi) || 0.0000001)
+        ) +
+        xi
+      );
+
+    if(intersects){
+      inside = !inside;
+    }
+  }
+
+  return inside;
+}
+
+
+/*
+  Polygon과 MultiPolygon 모두 처리
+*/
+function isRoutePointInsideFeature(
+  routePoint,
+  feature
+){
+  if(
+    !Array.isArray(routePoint) ||
+    !feature?.geometry
+  ){
+    return false;
+  }
+
+  /*
+    route.coords는 현재
+    [lat, lng] 형태로 저장되어 있음
+  */
+  const lat = Number(routePoint[0]);
+  const lng = Number(routePoint[1]);
+
+  const geometry =
+    feature.geometry;
+
+  if(geometry.type === "Polygon"){
+
+    const outerRing =
+      geometry.coordinates?.[0];
+
+    return (
+      Array.isArray(outerRing) &&
+      isPointInsidePolygon(
+        lng,
+        lat,
+        outerRing
+      )
+    );
+  }
+
+  if(geometry.type === "MultiPolygon"){
+
+    return geometry.coordinates.some(
+      polygon => {
+
+        const outerRing =
+          polygon?.[0];
+
+        return (
+          Array.isArray(outerRing) &&
+          isPointInsidePolygon(
+            lng,
+            lat,
+            outerRing
+          )
+        );
+      }
+    );
+  }
+
+  return false;
+}
+
+
+/*
+  경로가 지나가는 회전교차로 안내지역 찾기
+*/
+function getRouteRoundaboutAreas(route){
+
+  if(
+    !Array.isArray(route?.coords) ||
+    route.coords.length === 0 ||
+    !Array.isArray(
+      jejuRegionGeoJsonData?.features
+    )
+  ){
+    return [];
+  }
+
+  /*
+    모든 좌표를 검사하면 무거울 수 있으므로
+    약 12개 간격으로 샘플링
+  */
+  const sampleStep =
+    Math.max(
+      1,
+      Math.floor(
+        route.coords.length / 120
+      )
+    );
+
+  const sampledRoutePoints =
+    route.coords.filter(
+      (_, index) =>
+        index % sampleStep === 0
+    );
+
+  const matchedAreas = [];
+
+  jejuRegionGeoJsonData.features
+    .forEach(feature => {
+
+      const fullName =
+        getRegionFeatureName(feature);
+
+      const matchedArea =
+        roundaboutGuideAreas.find(
+          areaName =>
+            fullName.includes(areaName)
+        );
+
+      if(!matchedArea){
+        return;
+      }
+
+      /*
+        경로 샘플 좌표가 해당 행정구역 안에
+        하나라도 들어가는지 확인
+      */
+      const isPassed =
+        sampledRoutePoints.some(
+          routePoint =>
+            isRoutePointInsideFeature(
+              routePoint,
+              feature
+            )
+        );
+
+      if(
+        isPassed &&
+        !matchedAreas.includes(
+          matchedArea
+        )
+      ){
+        matchedAreas.push(
+          matchedArea
+        );
+      }
+    });
+
+  return matchedAreas;
+}
+  
 /* 코스 특징을 짧은 2줄로 정리 */
 function getCompactCourseFeature(route){
   const difficultRoads =
