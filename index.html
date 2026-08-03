@@ -6408,6 +6408,307 @@ body.tourism-news-mode #map{
     display:none;
   }
 }
+  /* ==================================================
+   심플 경로 비교 카드 최종
+   시간 · 거리 · 사고이력 · 위험점수만 표시
+================================================== */
+
+/* 비교표에서 왼쪽 항목 열 제거 */
+body.route-analysis-mode
+.route-compare-simple-table{
+  display:block !important;
+  width:100% !important;
+}
+
+/* 두 코스 좌우 배치 */
+body.route-analysis-mode
+.route-compare-simple-table
+.route-compare-courses{
+  display:grid !important;
+  grid-template-columns:
+    repeat(2,minmax(0,1fr)) !important;
+
+  gap:8px !important;
+  width:100% !important;
+}
+
+/* 코스가 하나일 때 */
+body.route-analysis-mode
+.route-compare-simple-table.single-course
+.route-compare-courses{
+  grid-template-columns:1fr !important;
+}
+
+/* 카드 행 구조 재설정 */
+body.route-analysis-mode
+.route-compare-simple-table
+.route-compare-course{
+  display:grid !important;
+
+  grid-template-rows:
+    30px
+    34px
+    34px
+    34px
+    34px
+    !important;
+
+  min-width:0 !important;
+  overflow:hidden !important;
+
+  padding:0 !important;
+
+  border-radius:14px !important;
+  background:#ffffff !important;
+}
+
+/* 1코스 카드 */
+body.route-analysis-mode
+.route-compare-simple-table
+.route-compare-course.recommend{
+  border:1px solid #cbd8f0 !important;
+  background:#fbfcff !important;
+}
+
+/* 2코스 카드 */
+body.route-analysis-mode
+.route-compare-simple-table
+.route-compare-course.alt{
+  border:1px solid #dfd1da !important;
+  background:#fffdfd !important;
+}
+
+/* 코스 선택 테두리는 너무 강하지 않게 */
+body.route-analysis-mode
+.route-compare-simple-table
+.route-compare-course.recommend.selected-course{
+  border:1.5px solid var(--course1-main) !important;
+
+  box-shadow:
+    0 4px 12px
+    rgba(78,114,196,.09) !important;
+}
+
+body.route-analysis-mode
+.route-compare-simple-table
+.route-compare-course.alt.selected-course{
+  border:1.5px solid var(--course2-main) !important;
+
+  box-shadow:
+    0 4px 12px
+    rgba(155,116,142,.09) !important;
+}
+
+/* 코스 제목 */
+body.route-analysis-mode
+.route-compare-simple-table
+.route-compare-course-title{
+  height:auto !important;
+  min-height:0 !important;
+
+  border-bottom:1px solid #e7eaf0 !important;
+
+  font-size:12.5px !important;
+  font-weight:900 !important;
+}
+
+/* 정보 한 줄 */
+body.route-analysis-mode
+.route-simple-value{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  gap:5px !important;
+  min-width:0 !important;
+
+  padding:0 5px !important;
+  box-sizing:border-box !important;
+
+  border-bottom:1px solid #e8ebef !important;
+
+  color:#1f2937 !important;
+  font-size:11.5px !important;
+  font-weight:750 !important;
+
+  white-space:nowrap !important;
+}
+
+/* 마지막 줄 아래선 제거 */
+body.route-analysis-mode
+.route-simple-value:last-child{
+  border-bottom:0 !important;
+}
+
+/* 시간·거리 숫자 */
+body.route-analysis-mode
+.route-simple-value > b{
+  color:#202631 !important;
+  font-size:12px !important;
+  font-weight:900 !important;
+}
+
+/* 왼쪽 작은 아이콘 */
+.route-simple-icon{
+  flex:0 0 auto;
+
+  width:15px;
+  color:#7b8491;
+
+  font-size:13px;
+  font-weight:900;
+  text-align:center;
+}
+
+/* 사고이력·위험점수 라벨 */
+.route-simple-label{
+  color:#555f6d;
+  font-size:10.5px;
+  font-weight:800;
+}
+
+/* i 버튼 */
+.route-metric-info-button{
+  flex:0 0 auto;
+
+  width:17px;
+  height:17px;
+  padding:0;
+
+  border:0;
+  border-radius:50%;
+
+  background:transparent;
+  color:#85909e;
+
+  font-family:inherit;
+  font-size:12px;
+  font-weight:900;
+  line-height:17px;
+
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.route-info-card.recommend
+.route-metric-info-button{
+  color:var(--course1-main);
+}
+
+.route-info-card.alt
+.route-metric-info-button{
+  color:var(--course2-main);
+}
+
+/* 설명 영역은 처음에 숨김 */
+.route-metric-info{
+  display:none;
+  margin:8px 0 9px;
+}
+
+.route-metric-info.open{
+  display:block;
+}
+
+/* 설명 박스 */
+.route-metric-info-inner{
+  padding:10px 12px;
+
+  border:1px solid #e3e7eb;
+  border-radius:11px;
+
+  background:#f7f8fa;
+}
+
+/* 설명 제목 */
+.route-metric-info-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.route-metric-info-head b{
+  color:#394351;
+  font-size:11px;
+  font-weight:900;
+}
+
+.route-metric-info-head button{
+  width:22px;
+  height:22px;
+  padding:0;
+
+  border:0;
+  border-radius:50%;
+
+  background:#eceff2;
+  color:#687382;
+
+  font-size:15px;
+  line-height:22px;
+}
+
+/* 설명 문장 */
+.route-metric-info-inner p{
+  margin:5px 0 0;
+
+  color:#687382;
+  font-size:10px;
+  font-weight:650;
+  line-height:1.45;
+
+  word-break:keep-all;
+}
+
+/* 스마트 분석 버튼을 비교카드와 자연스럽게 연결 */
+body.route-analysis-mode
+.smart-briefing-toggle{
+  min-height:43px !important;
+  margin:0 0 9px !important;
+
+  border:1px solid #b5dcd7 !important;
+  border-radius:12px !important;
+
+  background:#ffffff !important;
+  color:#137a72 !important;
+
+  font-size:11.5px !important;
+
+  box-shadow:none !important;
+}
+
+/* 스마트 분석 전체 카드 */
+body.route-analysis-mode
+.smart-briefing-panel{
+  border-radius:15px !important;
+  box-shadow:none !important;
+}
+
+/* 작은 휴대전화 */
+@media(max-width:370px){
+
+  body.route-analysis-mode
+  .route-compare-simple-table
+  .route-compare-courses{
+    gap:6px !important;
+  }
+
+  body.route-analysis-mode
+  .route-simple-value{
+    gap:3px !important;
+    padding:0 3px !important;
+  }
+
+  .route-simple-label{
+    font-size:9.5px;
+  }
+
+  body.route-analysis-mode
+  .route-simple-value > b{
+    font-size:11px !important;
+  }
+}
 </style>
 </head>
 
@@ -10203,18 +10504,16 @@ lastRouteAnalysisHtml = `
   ${route2 ? "" : "single-course"}
 ">
 
-  <div class="route-compare-labels">
-    <div class="route-compare-label-head">
-      비교항목
-    </div>
-
-    <div>거리</div>
-    <div>시간</div>
-    <div>주요도로</div>
-    <div>사고이력</div>
-    <div>위험점수</div>
-    <div>코스특징</div>
+<div class="route-compare-labels">
+  <div class="route-compare-label-head">
+    비교항목
   </div>
+
+  <div>시간</div>
+  <div>거리</div>
+  <div>사고이력</div>
+  <div>위험점수</div>
+</div>
 
   <div class="route-compare-courses">
 
@@ -10237,17 +10536,12 @@ lastRouteAnalysisHtml = `
 
 </div>
 
-<div class="route-data-note route-score-guide">
-  <p>
-    <b>위험점수</b>
-    사고 심각도와 교통량을 반영하며, 점수가 높을수록 위험합니다.
-  </p>
+<div
+  id="routeMetricInfo"
+  class="route-metric-info"
+  aria-live="polite"
+></div>
 
-  <p>
-    <b>사고이력</b>
-    2023~2025년 제주 렌터카 사고자료를 기준으로 집계했습니다.
-  </p>
-</div>
 ${makeSmartBriefingHtml(route1, route2)}
   <div class="navi-section">
     <h3>내비게이션으로 길안내</h3>
@@ -13555,7 +13849,7 @@ function makeSmartBriefingHtml(
       aria-expanded="false"
       onclick="toggleSmartBriefing()"
     >
-      <span>스마트 경로 브리핑 보기</span>
+      <span>스마트 경로 분석 보기</span>
 
       <span class="smart-briefing-toggle-icon">
         ⌄
@@ -13576,11 +13870,6 @@ function makeSmartBriefingHtml(
             <img src="route.svg" alt="">
             스마트 경로 브리핑
           </div>
-
-          <div class="smart-briefing-sub">
-            주요도로·도로특성 자동 분석
-          </div>
-
         </div>
 
 
@@ -13647,10 +13936,10 @@ function toggleSmartBriefing(){
     button.querySelector("span");
 
   if(text){
-    text.textContent =
-      isOpen
-        ? "스마트 경로 브리핑 접기"
-        : "스마트 경로 브리핑 보기";
+text.textContent =
+  isOpen
+    ? "스마트 경로 분석 접기"
+    : "스마트 경로 분석 보기";
   }
 
 
@@ -13664,7 +13953,78 @@ function toggleSmartBriefing(){
     );
   }
 }
-  
+  function toggleRouteMetricInfo(type){
+
+  const box =
+    document.getElementById(
+      "routeMetricInfo"
+    );
+
+  if(!box){
+    return;
+  }
+
+  /*
+    같은 설명을 다시 누르면 닫기
+  */
+  if(
+    box.classList.contains("open") &&
+    box.dataset.type === type
+  ){
+    box.classList.remove("open");
+    box.innerHTML = "";
+    box.dataset.type = "";
+
+    return;
+  }
+
+  let title = "";
+  let description = "";
+
+  if(type === "accident"){
+    title = "사고이력";
+
+    description =
+      "2023~2025년 제주 렌터카 사고자료를 기준으로, 경로 주변에서 확인된 사고 건수를 집계했습니다.";
+  }
+
+  if(type === "risk"){
+    title = "위험점수";
+
+    description =
+      "사고 심각도와 교통량을 반영한 상대적 참고지표이며, 점수가 높을수록 주의가 필요한 경로입니다.";
+  }
+
+  box.dataset.type = type;
+
+  box.innerHTML = `
+    <div class="route-metric-info-inner">
+
+      <div class="route-metric-info-head">
+        <b>${title}</b>
+
+        <button
+          type="button"
+          onclick="
+            toggleRouteMetricInfo(
+              '${type}'
+            )
+          "
+          aria-label="설명 닫기"
+        >
+          ×
+        </button>
+      </div>
+
+      <p>
+        ${description}
+      </p>
+
+    </div>
+  `;
+
+  box.classList.add("open");
+}
 function makeRouteInfoCard(
   route,
   courseNumber,
@@ -13693,9 +14053,6 @@ function makeRouteInfoCard(
   const riskScore =
     getRouteRiskScore(route);
 
-  const feature =
-    getCompactCourseFeature(route);
-
   return `
     <div
       class="
@@ -13711,14 +14068,23 @@ function makeRouteInfoCard(
       data-route-index="${courseNumber - 1}"
       role="button"
       tabindex="0"
-      onclick="selectRouteCourse(${courseNumber - 1})"
+
+      onclick="
+        selectRouteCourse(
+          ${courseNumber - 1}
+        )
+      "
+
       onkeydown="
         if(
           event.key === 'Enter' ||
           event.key === ' '
         ){
           event.preventDefault();
-          selectRouteCourse(${courseNumber - 1});
+
+          selectRouteCourse(
+            ${courseNumber - 1}
+          );
         }
       "
     >
@@ -13727,38 +14093,73 @@ function makeRouteInfoCard(
         ${courseNumber}코스
       </div>
 
-      <div class="route-compare-value route-distance-value">
-        ${route.distanceKm}km
+      <div class="
+        route-compare-value
+        route-time-value
+        route-simple-value
+      ">
+        <span class="route-simple-icon">◷</span>
+        <b>${route.durationMin}분</b>
       </div>
 
-      <div class="route-compare-value route-time-value">
-        ${route.durationMin}분
+      <div class="
+        route-compare-value
+        route-distance-value
+        route-simple-value
+      ">
+        <span class="route-simple-icon">△</span>
+        <b>${route.distanceKm}km</b>
       </div>
 
-      <div class="route-compare-road">
-        ${getRouteRoadHtml(
-          route,
-          courseNumber - 1
-        )}
-      </div>
+      <div class="
+        route-compare-value
+        route-simple-value
+      ">
+        <button
+          type="button"
+          class="route-metric-info-button"
+          aria-label="사고이력 설명 보기"
+          onclick="
+            event.stopPropagation();
+            toggleRouteMetricInfo(
+              'accident'
+            );
+          "
+        >
+          ⓘ
+        </button>
 
-      <div class="route-compare-value">
-        ${accidentCount}건
-      </div>
-
-      <div class="route-compare-value route-risk-value">
-        ${riskScore}점
-      </div>
-
-      <div class="route-course-summary">
-        <strong>
-          ${feature.icon}
-          ${feature.title}
-        </strong>
-
-        <span>
-          ${feature.caution}
+        <span class="route-simple-label">
+          사고이력
         </span>
+
+        <b>${accidentCount}건</b>
+      </div>
+
+      <div class="
+        route-compare-value
+        route-risk-value
+        route-simple-value
+      ">
+        <button
+          type="button"
+          class="route-metric-info-button"
+          aria-label="위험점수 설명 보기"
+          onclick="
+            event.stopPropagation();
+            toggleRouteMetricInfo(
+              'risk'
+            );
+          "
+        >
+          ⓘ
+        </button>
+
+        <span class="route-simple-label">
+          위험점수
+        </span>
+
+        <b>${riskScore}점</b>
       </div>
 
     </div>
