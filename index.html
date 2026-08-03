@@ -10791,29 +10791,16 @@ setTimeout(() => {
     return;
   }
 
+  /*
+    지도 크기만 다시 계산
+    경로 확대는 showRouteAnalysis()에서 한 번만 처리
+  */
   map.invalidateSize();
 
-  if(lastRouteSummaries.length > 0){
-    const allRouteCoords =
-      lastRouteSummaries.flatMap(
-        route => route.coords
-      );
-
-map.fitBounds(
-  L.latLngBounds(allRouteCoords),
-  {
-    paddingTopLeft:[25,10],
-    paddingBottomRight:[25,300]
-  }
-);
-
-setTimeout(() => {
-  map.panBy([0, -20], {
-    animate:false
-  });
-}, 80);
-  }
-showDifficultRoadsOnMap();
+  /*
+    주의도로 표시
+  */
+  showDifficultRoadsOnMap();
 
 }, 250);
 
