@@ -6123,6 +6123,291 @@ body.tourism-news-mode #map{
     font-size:9.8px;
   }
 }
+  /* ==================================================
+   스마트 경로 브리핑
+================================================== */
+
+/* 펼치기 버튼 */
+.smart-briefing-toggle{
+  width:100%;
+  min-height:46px;
+  margin:0 0 9px;
+  padding:0 14px;
+
+  border:1px solid #9fd8d2;
+  border-radius:13px;
+
+  background:#ffffff;
+  color:#137a72;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+
+  font-family:inherit;
+  font-size:12.5px;
+  font-weight:900;
+
+  cursor:pointer;
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.smart-briefing-toggle:active{
+  transform:scale(.995);
+}
+
+.smart-briefing-toggle-icon{
+  font-size:15px;
+  transition:transform .2s ease;
+}
+
+.smart-briefing-toggle.open
+.smart-briefing-toggle-icon{
+  transform:rotate(180deg);
+}
+
+
+/* 처음에는 접힌 상태 */
+.smart-briefing-wrap{
+  display:none;
+  margin:0 0 9px;
+}
+
+.smart-briefing-wrap.open{
+  display:block;
+}
+
+
+/* 전체 카드 */
+.smart-briefing-panel{
+  padding:12px;
+  border:1px solid #e3e8ed;
+  border-radius:17px;
+  background:#ffffff;
+  box-shadow:0 5px 16px rgba(15,23,42,.05);
+}
+
+.smart-briefing-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.smart-briefing-title{
+  display:flex;
+  align-items:center;
+  gap:7px;
+
+  color:#202733;
+  font-size:14.5px;
+  font-weight:900;
+}
+
+.smart-briefing-title img{
+  width:17px;
+  height:17px;
+}
+
+.smart-briefing-sub{
+  color:#929aa5;
+  font-size:9px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+
+/* 코스별 카드 세로 배치 */
+.smart-briefing-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+
+/* 코스 카드 */
+.smart-briefing-course{
+  padding:11px 12px;
+  box-sizing:border-box;
+
+  border:1px solid #e2e7ec;
+  border-radius:14px;
+
+  background:#ffffff;
+
+  cursor:pointer;
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease,
+    background .18s ease;
+
+  -webkit-tap-highlight-color:transparent;
+}
+
+.smart-briefing-course:active{
+  transform:scale(.995);
+}
+
+
+/* 1코스 선택 */
+.smart-briefing-course.recommend.selected-course{
+  border:1.5px solid var(--course1-main);
+  background:#f7f9ff;
+  box-shadow:0 5px 14px rgba(78,114,196,.09);
+}
+
+
+/* 2코스 선택 */
+.smart-briefing-course.alt.selected-course{
+  border:1.5px solid var(--course2-main);
+  background:#fffafd;
+  box-shadow:0 5px 14px rgba(155,116,142,.09);
+}
+
+
+/* 코스 제목과 거리·시간 */
+.smart-course-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.smart-course-name{
+  font-size:13px;
+  font-weight:900;
+}
+
+.smart-briefing-course.recommend
+.smart-course-name{
+  color:var(--course1-main);
+}
+
+.smart-briefing-course.alt
+.smart-course-name{
+  color:var(--course2-main);
+}
+
+.smart-course-time{
+  color:#4d5764;
+  font-size:10.5px;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+
+/* 특징 태그 */
+.smart-tag-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:8px;
+}
+
+.smart-tag{
+  display:inline-flex;
+  align-items:center;
+
+  min-height:23px;
+  padding:3px 7px;
+
+  border-radius:999px;
+
+  font-size:9.5px;
+  font-weight:850;
+  line-height:1.2;
+}
+
+.smart-briefing-course.recommend
+.smart-tag{
+  border:1px solid #c5d5f2;
+  background:#eef4ff;
+  color:#45669f;
+}
+
+.smart-briefing-course.alt
+.smart-tag{
+  border:1px solid #dbc9d5;
+  background:#f8eff4;
+  color:#805f78;
+}
+
+/* 회전교차로 태그는 공통 주의색 */
+.smart-tag.roundabout{
+  border-color:#e6c783 !important;
+  background:#fff7df !important;
+  color:#98651f !important;
+}
+
+
+/* 한 줄 요약 */
+.smart-course-description{
+  margin:8px 0 0;
+
+  color:#475569;
+  font-size:10.5px;
+  font-weight:700;
+  line-height:1.45;
+
+  word-break:keep-all;
+}
+
+
+/* 주요 통과도로 */
+.smart-course-roads{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+
+  margin-top:9px;
+  padding-top:8px;
+
+  border-top:1px solid #edf0f3;
+}
+
+.smart-course-roads-label{
+  flex:0 0 auto;
+
+  color:#89919c;
+  font-size:9.5px;
+  font-weight:800;
+}
+
+.smart-course-roads .route-road-list{
+  min-height:0 !important;
+  justify-content:flex-end !important;
+  gap:4px !important;
+}
+
+.smart-course-roads .route-road-chip{
+  min-height:23px !important;
+  padding:3px 7px !important;
+
+  border-radius:8px !important;
+
+  font-size:9.5px !important;
+}
+
+
+/* 작은 휴대전화 */
+@media(max-width:370px){
+
+  .smart-briefing-panel{
+    padding:10px;
+  }
+
+  .smart-briefing-course{
+    padding:10px;
+  }
+
+  .smart-briefing-sub{
+    display:none;
+  }
+}
 </style>
 </head>
 
@@ -9963,7 +10248,7 @@ lastRouteAnalysisHtml = `
     2023~2025년 제주 렌터카 사고자료를 기준으로 집계했습니다.
   </p>
 </div>
-
+${makeSmartBriefingHtml(route1, route2)}
   <div class="navi-section">
     <h3>내비게이션으로 길안내</h3>
 
@@ -13132,6 +13417,253 @@ function getSmartRouteBriefing(route){
       roundaboutAreas.length > 0
   };
 }
+/* ==================================================
+   스마트 경로 브리핑 화면 생성
+================================================== */
+
+/*
+  코스별 브리핑 카드
+*/
+function makeSmartBriefingCourse(
+  route,
+  courseNumber,
+  cardClass
+){
+  if(!route){
+    return "";
+  }
+
+  const briefing =
+    getSmartRouteBriefing(route);
+
+  /*
+    태그 HTML 생성
+    회전교차로 주의 태그만 별도 색상 적용
+  */
+  const tagHtml =
+    briefing.tags
+      .map(tag => {
+
+        const roundaboutClass =
+          tag === "회전교차로 주의"
+            ? "roundabout"
+            : "";
+
+        return `
+          <span class="
+            smart-tag
+            ${roundaboutClass}
+          ">
+            ${tag}
+          </span>
+        `;
+      })
+      .join("");
+
+
+  return `
+    <div
+      class="
+        smart-briefing-course
+        ${cardClass}
+        ${
+          courseNumber === 1
+            ? "selected-course"
+            : ""
+        }
+      "
+      data-route-index="${courseNumber - 1}"
+      role="button"
+      tabindex="0"
+
+      onclick="
+        selectRouteCourse(
+          ${courseNumber - 1}
+        )
+      "
+
+      onkeydown="
+        if(
+          event.key === 'Enter' ||
+          event.key === ' '
+        ){
+          event.preventDefault();
+
+          selectRouteCourse(
+            ${courseNumber - 1}
+          );
+        }
+      "
+    >
+
+      <div class="smart-course-head">
+
+        <div class="smart-course-name">
+          ${courseNumber}코스
+        </div>
+
+        <div class="smart-course-time">
+          ${route.distanceKm}km ·
+          약 ${route.durationMin}분
+        </div>
+
+      </div>
+
+
+      <div class="smart-tag-list">
+        ${tagHtml}
+      </div>
+
+
+      <p class="smart-course-description">
+        ${briefing.description}
+      </p>
+
+
+      <div class="smart-course-roads">
+
+        <span class="smart-course-roads-label">
+          주요 통과도로
+        </span>
+
+        <div class="route-road-list">
+          ${getRouteRoadHtml(
+            route,
+            courseNumber - 1
+          )}
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/*
+  1·2코스 브리핑 전체
+*/
+function makeSmartBriefingHtml(
+  route1,
+  route2
+){
+  return `
+    <button
+      id="smartBriefingToggle"
+      type="button"
+      class="smart-briefing-toggle"
+      aria-expanded="false"
+      onclick="toggleSmartBriefing()"
+    >
+      <span>스마트 경로 브리핑 보기</span>
+
+      <span class="smart-briefing-toggle-icon">
+        ⌄
+      </span>
+    </button>
+
+
+    <div
+      id="smartBriefingWrap"
+      class="smart-briefing-wrap"
+    >
+
+      <div class="smart-briefing-panel">
+
+        <div class="smart-briefing-head">
+
+          <div class="smart-briefing-title">
+            <img src="route.svg" alt="">
+            스마트 경로 브리핑
+          </div>
+
+          <div class="smart-briefing-sub">
+            주요도로·도로특성 자동 분석
+          </div>
+
+        </div>
+
+
+        <div class="smart-briefing-list">
+
+          ${makeSmartBriefingCourse(
+            route1,
+            1,
+            "recommend"
+          )}
+
+          ${
+            route2
+              ? makeSmartBriefingCourse(
+                  route2,
+                  2,
+                  "alt"
+                )
+              : ""
+          }
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/*
+  브리핑 펼치기·접기
+*/
+function toggleSmartBriefing(){
+
+  const wrap =
+    document.getElementById(
+      "smartBriefingWrap"
+    );
+
+  const button =
+    document.getElementById(
+      "smartBriefingToggle"
+    );
+
+  if(!wrap || !button){
+    return;
+  }
+
+  const isOpen =
+    wrap.classList.toggle("open");
+
+  button.classList.toggle(
+    "open",
+    isOpen
+  );
+
+  button.setAttribute(
+    "aria-expanded",
+    String(isOpen)
+  );
+
+  const text =
+    button.querySelector("span");
+
+  if(text){
+    text.textContent =
+      isOpen
+        ? "스마트 경로 브리핑 접기"
+        : "스마트 경로 브리핑 보기";
+  }
+
+
+  /*
+    펼쳤을 때 현재 선택 코스를
+    브리핑 카드에도 동일하게 반영
+  */
+  if(isOpen){
+    selectRouteCourse(
+      selectedRouteIndex
+    );
+  }
+}
   
 function makeRouteInfoCard(
   route,
@@ -13285,9 +13817,11 @@ if(difficultRoadMapLayer){
   /*
     코스 정보 카드 강조
   */
-  document
-    .querySelectorAll(".route-info-card")
-    .forEach(card => {
+ document
+  .querySelectorAll(
+    ".route-info-card, .smart-briefing-course"
+  )
+  .forEach(card => {
       const cardIndex =
         Number(card.dataset.routeIndex);
 
