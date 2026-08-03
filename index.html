@@ -6709,6 +6709,62 @@ body.route-analysis-mode
     font-size:11px !important;
   }
 }
+  /* ==================================================
+   경로분석 화면 최종 보정
+   1. 지도 높이 축소
+   2. 코스 카드 및 스마트 분석 버튼 간격
+================================================== */
+
+/* 1. 결과 패널을 위로 올려 지도 영역 줄이기 */
+body.route-analysis-mode
+.route-analysis-page{
+  top:48vh !important;
+}
+
+
+/* 2. 1코스·2코스 카드 사이 간격 */
+body.route-analysis-mode
+.route-compare-simple-table
+.route-compare-courses{
+  gap:12px !important;
+}
+
+
+/* 3. 코스 카드와 스마트 경로 분석 버튼 사이 간격 */
+body.route-analysis-mode
+.smart-briefing-toggle{
+  margin:
+    12px
+    0
+    9px
+    !important;
+}
+
+
+/* 세로가 짧은 휴대전화 */
+@media(max-height:750px){
+
+  body.route-analysis-mode
+  .route-analysis-page{
+    top:46vh !important;
+  }
+}
+
+
+/* 폭이 아주 작은 휴대전화 */
+@media(max-width:370px){
+
+  body.route-analysis-mode
+  .route-compare-simple-table
+  .route-compare-courses{
+    gap:9px !important;
+  }
+
+  body.route-analysis-mode
+  .smart-briefing-toggle{
+    margin-top:10px !important;
+  }
+}
 </style>
 </head>
 
