@@ -13422,54 +13422,131 @@ function addSmartBriefingTag(
 
   tagList.push(tagText);
 }
+  function getSmartRoadFeatureTags(
+  roadName
+){
+
+  const featureMap = {
+    "애조로":[
+      "합류·차로변경",
+      "간선도로 구간"
+    ],
+
+    "번영로":[
+      "농로 교차구간",
+      "진입 차량 주의"
+    ],
+
+    "비자림로":[
+      "숲길·곡선구간",
+      "시야 제한 구간"
+    ],
+
+    "남조로":[
+      "교차로·저속차량",
+      "중산간 구간"
+    ],
+
+    "평화로":[
+      "주행속도 높은 구간",
+      "분기구간 주의"
+    ],
+
+    "1100도로":[
+      "급커브·급경사",
+      "기상변화 주의"
+    ],
+
+    "5·16도로":[
+      "곡선·경사구간",
+      "산간도로 구간"
+    ],
+
+    "산록남로":[
+      "곡선·경사구간",
+      "기상변화 주의"
+    ],
+
+    "산록북로":[
+      "시야 제한 구간",
+      "곡선구간 주의"
+    ],
+
+    "중산간동로":[
+      "마을·농로 진입",
+      "교차로 주의"
+    ],
+
+    "중산간서로":[
+      "곡선구간",
+      "마을 진입 주의"
+    ],
+
+    "서성로":[
+      "마을·농로 진입",
+      "저속차량 주의"
+    ]
+  };
+
+  return (
+    featureMap[roadName] || [
+      "교차로 포함",
+      "진출입 차량 주의"
+    ]
+  );
+}
 function getSmartRoadCautionText(
   roadName
 ){
 
   const cautionMap = {
     "애조로":
-      "합류와 차로변경 차량에 주의하세요.",
+      "애조로는 합류와 차로변경 차량이 많아 주변 차량을 충분히 확인하세요.",
 
     "번영로":
-      "농로 교차구간과 진입 차량에 주의하세요.",
+      "번영로는 농로와 연결되는 교차구간이 있어 진입 차량에 주의하세요.",
 
     "비자림로":
-      "숲길과 곡선구간에서 충분히 감속하세요.",
+      "비자림로는 숲길과 곡선구간이 이어져 충분히 감속하세요.",
 
     "남조로":
-      "교차로와 저속 차량에 주의하세요.",
+      "남조로는 교차로와 저속 차량 진입이 있어 주변 차량에 주의하세요.",
 
     "평화로":
-      "주행속도가 높은 구간과 분기구간에 주의하세요.",
+      "평화로는 주행속도가 높은 구간이 많아 안전거리를 충분히 유지하세요.",
 
     "1100도로":
-      "급커브와 급경사 구간에서 충분히 감속하세요.",
+      "1100도로는 급커브와 급경사가 이어져 충분히 감속하세요.",
 
     "5·16도로":
-      "곡선과 경사구간에서 속도를 줄이세요.",
+      "5·16도로는 곡선과 경사구간이 이어져 커브 진입 전에 감속하세요.",
 
     "산록남로":
-      "곡선과 경사구간 및 기상변화에 주의하세요.",
+      "산록남로는 곡선과 경사구간이 많아 기상변화에도 주의하세요.",
 
     "산록북로":
-      "시야가 제한되는 곡선구간에서 감속하세요.",
+      "산록북로는 시야가 제한되는 곡선구간이 있어 충분히 감속하세요.",
 
     "중산간동로":
-      "마을 진입부와 농로 교차구간에 주의하세요.",
+      "중산간동로는 마을과 농로 진입구간이 이어져 주변 차량을 확인하세요.",
 
     "중산간서로":
-      "곡선구간과 마을 진입 차량에 주의하세요.",
+      "중산간서로는 곡선구간과 마을 진입부가 이어져 교차로 전에 감속하세요.",
 
     "서성로":
-      "농로와 마을 진입 차량을 확인하세요."
+      "서성로는 농로와 마을 진입 차량이 있어 교차로 접근 시 주의하세요."
   };
 
   return (
     cautionMap[roadName] ||
-    "교차로와 진출입 차량에 주의하세요."
+    (
+      roadName
+        ? roadName +
+          "는 교차로와 진출입 차량이 있어 주변 차량을 확인하세요."
+        : "교차로와 진출입 차량에 주의하세요."
+    )
   );
 }
-
 function getSmartRouteBriefing(
   route,
   otherRoute = null
@@ -13623,84 +13700,19 @@ function getSmartRouteBriefing(
       representativeRoad
     );
 
-    /*
-      도로별 특징 태그
-    */
-    if(representativeRoad === "애조로"){
-      addSmartBriefingTag(
-        tags,
-        "합류·차로변경"
-      );
-    }
+    const roadFeatureTags =
+  getSmartRoadFeatureTags(
+    representativeRoad
+  );
 
-    else if(
-      representativeRoad === "번영로"
-    ){
-      addSmartBriefingTag(
-        tags,
-        "농로 교차구간"
-      );
-    }
-
-    else if(
-      representativeRoad === "비자림로"
-    ){
-      addSmartBriefingTag(
-        tags,
-        "숲길·곡선구간"
-      );
-    }
-
-    else if(
-      representativeRoad === "평화로"
-    ){
-      addSmartBriefingTag(
-        tags,
-        "주행속도 높은 구간"
-      );
-    }
-
-    else if(
-      representativeRoad === "남조로"
-    ){
-      addSmartBriefingTag(
-        tags,
-        "교차로·저속차량"
-      );
-    }
-
-    else if(
-      representativeRoad === "1100도로" ||
-      representativeRoad === "5·16도로"
-    ){
-      addSmartBriefingTag(
-        tags,
-        "급커브·급경사"
-      );
-    }
-
-    else if(
-      representativeRoad === "산록남로" ||
-      representativeRoad === "산록북로"
-    ){
-      addSmartBriefingTag(
-        tags,
-        "곡선·기상변화"
-      );
-    }
-
-    else if(
-      representativeRoad === "중산간동로" ||
-      representativeRoad === "중산간서로" ||
-      representativeRoad === "서성로"
-    ){
-      addSmartBriefingTag(
-        tags,
-        "마을·농로 진입"
-      );
-    }
-
-
+roadFeatureTags.forEach(
+  featureTag => {
+    addSmartBriefingTag(
+      tags,
+      featureTag
+    );
+  }
+);
     /*
       “○○로를 경유하는 경로입니다”는 제외하고
       바로 특성만 짧게 안내
@@ -14199,11 +14211,7 @@ function makeSmartBriefingHtml(
             스마트 경로 브리핑
           </div>
         </div>
-
-${getSmartCommonBriefingHtml(
-  route1,
-  route2
-)}
+        
         <div class="smart-briefing-list">
 
       ${makeSmartBriefingCourse(
