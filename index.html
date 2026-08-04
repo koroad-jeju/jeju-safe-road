@@ -4973,17 +4973,18 @@ body.route-analysis-mode
 }
 
 
-/* 위험점수 앞 표시 제거 */
+/* 위험점수 행 간격 */
 body.route-analysis-mode
 .route-risk-value{
-  gap:0 !important;
+  gap:5px !important;
 }
 
+/* 위험점수 글자 표시 */
 body.route-analysis-mode
-.route-risk-value > span{
-  display:none !important;
+.route-risk-value
+.route-simple-label{
+  display:inline !important;
 }
-
 
 /* =========================================
    8. 주요도로 행
