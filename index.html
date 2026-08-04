@@ -16621,38 +16621,6 @@ const routeBounds =
     allRouteCoords
   );
 
-/*
-  현재 결과 패널이 실제로 시작되는 위치
-*/
-const analysisPanel =
-  document.getElementById(
-    "routeAnalysisPage"
-  );
-
-const panelTop =
-  analysisPanel
-    ? analysisPanel
-        .getBoundingClientRect()
-        .top
-    : window.innerHeight * 0.52;
-
-/*
-  결과 패널이 가리고 있는 실제 높이
-
-  휴대전화 화면 높이가 달라도
-  자동으로 계산되도록 함
-*/
-const coveredBottom =
-  Math.max(
-    120,
-    window.innerHeight -
-      panelTop +
-      22
-  );
-
-/*
-  가장 긴 코스 거리
-*/
 const longestRouteKm =
   Math.max(
     ...lastRouteSummaries.map(
@@ -16663,48 +16631,55 @@ const longestRouteKm =
     )
   );
 
-/*
-  너무 짧은 경로가 과도하게
-  확대되는 것만 제한
-*/
-let routeMaxZoom = 10.5;
+let bottomPadding = 185;
+let extraZoom = 0;
 
 if(longestRouteKm <= 15){
-  routeMaxZoom = 12;
+  bottomPadding = 210;
+  extraZoom = 0;
 }
 else if(longestRouteKm <= 30){
-  routeMaxZoom = 11;
+  bottomPadding = 195;
+  extraZoom = 0.15;
 }
 else if(longestRouteKm <= 50){
-  routeMaxZoom = 10.2;
+  bottomPadding = 180;
+  extraZoom = 0.3;
 }
 else{
-  routeMaxZoom = 9.6;
+  bottomPadding = 150;
+  extraZoom = 0.55;
 }
 
-/*
-  패널에 가리지 않는 실제 지도 영역 안에
-  두 코스 전체를 맞춤
-*/
 map.fitBounds(
   routeBounds,
   {
     paddingTopLeft:[
-      34,
-      46
+      28,
+      35
     ],
 
     paddingBottomRight:[
-      34,
-      coveredBottom
+      28,
+      bottomPadding
     ],
-
-    maxZoom:
-      routeMaxZoom,
 
     animate:false
   }
 );
+
+if(extraZoom > 0){
+
+  const fittedZoom =
+    map.getZoom();
+
+  map.setZoom(
+    fittedZoom + extraZoom,
+    {
+      animate:false
+    }
+  );
+}
        }
   }, 250);
 }
