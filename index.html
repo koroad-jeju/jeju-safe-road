@@ -13483,59 +13483,71 @@ function getSmartRouteBriefing(
     };
   }
 
+
+  /*
+    코스별 주요도로
+  */
   const roadNames =
     Array.isArray(route?.roadNames)
-      ? route.roadNames.map(
-          road => road.name
-        )
+      ? route.roadNames
+          .map(road => road.name)
+          .filter(Boolean)
       : [];
 
   const otherRoadNames =
     Array.isArray(otherRoute?.roadNames)
-      ? otherRoute.roadNames.map(
-          road => road.name
+      ? otherRoute.roadNames
+          .map(road => road.name)
+          .filter(Boolean)
+      : [];
+
+
+  /*
+    이 코스에만 있는 도로
+
+    예:
+    1코스 애조로·번영로
+    2코스 번영로·비자림로
+
+    1코스 고유도로 = 애조로
+    2코스 고유도로 = 비자림로
+  */
+  const uniqueRoads =
+    roadNames.filter(
+      roadName =>
+        !otherRoadNames.includes(
+          roadName
         )
-      : [];
+    );
 
-  const difficultRoads =
-    getDifficultRoadNames(route);
 
-  const otherDifficultRoads =
-    otherRoute
-      ? getDifficultRoadNames(otherRoute)
-      : [];
+  /*
+    고유도로 중 실제 설명자료가 있는
+    제주 대표도로를 우선 선택
+  */
+  const uniqueProfileRoads =
+    uniqueRoads.filter(
+      roadName =>
+        jejuRoadProfiles.some(
+          profile =>
+            profile.name === roadName
+        )
+    );
 
-  const roundaboutAreas =
-    getRouteRoundaboutAreas(route);
+  const representativeRoad =
+    uniqueProfileRoads[0] ||
+    uniqueRoads[0] ||
+    "";
 
+
+  /*
+    사고이력 비교
+  */
   const accident =
     route?.accidentAnalysis || {};
 
   const otherAccident =
     otherRoute?.accidentAnalysis || {};
-
-  const tags = [];
-
-  /*
-    수치 비교
-  */
-  const timeDifference =
-    otherRoute
-      ? Math.round(
-          Number(otherRoute.durationMin || 0) -
-          Number(route.durationMin || 0)
-        )
-      : 0;
-
-  const distanceDifference =
-    otherRoute
-      ? Number(
-          (
-            Number(otherRoute.distanceKm || 0) -
-            Number(route.distanceKm || 0)
-          ).toFixed(1)
-        )
-      : 0;
 
   const routeAccidentCount =
     Number(
@@ -13551,6 +13563,10 @@ function getSmartRouteBriefing(
       0
     );
 
+  /*
+    양수면 현재 코스가 사고이력이 적음
+    음수면 현재 코스가 사고이력이 많음
+  */
   const accidentDifference =
     otherRoute
       ? otherAccidentCount -
@@ -13559,296 +13575,379 @@ function getSmartRouteBriefing(
 
 
   /*
-    이 코스에만 포함된 도로
+    거리·시간 비교
+    도로 차이와 사고 차이가 없을 때만 사용
   */
-  const uniqueRoads =
-    roadNames.filter(
-      roadName =>
-        !otherRoadNames.includes(roadName)
-    );
+  const timeDifference =
+    otherRoute
+      ? Math.round(
+          Number(
+            otherRoute.durationMin || 0
+          ) -
+          Number(
+            route.durationMin || 0
+          )
+        )
+      : 0;
 
-  const uniqueDifficultRoads =
-    difficultRoads.filter(
-      roadName =>
-        !otherDifficultRoads.includes(roadName)
-    );
+  const distanceDifference =
+    otherRoute
+      ? Number(
+          (
+            Number(
+              otherRoute.distanceKm || 0
+            ) -
+            Number(
+              route.distanceKm || 0
+            )
+          ).toFixed(1)
+        )
+      : 0;
 
-  const representativeRoad =
-    uniqueDifficultRoads[0] ||
-    uniqueRoads[0] ||
-    difficultRoads[0] ||
-    roadNames[0] ||
-    "";
+
+  const tags = [];
+  let description = "";
 
 
   /*
-    1순위: 상대 코스와의 수치 차이
-  */
-
-  if(timeDifference >= 2){
-    addSmartBriefingTag(
-      tags,
-      timeDifference + "분 빠름"
-    );
-  }
-
-  if(distanceDifference >= 0.5){
-    addSmartBriefingTag(
-      tags,
-      distanceDifference.toFixed(1) +
-      "km 짧음"
-    );
-  }
-
-  if(accidentDifference >= 2){
-    addSmartBriefingTag(
-      tags,
-      "사고이력 " +
-      accidentDifference +
-      "건 적음"
-    );
-  }
-
-
-  /*
-    2순위: 이 코스만의 대표도로
+    ==================================================
+    1순위
+    서로 겹치지 않는 주요도로 설명
+    ==================================================
   */
 
   if(representativeRoad){
+
     addSmartBriefingTag(
       tags,
-      representativeRoad + " 경유"
+      representativeRoad
     );
-  }
 
-
-  /*
-    3순위: 대표도로의 핵심 주의사항
-  */
-
-  if(representativeRoad === "애조로"){
-    addSmartBriefingTag(
-      tags,
-      "합류·차로변경 주의"
-    );
-  }
-
-  else if(representativeRoad === "번영로"){
-    addSmartBriefingTag(
-      tags,
-      "농로 교차구간 주의"
-    );
-  }
-
-  else if(representativeRoad === "비자림로"){
-    addSmartBriefingTag(
-      tags,
-      "숲길·곡선구간"
-    );
-  }
-
-  else if(representativeRoad === "남조로"){
-    addSmartBriefingTag(
-      tags,
-      "교차로·저속차량 주의"
-    );
-  }
-
-  else if(representativeRoad === "평화로"){
-    addSmartBriefingTag(
-      tags,
-      "고속주행·분기구간"
-    );
-  }
-
-  else if(
-    representativeRoad === "1100도로" ||
-    representativeRoad === "5·16도로" ||
-    representativeRoad === "산록남로" ||
-    representativeRoad === "산록북로"
-  ){
-    addSmartBriefingTag(
-      tags,
-      "급커브·경사구간"
-    );
-  }
-
-  else if(
-    representativeRoad === "중산간동로" ||
-    representativeRoad === "중산간서로" ||
-    representativeRoad === "서성로"
-  ){
-    addSmartBriefingTag(
-      tags,
-      "마을·농로 진입 주의"
-    );
-  }
-
-
-  /*
-    비교할 2코스가 없을 때만
-    일반적인 도로 특징 사용
-  */
-
-  if(!otherRoute){
-
-    if(
-      difficultRoads.includes("1100도로") ||
-      difficultRoads.includes("5·16도로") ||
-      difficultRoads.includes("산록남로") ||
-      difficultRoads.includes("산록북로")
-    ){
+    /*
+      도로별 특징 태그
+    */
+    if(representativeRoad === "애조로"){
       addSmartBriefingTag(
         tags,
-        "산간도로 포함"
+        "합류·차로변경"
       );
     }
 
     else if(
-      difficultRoads.includes("남조로") ||
-      difficultRoads.includes("비자림로") ||
-      roadNames.includes("중산간동로") ||
-      roadNames.includes("중산간서로")
+      representativeRoad === "번영로"
     ){
       addSmartBriefingTag(
         tags,
-        "중산간도로 포함"
+        "농로 교차구간"
       );
     }
 
+    else if(
+      representativeRoad === "비자림로"
+    ){
+      addSmartBriefingTag(
+        tags,
+        "숲길·곡선구간"
+      );
+    }
+
+    else if(
+      representativeRoad === "평화로"
+    ){
+      addSmartBriefingTag(
+        tags,
+        "주행속도 높은 구간"
+      );
+    }
+
+    else if(
+      representativeRoad === "남조로"
+    ){
+      addSmartBriefingTag(
+        tags,
+        "교차로·저속차량"
+      );
+    }
+
+    else if(
+      representativeRoad === "1100도로" ||
+      representativeRoad === "5·16도로"
+    ){
+      addSmartBriefingTag(
+        tags,
+        "급커브·급경사"
+      );
+    }
+
+    else if(
+      representativeRoad === "산록남로" ||
+      representativeRoad === "산록북로"
+    ){
+      addSmartBriefingTag(
+        tags,
+        "곡선·기상변화"
+      );
+    }
+
+    else if(
+      representativeRoad === "중산간동로" ||
+      representativeRoad === "중산간서로" ||
+      representativeRoad === "서성로"
+    ){
+      addSmartBriefingTag(
+        tags,
+        "마을·농로 진입"
+      );
+    }
+
+
+    /*
+      “○○로를 경유하는 경로입니다”는 제외하고
+      바로 특성만 짧게 안내
+    */
+    description =
+      getSmartRoadCautionText(
+        representativeRoad
+      );
+  }
+
+
+  /*
+    ==================================================
+    2순위
+    서로 다른 대표도로가 없으면 사고이력 비교
+    ==================================================
+  */
+
+  else if(
+    otherRoute &&
+    Math.abs(accidentDifference) >= 1
+  ){
+
+    if(accidentDifference > 0){
+
+      addSmartBriefingTag(
+        tags,
+        "사고이력 상대적 적음"
+      );
+
+      description =
+        "다른 코스보다 확인된 사고이력이 " +
+        accidentDifference +
+        "건 적습니다.";
+    }
+
     else{
+
+      addSmartBriefingTag(
+        tags,
+        "사고이력 상대적 많음"
+      );
+
+      description =
+        "다른 코스보다 확인된 사고이력이 " +
+        Math.abs(accidentDifference) +
+        "건 많아 교차로와 진출입 차량에 주의가 필요합니다.";
+    }
+  }
+
+
+  /*
+    ==================================================
+    3순위
+    도로와 사고이력 차이가 없으면 거리·시간 비교
+    ==================================================
+  */
+
+  else if(
+    otherRoute &&
+    (
+      Math.abs(distanceDifference) >= 0.5 ||
+      Math.abs(timeDifference) >= 2
+    )
+  ){
+
+    /*
+      거리는 짧지만 사고이력이 많거나
+      시간은 빠르지만 거리는 긴 경우처럼
+      장단점을 함께 보여줌
+    */
+
+    if(
+      distanceDifference >= 0.5 &&
+      timeDifference <= -2
+    ){
+
+      addSmartBriefingTag(
+        tags,
+        distanceDifference.toFixed(1) +
+        "km 짧음"
+      );
+
+      addSmartBriefingTag(
+        tags,
+        Math.abs(timeDifference) +
+        "분 더 소요"
+      );
+
+      description =
+        "이동거리는 " +
+        distanceDifference.toFixed(1) +
+        "km 짧지만 예상시간은 약 " +
+        Math.abs(timeDifference) +
+        "분 더 걸립니다.";
+    }
+
+    else if(
+      distanceDifference <= -0.5 &&
+      timeDifference >= 2
+    ){
+
+      addSmartBriefingTag(
+        tags,
+        timeDifference +
+        "분 빠름"
+      );
+
+      addSmartBriefingTag(
+        tags,
+        Math.abs(
+          distanceDifference
+        ).toFixed(1) +
+        "km 더 김"
+      );
+
+      description =
+        "예상시간은 약 " +
+        timeDifference +
+        "분 빠르지만 이동거리는 " +
+        Math.abs(
+          distanceDifference
+        ).toFixed(1) +
+        "km 더 깁니다.";
+    }
+
+    else if(distanceDifference >= 0.5){
+
+      addSmartBriefingTag(
+        tags,
+        distanceDifference.toFixed(1) +
+        "km 짧음"
+      );
+
+      description =
+        "다른 코스보다 이동거리가 " +
+        distanceDifference.toFixed(1) +
+        "km 짧습니다.";
+    }
+
+    else if(distanceDifference <= -0.5){
+
+      addSmartBriefingTag(
+        tags,
+        Math.abs(
+          distanceDifference
+        ).toFixed(1) +
+        "km 더 김"
+      );
+
+      description =
+        "다른 코스보다 이동거리가 " +
+        Math.abs(
+          distanceDifference
+        ).toFixed(1) +
+        "km 더 깁니다.";
+    }
+
+    else if(timeDifference >= 2){
+
+      addSmartBriefingTag(
+        tags,
+        timeDifference +
+        "분 빠름"
+      );
+
+      description =
+        "다른 코스보다 예상시간이 약 " +
+        timeDifference +
+        "분 짧습니다.";
+    }
+
+    else{
+
+      addSmartBriefingTag(
+        tags,
+        Math.abs(timeDifference) +
+        "분 더 소요"
+      );
+
+      description =
+        "다른 코스보다 예상시간이 약 " +
+        Math.abs(timeDifference) +
+        "분 더 걸립니다.";
+    }
+  }
+
+
+  /*
+    ==================================================
+    4순위
+    두 코스가 사실상 거의 같은 경우
+    ==================================================
+  */
+
+  else if(otherRoute){
+
+    addSmartBriefingTag(
+      tags,
+      "공통구간 중심"
+    );
+
+    description =
+      "두 코스의 주요도로와 사고이력 차이가 크지 않습니다.";
+  }
+
+
+  /*
+    한 코스만 생성된 경우
+  */
+  else{
+
+    const firstRoad =
+      roadNames[0] || "";
+
+    if(firstRoad){
+
+      addSmartBriefingTag(
+        tags,
+        firstRoad
+      );
+
+      description =
+        getSmartRoadCautionText(
+          firstRoad
+        );
+    }
+
+    else{
+
       addSmartBriefingTag(
         tags,
         "일반도로 중심"
       );
+
+      description =
+        "교차로와 목적지 진입구간에서 주변 차량을 확인하세요.";
     }
   }
 
 
-  /*
-    태그는 최대 3개
-  */
-
-  const finalTags =
-    tags.slice(0, 3);
-
-  if(finalTags.length === 0){
-    finalTags.push(
-      "두 코스 공통구간 중심"
-    );
-  }
-
-
-  /*
-    설명 문장:
-    상대 코스와의 차이를 가장 먼저 안내
-  */
-
-  let description =
-    "두 코스가 대부분 비슷하며 일부 진입도로와 통과도로에 차이가 있습니다.";
-
-  const comparisonParts = [];
-
-  if(timeDifference >= 2){
-    comparisonParts.push(
-      "약 " +
-      timeDifference +
-      "분 빠릅니다"
-    );
-  }
-
-  else if(timeDifference <= -2){
-    comparisonParts.push(
-      "약 " +
-      Math.abs(timeDifference) +
-      "분 더 걸립니다"
-    );
-  }
-
-  if(distanceDifference >= 0.5){
-    comparisonParts.push(
-      distanceDifference.toFixed(1) +
-      "km 짧습니다"
-    );
-  }
-
-  else if(distanceDifference <= -0.5){
-    comparisonParts.push(
-      Math.abs(
-        distanceDifference
-      ).toFixed(1) +
-      "km 더 깁니다"
-    );
-  }
-
-  if(accidentDifference >= 2){
-    comparisonParts.push(
-      "사고이력이 " +
-      accidentDifference +
-      "건 적습니다"
-    );
-  }
-
-  else if(accidentDifference <= -2){
-    comparisonParts.push(
-      "사고이력이 " +
-      Math.abs(accidentDifference) +
-      "건 많습니다"
-    );
-  }
-
-
-  /*
-    수치 차이가 있는 경우
-  */
-
-  if(comparisonParts.length >= 2){
-    description =
-      "다른 코스보다 " +
-      comparisonParts[0] +
-      "만, " +
-      comparisonParts[1] +
-      ".";
-  }
-
-  else if(comparisonParts.length === 1){
-    description =
-      "다른 코스보다 " +
-      comparisonParts[0] +
-      ".";
-  }
-
-
-  /*
-    수치 차이가 작으면 도로 차이 안내
-  */
-
-  else if(
-    uniqueDifficultRoads.length > 0
-  ){
-    description =
-      uniqueDifficultRoads[0] +
-      "를 추가로 통과하는 경로입니다. " +
-      getSmartRoadCautionText(
-        uniqueDifficultRoads[0]
-      );
-  }
-
-  else if(uniqueRoads.length > 0){
-    description =
-      uniqueRoads[0] +
-      "를 이용하는 구간이 다른 코스와 구별됩니다. " +
-      getSmartRoadCautionText(
-        uniqueRoads[0]
-      );
-  }
-
-
   return {
-    tags:finalTags,
+    tags:tags.slice(0, 3),
     description:description,
     roundaboutGuide:
-      roundaboutAreas.length > 0
+      getRouteRoundaboutAreas(route)
+        .length > 0
   };
 }
 /* ==================================================
