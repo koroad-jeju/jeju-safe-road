@@ -6658,6 +6658,29 @@ body.route-analysis-mode
     top:49vh !important;
   }
 }
+  /* 스마트 브리핑 공통사항 */
+.smart-common-guide{
+  margin:0 0 6px;
+  padding:7px 9px;
+
+  border-radius:9px;
+  background:#f4f5f7;
+
+  color:#66717f;
+  font-size:9.8px;
+  font-weight:700;
+  line-height:1.4;
+
+  word-break:keep-all;
+}
+
+.smart-common-guide b{
+  margin-right:5px;
+
+  color:#404957;
+  font-size:9.8px;
+  font-weight:900;
+}
 </style>
 </head>
 
@@ -13399,7 +13422,53 @@ function addSmartBriefingTag(
 
   tagList.push(tagText);
 }
+function getSmartRoadCautionText(
+  roadName
+){
 
+  const cautionMap = {
+    "애조로":
+      "합류와 차로변경 차량에 주의하세요.",
+
+    "번영로":
+      "농로 교차구간과 진입 차량에 주의하세요.",
+
+    "비자림로":
+      "숲길과 곡선구간에서 충분히 감속하세요.",
+
+    "남조로":
+      "교차로와 저속 차량에 주의하세요.",
+
+    "평화로":
+      "주행속도가 높은 구간과 분기구간에 주의하세요.",
+
+    "1100도로":
+      "급커브와 급경사 구간에서 충분히 감속하세요.",
+
+    "5·16도로":
+      "곡선과 경사구간에서 속도를 줄이세요.",
+
+    "산록남로":
+      "곡선과 경사구간 및 기상변화에 주의하세요.",
+
+    "산록북로":
+      "시야가 제한되는 곡선구간에서 감속하세요.",
+
+    "중산간동로":
+      "마을 진입부와 농로 교차구간에 주의하세요.",
+
+    "중산간서로":
+      "곡선구간과 마을 진입 차량에 주의하세요.",
+
+    "서성로":
+      "농로와 마을 진입 차량을 확인하세요."
+  };
+
+  return (
+    cautionMap[roadName] ||
+    "교차로와 진출입 차량에 주의하세요."
+  );
+}
 
 function getSmartRouteBriefing(
   route,
@@ -13447,9 +13516,50 @@ function getSmartRouteBriefing(
 
   const tags = [];
 
+  /*
+    수치 비교
+  */
+  const timeDifference =
+    otherRoute
+      ? Math.round(
+          Number(otherRoute.durationMin || 0) -
+          Number(route.durationMin || 0)
+        )
+      : 0;
+
+  const distanceDifference =
+    otherRoute
+      ? Number(
+          (
+            Number(otherRoute.distanceKm || 0) -
+            Number(route.distanceKm || 0)
+          ).toFixed(1)
+        )
+      : 0;
+
+  const routeAccidentCount =
+    Number(
+      accident.totalCount ??
+      accident.count ??
+      0
+    );
+
+  const otherAccidentCount =
+    Number(
+      otherAccident.totalCount ??
+      otherAccident.count ??
+      0
+    );
+
+  const accidentDifference =
+    otherRoute
+      ? otherAccidentCount -
+        routeAccidentCount
+      : 0;
+
 
   /*
-    이 코스에만 포함된 대표도로
+    이 코스에만 포함된 도로
   */
   const uniqueRoads =
     roadNames.filter(
@@ -13463,151 +13573,162 @@ function getSmartRouteBriefing(
         !otherDifficultRoads.includes(roadName)
     );
 
-
-  /*
-    1. 다른 코스와 구별되는 도로를 최우선 표시
-  */
-
-  if(uniqueDifficultRoads.length > 0){
-    addSmartBriefingTag(
-      tags,
-      uniqueDifficultRoads[0] + " 경유"
-    );
-  }
-
-  else if(uniqueRoads.length > 0){
-    addSmartBriefingTag(
-      tags,
-      uniqueRoads[0] + " 경유"
-    );
-  }
+  const representativeRoad =
+    uniqueDifficultRoads[0] ||
+    uniqueRoads[0] ||
+    difficultRoads[0] ||
+    roadNames[0] ||
+    "";
 
 
   /*
-    2. 도로 성격
+    1순위: 상대 코스와의 수치 차이
   */
 
-  if(
-    difficultRoads.includes("1100도로") ||
-    difficultRoads.includes("5·16도로") ||
-    difficultRoads.includes("산록남로") ||
-    difficultRoads.includes("산록북로")
-  ){
+  if(timeDifference >= 2){
     addSmartBriefingTag(
       tags,
-      "산간도로 포함"
+      timeDifference + "분 빠름"
     );
+  }
 
+  if(distanceDifference >= 0.5){
     addSmartBriefingTag(
       tags,
-      "곡선·경사구간"
+      distanceDifference.toFixed(1) +
+      "km 짧음"
+    );
+  }
+
+  if(accidentDifference >= 2){
+    addSmartBriefingTag(
+      tags,
+      "사고이력 " +
+      accidentDifference +
+      "건 적음"
+    );
+  }
+
+
+  /*
+    2순위: 이 코스만의 대표도로
+  */
+
+  if(representativeRoad){
+    addSmartBriefingTag(
+      tags,
+      representativeRoad + " 경유"
+    );
+  }
+
+
+  /*
+    3순위: 대표도로의 핵심 주의사항
+  */
+
+  if(representativeRoad === "애조로"){
+    addSmartBriefingTag(
+      tags,
+      "합류·차로변경 주의"
+    );
+  }
+
+  else if(representativeRoad === "번영로"){
+    addSmartBriefingTag(
+      tags,
+      "농로 교차구간 주의"
+    );
+  }
+
+  else if(representativeRoad === "비자림로"){
+    addSmartBriefingTag(
+      tags,
+      "숲길·곡선구간"
+    );
+  }
+
+  else if(representativeRoad === "남조로"){
+    addSmartBriefingTag(
+      tags,
+      "교차로·저속차량 주의"
+    );
+  }
+
+  else if(representativeRoad === "평화로"){
+    addSmartBriefingTag(
+      tags,
+      "고속주행·분기구간"
     );
   }
 
   else if(
-    difficultRoads.includes("남조로") ||
-    difficultRoads.includes("비자림로") ||
-    roadNames.includes("중산간동로") ||
-    roadNames.includes("중산간서로") ||
-    roadNames.includes("남조로") ||
-    roadNames.includes("비자림로")
+    representativeRoad === "1100도로" ||
+    representativeRoad === "5·16도로" ||
+    representativeRoad === "산록남로" ||
+    representativeRoad === "산록북로"
   ){
     addSmartBriefingTag(
       tags,
-      "중산간도로 포함"
-    );
-
-    addSmartBriefingTag(
-      tags,
-      "곡선구간 포함"
+      "급커브·경사구간"
     );
   }
 
   else if(
-    roadNames.includes("평화로") ||
-    roadNames.includes("번영로") ||
-    roadNames.includes("애조로")
+    representativeRoad === "중산간동로" ||
+    representativeRoad === "중산간서로" ||
+    representativeRoad === "서성로"
   ){
     addSmartBriefingTag(
       tags,
-      "간선도로 중심"
+      "마을·농로 진입 주의"
     );
   }
 
 
   /*
-    3. 대표도로 특성
+    비교할 2코스가 없을 때만
+    일반적인 도로 특징 사용
   */
 
-  if(roadNames.includes("평화로")){
-    addSmartBriefingTag(
-      tags,
-      "직선구간 포함"
-    );
-  }
+  if(!otherRoute){
 
-  if(roadNames.includes("번영로")){
-    addSmartBriefingTag(
-      tags,
-      "농로 교차구간"
-    );
-  }
+    if(
+      difficultRoads.includes("1100도로") ||
+      difficultRoads.includes("5·16도로") ||
+      difficultRoads.includes("산록남로") ||
+      difficultRoads.includes("산록북로")
+    ){
+      addSmartBriefingTag(
+        tags,
+        "산간도로 포함"
+      );
+    }
 
-  if(roadNames.includes("애조로")){
-    addSmartBriefingTag(
-      tags,
-      "합류·차로변경"
-    );
-  }
+    else if(
+      difficultRoads.includes("남조로") ||
+      difficultRoads.includes("비자림로") ||
+      roadNames.includes("중산간동로") ||
+      roadNames.includes("중산간서로")
+    ){
+      addSmartBriefingTag(
+        tags,
+        "중산간도로 포함"
+      );
+    }
 
-  if(
-    roadNames.includes("중산간동로") ||
-    roadNames.includes("중산간서로") ||
-    roadNames.includes("남조로") ||
-    roadNames.includes("서성로")
-  ){
-    addSmartBriefingTag(
-      tags,
-      "마을 진입구간"
-    );
+    else{
+      addSmartBriefingTag(
+        tags,
+        "일반도로 중심"
+      );
+    }
   }
 
 
   /*
-    4. 회전교차로와 사고 특성
+    태그는 최대 3개
   */
 
-  if(roundaboutAreas.length > 0){
-    addSmartBriefingTag(
-      tags,
-      "회전교차로 주의"
-    );
-  }
-
-  if(
-    Number(accident.pedestrianCount || 0) >
-    Number(otherAccident.pedestrianCount || 0)
-  ){
-    addSmartBriefingTag(
-      tags,
-      "보행자 사고이력 상대적 많음"
-    );
-  }
-
-  if(
-    Number(accident.intersectionCount || 0) >
-    Number(otherAccident.intersectionCount || 0)
-  ){
-    addSmartBriefingTag(
-      tags,
-      "교차로 사고이력 상대적 많음"
-    );
-  }
-
-
-  /*
-    최대 3개
-  */
   const finalTags =
     tags.slice(0, 3);
 
@@ -13618,110 +13739,111 @@ function getSmartRouteBriefing(
   }
 
 
- /*
-  대표도로별 실제 운전 특성 안내
-*/
+  /*
+    설명 문장:
+    상대 코스와의 차이를 가장 먼저 안내
+  */
 
-let description =
-  "일반도로를 중심으로 이동하는 경로입니다. 교차로와 목적지 진입 구간에서 주의하세요.";
+  let description =
+    "두 코스가 대부분 비슷하며 일부 진입도로와 통과도로에 차이가 있습니다.";
 
+  const comparisonParts = [];
 
-/*
-  산간도로를 먼저 확인
-*/
+  if(timeDifference >= 2){
+    comparisonParts.push(
+      "약 " +
+      timeDifference +
+      "분 빠릅니다"
+    );
+  }
 
-if(
-  difficultRoads.includes("1100도로") ||
-  roadNames.includes("1100도로")
-){
-  description =
-    "1100도로를 지나는 산간 경로입니다. 급커브와 안개 발생에 주의하세요.";
-}
+  else if(timeDifference <= -2){
+    comparisonParts.push(
+      "약 " +
+      Math.abs(timeDifference) +
+      "분 더 걸립니다"
+    );
+  }
 
-else if(
-  difficultRoads.includes("5·16도로") ||
-  roadNames.includes("5·16도로")
-){
-  description =
-    "5·16도로를 지나는 산간 경로입니다. 급경사와 급커브에 주의하세요.";
-}
+  if(distanceDifference >= 0.5){
+    comparisonParts.push(
+      distanceDifference.toFixed(1) +
+      "km 짧습니다"
+    );
+  }
 
+  else if(distanceDifference <= -0.5){
+    comparisonParts.push(
+      Math.abs(
+        distanceDifference
+      ).toFixed(1) +
+      "km 더 깁니다"
+    );
+  }
 
-/*
-  중산간·곡선도로
-*/
+  if(accidentDifference >= 2){
+    comparisonParts.push(
+      "사고이력이 " +
+      accidentDifference +
+      "건 적습니다"
+    );
+  }
 
-else if(
-  difficultRoads.includes("비자림로") ||
-  roadNames.includes("비자림로")
-){
-  description =
-    "비자림로를 지나는 경로입니다. 숲길과 곡선 구간이 있어 감속 운전이 필요합니다.";
-}
-
-else if(
-  difficultRoads.includes("남조로") ||
-  roadNames.includes("남조로")
-){
-  description =
-    "남조로를 지나는 중산간 경로입니다. 교차로와 농로 진입 차량에 주의하세요.";
-}
-
-else if(
-  difficultRoads.includes("산록남로") ||
-  roadNames.includes("산록남로")
-){
-  description =
-    "산록남로를 지나는 산간 경로입니다. 곡선과 경사 구간에서 충분히 감속하세요.";
-}
-
-else if(
-  difficultRoads.includes("산록북로") ||
-  roadNames.includes("산록북로")
-){
-  description =
-    "산록북로를 지나는 산간 경로입니다. 곡선 구간과 기상변화에 주의하세요.";
-}
+  else if(accidentDifference <= -2){
+    comparisonParts.push(
+      "사고이력이 " +
+      Math.abs(accidentDifference) +
+      "건 많습니다"
+    );
+  }
 
 
-/*
-  주요 간선도로
-*/
+  /*
+    수치 차이가 있는 경우
+  */
 
-else if(roadNames.includes("애조로")){
-  description =
-    "애조로를 지나 비교적 빠르게 이동하는 경로입니다. 속도에 주의하세요.";
-}
+  if(comparisonParts.length >= 2){
+    description =
+      "다른 코스보다 " +
+      comparisonParts[0] +
+      "만, " +
+      comparisonParts[1] +
+      ".";
+  }
 
-else if(roadNames.includes("평화로")){
-  description =
-    "평화로를 중심으로 이동하는 직선 구간이 많은 경로입니다. 과속에 유의하세요.";
-}
-
-else if(roadNames.includes("번영로")){
-  description =
-    "번영로를 중심으로 이동하는 간선도로 경로입니다. 교차로와 차량 흐름에 유의하세요.";
-}
+  else if(comparisonParts.length === 1){
+    description =
+      "다른 코스보다 " +
+      comparisonParts[0] +
+      ".";
+  }
 
 
-/*
-  그 외 대표도로
-*/
+  /*
+    수치 차이가 작으면 도로 차이 안내
+  */
 
-else if(roadNames.includes("중산간동로")){
-  description =
-    "중산간동로를 지나는 경로입니다. 마을 진입부와 교차로에서 감속하세요.";
-}
+  else if(
+    uniqueDifficultRoads.length > 0
+  ){
+    description =
+      uniqueDifficultRoads[0] +
+      "를 추가로 통과하는 경로입니다. " +
+      getSmartRoadCautionText(
+        uniqueDifficultRoads[0]
+      );
+  }
 
-else if(roadNames.includes("중산간서로")){
-  description =
-    "중산간서로를 지나는 경로입니다. 곡선 구간과 마을 진입 차량에 주의하세요.";
-}
+  else if(uniqueRoads.length > 0){
+    description =
+      uniqueRoads[0] +
+      "를 이용하는 구간이 다른 코스와 구별됩니다. " +
+      getSmartRoadCautionText(
+        uniqueRoads[0]
+      );
+  }
 
-else if(roadNames.includes("서성로")){
-  description =
-    "서성로를 지나는 경로입니다. 농로와 마을 진입 차량을 확인하며 주행하세요.";
-}
+
   return {
     tags:finalTags,
     description:description,
@@ -13855,7 +13977,92 @@ const briefing =
   `;
 }
 
+function getSmartCommonBriefingHtml(
+  route1,
+  route2
+){
 
+  if(!route1 || !route2){
+    return "";
+  }
+
+  const roadNames1 =
+    Array.isArray(route1.roadNames)
+      ? route1.roadNames.map(
+          road => road.name
+        )
+      : [];
+
+  const roadNames2 =
+    Array.isArray(route2.roadNames)
+      ? route2.roadNames.map(
+          road => road.name
+        )
+      : [];
+
+  const difficultRoads1 =
+    getDifficultRoadNames(route1);
+
+  const difficultRoads2 =
+    getDifficultRoadNames(route2);
+
+  const commonRoads =
+    roadNames1.filter(
+      roadName =>
+        roadNames2.includes(roadName)
+    );
+
+  const commonDifficultRoads =
+    difficultRoads1.filter(
+      roadName =>
+        difficultRoads2.includes(
+          roadName
+        )
+    );
+
+  const commonItems = [];
+
+  if(commonDifficultRoads.length > 0){
+    commonItems.push(
+      commonDifficultRoads[0] +
+      " 구간"
+    );
+  }
+
+  if(
+    commonRoads.includes("중산간동로") ||
+    commonRoads.includes("중산간서로") ||
+    commonRoads.includes("남조로") ||
+    commonRoads.includes("비자림로")
+  ){
+    commonItems.push(
+      "중산간도로"
+    );
+  }
+
+  if(
+    commonRoads.includes("번영로")
+  ){
+    commonItems.push(
+      "번영로"
+    );
+  }
+
+  if(commonItems.length === 0){
+    return "";
+  }
+
+  return `
+    <div class="smart-common-guide">
+      <b>공통사항</b>
+      두 경로 모두
+      ${commonItems
+        .slice(0, 2)
+        .join("·")}
+      를 포함합니다.
+    </div>
+  `;
+}
 /*
   1·2코스 브리핑 전체
 */
@@ -13894,7 +14101,10 @@ function makeSmartBriefingHtml(
           </div>
         </div>
 
-
+${getSmartCommonBriefingHtml(
+  route1,
+  route2
+)}
         <div class="smart-briefing-list">
 
       ${makeSmartBriefingCourse(
