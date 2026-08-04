@@ -13607,79 +13607,110 @@ function getSmartRouteBriefing(
   }
 
 
-  /*
-    설명은 다른 코스와의 차이를 먼저 안내
-  */
+ /*
+  대표도로별 실제 운전 특성 안내
+*/
 
-  let description =
-    "두 코스가 대부분 비슷하며 일부 진입구간과 도로 선택에 차이가 있습니다.";
-
-
-  if(uniqueDifficultRoads.length > 0){
-    description =
-      uniqueDifficultRoads[0] +
-      "를 추가로 통과하는 경로로 곡선·경사구간에 주의가 필요합니다.";
-  }
-
-  else if(uniqueRoads.length > 0){
-    description =
-      uniqueRoads[0] +
-      "를 중심으로 이동하는 구간이 다른 코스와 구별됩니다.";
-  }
-
-  else if(
-    Number(route.durationMin || 0) <
-    Number(otherRoute?.durationMin || 0)
-  ){
-    const timeDifference =
-      Math.max(
-        1,
-        Math.round(
-          Number(otherRoute?.durationMin || 0) -
-          Number(route.durationMin || 0)
-        )
-      );
-
-    description =
-      "두 경로가 대부분 비슷하지만 예상시간이 약 " +
-      timeDifference +
-      "분 짧습니다.";
-  }
-
-  else if(
-    Number(route.distanceKm || 0) <
-    Number(otherRoute?.distanceKm || 0)
-  ){
-    const distanceDifference =
-      Math.max(
-        0.1,
-        (
-          Number(otherRoute?.distanceKm || 0) -
-          Number(route.distanceKm || 0)
-        ).toFixed(1)
-      );
-
-    description =
-      "두 경로가 대부분 비슷하지만 이동거리가 약 " +
-      distanceDifference +
-      "km 짧습니다.";
-  }
-
-  else if(
-    Number(accident.totalCount || 0) <
-    Number(otherAccident.totalCount || 0)
-  ){
-    const accidentDifference =
-      Number(otherAccident.totalCount || 0) -
-      Number(accident.totalCount || 0);
-
-    description =
-      "두 경로가 대부분 비슷하지만 확인된 사고이력이 " +
-      accidentDifference +
-      "건 적습니다.";
-  }
+let description =
+  "일반도로를 중심으로 이동하는 경로입니다. 교차로와 목적지 진입 구간에서 주의하세요.";
 
 
+/*
+  산간도로를 먼저 확인
+*/
+
+if(
+  difficultRoads.includes("1100도로") ||
+  roadNames.includes("1100도로")
+){
+  description =
+    "1100도로를 지나는 산간 경로입니다. 급커브와 안개 발생에 주의하세요.";
+}
+
+else if(
+  difficultRoads.includes("5·16도로") ||
+  roadNames.includes("5·16도로")
+){
+  description =
+    "5·16도로를 지나는 산간 경로입니다. 급경사와 급커브에 주의하세요.";
+}
+
+
+/*
+  중산간·곡선도로
+*/
+
+else if(
+  difficultRoads.includes("비자림로") ||
+  roadNames.includes("비자림로")
+){
+  description =
+    "비자림로를 지나는 경로입니다. 숲길과 곡선 구간이 있어 감속 운전이 필요합니다.";
+}
+
+else if(
+  difficultRoads.includes("남조로") ||
+  roadNames.includes("남조로")
+){
+  description =
+    "남조로를 지나는 중산간 경로입니다. 교차로와 농로 진입 차량에 주의하세요.";
+}
+
+else if(
+  difficultRoads.includes("산록남로") ||
+  roadNames.includes("산록남로")
+){
+  description =
+    "산록남로를 지나는 산간 경로입니다. 곡선과 경사 구간에서 충분히 감속하세요.";
+}
+
+else if(
+  difficultRoads.includes("산록북로") ||
+  roadNames.includes("산록북로")
+){
+  description =
+    "산록북로를 지나는 산간 경로입니다. 곡선 구간과 기상변화에 주의하세요.";
+}
+
+
+/*
+  주요 간선도로
+*/
+
+else if(roadNames.includes("애조로")){
+  description =
+    "애조로를 지나 비교적 빠르게 이동하는 경로입니다. 속도에 주의하세요.";
+}
+
+else if(roadNames.includes("평화로")){
+  description =
+    "평화로를 중심으로 이동하는 직선 구간이 많은 경로입니다. 과속에 유의하세요.";
+}
+
+else if(roadNames.includes("번영로")){
+  description =
+    "번영로를 중심으로 이동하는 간선도로 경로입니다. 교차로와 차량 흐름에 유의하세요.";
+}
+
+
+/*
+  그 외 대표도로
+*/
+
+else if(roadNames.includes("중산간동로")){
+  description =
+    "중산간동로를 지나는 경로입니다. 마을 진입부와 교차로에서 감속하세요.";
+}
+
+else if(roadNames.includes("중산간서로")){
+  description =
+    "중산간서로를 지나는 경로입니다. 곡선 구간과 마을 진입 차량에 주의하세요.";
+}
+
+else if(roadNames.includes("서성로")){
+  description =
+    "서성로를 지나는 경로입니다. 농로와 마을 진입 차량을 확인하며 주행하세요.";
+}
   return {
     tags:finalTags,
     description:description,
@@ -16574,33 +16605,99 @@ function showRouteAnalysis(){
       const allRouteCoords =
         lastRouteSummaries.flatMap(route => route.coords);
 
+const routeBounds =
+  L.latLngBounds(allRouteCoords);
+
+/*
+  두 코스 중 더 긴 경로를 기준으로
+  지도 확대 수준을 결정
+*/
+const longestRouteKm =
+  Math.max(
+    ...lastRouteSummaries.map(
+      route =>
+        Number(route.distanceKm || 0)
+    )
+  );
+
+let routeMaxZoom;
+let bottomPadding;
+let verticalMove;
+
+
+/*
+  짧은 경로
+*/
+if(longestRouteKm <= 15){
+  routeMaxZoom = 11.2;
+  bottomPadding = 260;
+  verticalMove = -18;
+}
+
+
+/*
+  중·단거리
+*/
+else if(longestRouteKm <= 30){
+  routeMaxZoom = 10.3;
+  bottomPadding = 285;
+  verticalMove = -14;
+}
+
+
+/*
+  중거리
+*/
+else if(longestRouteKm <= 50){
+  routeMaxZoom = 9.7;
+  bottomPadding = 315;
+  verticalMove = -10;
+}
+
+
+/*
+  장거리
+*/
+else{
+  routeMaxZoom = 9.2;
+  bottomPadding = 335;
+  verticalMove = -6;
+}
+
+
 map.fitBounds(
-  L.latLngBounds(allRouteCoords),
+  routeBounds,
   {
     paddingTopLeft:[
-      32,
-      24
+      28,
+      20
     ],
 
     paddingBottomRight:[
-      32,
-      345
+      28,
+      bottomPadding
     ],
 
-    /*
-      짧은 경로라도 지도가
-      지나치게 확대되지 않도록 제한
-    */
-    maxZoom:9.5
+    maxZoom:
+      routeMaxZoom
   }
 );
 
+
 setTimeout(() => {
- map.panBy([0, -8], {
-  animate:false
-});
-}, 80);
+
+  map.panBy(
+    [
+      0,
+      verticalMove
+    ],
+    {
+      animate:false
     }
+  );
+
+}, 80);
+       }
   }, 250);
 }
 function openSideMenu(){
