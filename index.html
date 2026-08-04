@@ -16659,9 +16659,9 @@ else if(longestRouteKm <= 50){
   장거리
 */
 else{
-  routeMaxZoom = 9.2;
-  bottomPadding = 335;
-  verticalMove = -6;
+  routeMaxZoom = 11;
+  bottomPadding = 150;
+  verticalMove = -10;
 }
 
 
@@ -16683,8 +16683,27 @@ map.fitBounds(
   }
 );
 
-
 setTimeout(() => {
+
+  /*
+    50km 초과 장거리 경로는
+    제주 전체 표시보다 도로 시인성을 우선
+  */
+  if(longestRouteKm > 50){
+
+    const fittedZoom =
+      map.getZoom();
+
+    map.setZoom(
+      Math.min(
+        fittedZoom + 1.6,
+        11
+      ),
+      {
+        animate:false
+      }
+    );
+  }
 
   map.panBy(
     [
@@ -16696,7 +16715,7 @@ setTimeout(() => {
     }
   );
 
-}, 80);
+}, 120);
        }
   }, 250);
 }
