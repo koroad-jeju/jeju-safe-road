@@ -6571,6 +6571,82 @@ body.route-analysis-mode
     margin-top:10px !important;
   }
 }
+  /* ==================================================
+   스마트 브리핑 주요 통과도로 코스별 색상 최종
+================================================== */
+
+/* 1코스 */
+body.route-analysis-mode
+.smart-briefing-course.recommend
+.smart-course-roads
+.route-road-chip{
+  border:1px solid #B8CBEF !important;
+  background:#EEF4FF !important;
+  color:#3D5F9F !important;
+}
+
+body.route-analysis-mode
+.smart-briefing-course.recommend
+.smart-course-roads
+.route-road-info-icon{
+  background:#5C7FC7 !important;
+  color:#ffffff !important;
+}
+
+
+/* 2코스 */
+body.route-analysis-mode
+.smart-briefing-course.alt
+.smart-course-roads
+.route-road-chip{
+  border:1px solid #D5C3D0 !important;
+  background:#F8EFF4 !important;
+  color:#805F78 !important;
+}
+
+body.route-analysis-mode
+.smart-briefing-course.alt
+.smart-course-roads
+.route-road-info-icon{
+  background:#A27C96 !important;
+  color:#ffffff !important;
+}
+  /* 일반도로 중심 경로 글씨 통일 */
+body.route-analysis-mode
+.smart-course-roads
+.general-road-text{
+  color:#6b7480 !important;
+  font-size:9.5px !important;
+  font-weight:800 !important;
+  line-height:1.2 !important;
+  white-space:nowrap !important;
+}
+
+
+/* 경로 상세 비교 안에서는 해당 영역 크기에 맞춤 */
+body.route-analysis-mode
+.route-compare-road
+.general-road-text{
+  color:#566170 !important;
+  font-size:9.5px !important;
+  font-weight:800 !important;
+  line-height:1.2 !important;
+}
+  /* 지도 영역 최종 확보 */
+body.route-analysis-mode
+.route-analysis-page{
+  top:52vh !important;
+}
+
+
+/* 세로가 짧은 휴대전화 */
+@media(max-height:750px){
+
+  body.route-analysis-mode
+  .route-analysis-page{
+    top:49vh !important;
+  }
+}
 </style>
 </head>
 
@@ -13314,10 +13390,10 @@ function addSmartBriefingTag(
 }
 
 
-/*
-  코스별 스마트 브리핑 정보 생성
-*/
-function getSmartRouteBriefing(route){
+function getSmartRouteBriefing(
+  route,
+  otherRoute = null
+){
 
   if(!route){
     return {
@@ -13334,8 +13410,20 @@ function getSmartRouteBriefing(route){
         )
       : [];
 
+  const otherRoadNames =
+    Array.isArray(otherRoute?.roadNames)
+      ? otherRoute.roadNames.map(
+          road => road.name
+        )
+      : [];
+
   const difficultRoads =
     getDifficultRoadNames(route);
+
+  const otherDifficultRoads =
+    otherRoute
+      ? getDifficultRoadNames(otherRoute)
+      : [];
 
   const roundaboutAreas =
     getRouteRoundaboutAreas(route);
@@ -13343,11 +13431,49 @@ function getSmartRouteBriefing(route){
   const accident =
     route?.accidentAnalysis || {};
 
+  const otherAccident =
+    otherRoute?.accidentAnalysis || {};
+
   const tags = [];
 
 
   /*
-    1. 도로 성격
+    이 코스에만 포함된 대표도로
+  */
+  const uniqueRoads =
+    roadNames.filter(
+      roadName =>
+        !otherRoadNames.includes(roadName)
+    );
+
+  const uniqueDifficultRoads =
+    difficultRoads.filter(
+      roadName =>
+        !otherDifficultRoads.includes(roadName)
+    );
+
+
+  /*
+    1. 다른 코스와 구별되는 도로를 최우선 표시
+  */
+
+  if(uniqueDifficultRoads.length > 0){
+    addSmartBriefingTag(
+      tags,
+      uniqueDifficultRoads[0] + " 경유"
+    );
+  }
+
+  else if(uniqueRoads.length > 0){
+    addSmartBriefingTag(
+      tags,
+      uniqueRoads[0] + " 경유"
+    );
+  }
+
+
+  /*
+    2. 도로 성격
   */
 
   if(
@@ -13399,7 +13525,7 @@ function getSmartRouteBriefing(route){
 
 
   /*
-    2. 대표 도로의 실제 특성
+    3. 대표도로 특성
   */
 
   if(roadNames.includes("평화로")){
@@ -13437,10 +13563,7 @@ function getSmartRouteBriefing(route){
 
 
   /*
-    3. 지정 지역을 지나는 경우
-
-    지역 이름은 화면에 표시하지 않고
-    회전교차로 안내 태그만 표시
+    4. 회전교차로와 사고 특성
   */
 
   if(roundaboutAreas.length > 0){
@@ -13450,121 +13573,110 @@ function getSmartRouteBriefing(route){
     );
   }
 
-
-  /*
-    4. 사고 유형 참고 태그
-
-    현재 데이터에서 실제 확인된 경우에만 표시
-  */
-
   if(
-    Number(
-      accident.pedestrianCount || 0
-    ) >= 3
+    Number(accident.pedestrianCount || 0) >
+    Number(otherAccident.pedestrianCount || 0)
   ){
     addSmartBriefingTag(
       tags,
-      "보행자 사고이력"
+      "보행자 사고이력 상대적 많음"
     );
   }
 
   if(
-    Number(
-      accident.intersectionCount || 0
-    ) >= 3
+    Number(accident.intersectionCount || 0) >
+    Number(otherAccident.intersectionCount || 0)
   ){
     addSmartBriefingTag(
       tags,
-      "교차로 사고이력"
+      "교차로 사고이력 상대적 많음"
     );
   }
 
 
   /*
-    화면에는 최대 3개만 표시
+    최대 3개
   */
   const finalTags =
     tags.slice(0, 3);
 
-
-  /*
-    태그가 부족할 경우
-    객관적인 기본 태그 추가
-  */
-
   if(finalTags.length === 0){
     finalTags.push(
-      "일반도로 중심"
+      "두 코스 공통구간 중심"
     );
   }
 
 
   /*
-    코스 설명 한 문장 생성
+    설명은 다른 코스와의 차이를 먼저 안내
   */
 
   let description =
-    "주요 통과도로와 교차로 진입구간을 미리 확인하세요.";
+    "두 코스가 대부분 비슷하며 일부 진입구간과 도로 선택에 차이가 있습니다.";
 
 
-  if(
-    roadNames.includes("1100도로") ||
-    difficultRoads.includes("1100도로")
-  ){
+  if(uniqueDifficultRoads.length > 0){
     description =
-      "1100도로를 통과하며 곡선과 경사구간이 포함됩니다.";
+      uniqueDifficultRoads[0] +
+      "를 추가로 통과하는 경로로 곡선·경사구간에 주의가 필요합니다.";
+  }
+
+  else if(uniqueRoads.length > 0){
+    description =
+      uniqueRoads[0] +
+      "를 중심으로 이동하는 구간이 다른 코스와 구별됩니다.";
   }
 
   else if(
-    roadNames.includes("5·16도로") ||
-    difficultRoads.includes("5·16도로")
+    Number(route.durationMin || 0) <
+    Number(otherRoute?.durationMin || 0)
   ){
+    const timeDifference =
+      Math.max(
+        1,
+        Math.round(
+          Number(otherRoute?.durationMin || 0) -
+          Number(route.durationMin || 0)
+        )
+      );
+
     description =
-      "5·16도로를 통과하며 곡선과 경사구간이 포함됩니다.";
+      "두 경로가 대부분 비슷하지만 예상시간이 약 " +
+      timeDifference +
+      "분 짧습니다.";
   }
 
   else if(
-    roadNames.includes("비자림로") ||
-    difficultRoads.includes("비자림로")
+    Number(route.distanceKm || 0) <
+    Number(otherRoute?.distanceKm || 0)
   ){
-    description =
-      "비자림로를 통과하며 숲길과 곡선구간이 포함됩니다.";
-  }
+    const distanceDifference =
+      Math.max(
+        0.1,
+        (
+          Number(otherRoute?.distanceKm || 0) -
+          Number(route.distanceKm || 0)
+        ).toFixed(1)
+      );
 
-  else if(roadNames.includes("평화로")){
     description =
-      "평화로를 중심으로 이동하며 직선 주행구간이 포함됩니다.";
-  }
-
-  else if(roadNames.includes("번영로")){
-    description =
-      "번영로를 중심으로 이동하며 농로 교차구간이 포함됩니다.";
-  }
-
-  else if(roadNames.includes("애조로")){
-    description =
-      "애조로를 중심으로 이동하며 합류와 차로변경 구간이 포함됩니다.";
+      "두 경로가 대부분 비슷하지만 이동거리가 약 " +
+      distanceDifference +
+      "km 짧습니다.";
   }
 
   else if(
-    roadNames.includes("남조로") ||
-    difficultRoads.includes("남조로")
+    Number(accident.totalCount || 0) <
+    Number(otherAccident.totalCount || 0)
   ){
-    description =
-      "남조로를 통과하며 중산간 교차로와 마을 진입구간이 포함됩니다.";
-  }
+    const accidentDifference =
+      Number(otherAccident.totalCount || 0) -
+      Number(accident.totalCount || 0);
 
-  else if(
-    roadNames.includes("중산간동로") ||
-    roadNames.includes("중산간서로")
-  ){
     description =
-      "중산간도로를 통과하며 곡선구간과 마을 진입구간이 포함됩니다.";
-  }
-
-  else if(roundaboutAreas.length > 0){
-    description =
-      "주요 도로를 통과하며 회전교차로 진입구간에 주의가 필요합니다.";
+      "두 경로가 대부분 비슷하지만 확인된 사고이력이 " +
+      accidentDifference +
+      "건 적습니다.";
   }
 
 
@@ -13585,14 +13697,18 @@ function getSmartRouteBriefing(route){
 function makeSmartBriefingCourse(
   route,
   courseNumber,
-  cardClass
+  cardClass,
+  otherRoute = null
 ){
   if(!route){
     return "";
   }
 
-  const briefing =
-    getSmartRouteBriefing(route);
+const briefing =
+  getSmartRouteBriefing(
+    route,
+    otherRoute
+  );
 
   /*
     태그 HTML 생성
@@ -13739,19 +13855,20 @@ function makeSmartBriefingHtml(
 
         <div class="smart-briefing-list">
 
-          ${makeSmartBriefingCourse(
-            route1,
-            1,
-            "recommend"
-          )}
-
+      ${makeSmartBriefingCourse(
+  route1,
+  1,
+  "recommend",
+  route2
+)}
           ${
             route2
-              ? makeSmartBriefingCourse(
-                  route2,
-                  2,
-                  "alt"
-                )
+? makeSmartBriefingCourse(
+    route2,
+    2,
+    "alt",
+    route1
+  )
               : ""
           }
 
@@ -16461,27 +16578,27 @@ map.fitBounds(
   L.latLngBounds(allRouteCoords),
   {
     paddingTopLeft:[
-      25,
-      10
+      32,
+      24
     ],
 
     paddingBottomRight:[
-      25,
-      300
+      32,
+      345
     ],
 
     /*
       짧은 경로라도 지도가
       지나치게 확대되지 않도록 제한
     */
-    maxZoom:10
+    maxZoom:9.5
   }
 );
 
 setTimeout(() => {
-  map.panBy([0, -20], {
-    animate:false
-  });
+ map.panBy([0, -8], {
+  animate:false
+});
 }, 80);
     }
   }, 250);
