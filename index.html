@@ -9733,8 +9733,38 @@ if(isBackgroundRetry){
   ORS 경로만 지나치게 유사한 대안경로를 정리합니다.
 */
 if(routeProvider === "kakao"){
-  routes = routes.slice(0, 2);
+
+  /*
+    두 경로가 75% 이상 겹치면
+    사실상 같은 경로로 판단해 1코스만 표시
+  */
+  if(
+    routes.length >= 2 &&
+    kakaoSimilarity >= 0.80
+  ){
+    console.warn(
+      "[카카오 경로 정리]",
+      "두 경로가 지나치게 유사하여 1코스만 표시합니다."
+    );
+
+    routes = [
+      routes[0]
+    ];
+
+  }else{
+    routes =
+      routes.slice(
+        0,
+        2
+      );
+  }
+
 }else{
+  routes =
+    filterMeaningfulAlternativeRoutes(
+      routes
+    );
+}
   routes =
     filterMeaningfulAlternativeRoutes(
       routes
@@ -16435,8 +16465,21 @@ function showRouteAnalysis(){
 map.fitBounds(
   L.latLngBounds(allRouteCoords),
   {
-    paddingTopLeft:[25,10],
-    paddingBottomRight:[25,300]
+    paddingTopLeft:[
+      25,
+      10
+    ],
+
+    paddingBottomRight:[
+      25,
+      300
+    ],
+
+    /*
+      짧은 경로라도 지도가
+      지나치게 확대되지 않도록 제한
+    */
+    maxZoom:10
   }
 );
 
