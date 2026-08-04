@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -6640,6 +6639,18 @@ body.route-analysis-mode
 
 
 /* 세로가 짧은 휴대전화 */
+@media(max-height:750px){
+
+  body.route-analysis-mode
+  .route-analysis-page{
+    top:49vh !important;
+  }
+}
+  body.route-analysis-mode
+.route-analysis-page{
+  top:52vh !important;
+}
+
 @media(max-height:750px){
 
   body.route-analysis-mode
@@ -16606,116 +16617,94 @@ function showRouteAnalysis(){
         lastRouteSummaries.flatMap(route => route.coords);
 
 const routeBounds =
-  L.latLngBounds(allRouteCoords);
+  L.latLngBounds(
+    allRouteCoords
+  );
 
 /*
-  두 코스 중 더 긴 경로를 기준으로
-  지도 확대 수준을 결정
+  현재 결과 패널이 실제로 시작되는 위치
+*/
+const analysisPanel =
+  document.getElementById(
+    "routeAnalysisPage"
+  );
+
+const panelTop =
+  analysisPanel
+    ? analysisPanel
+        .getBoundingClientRect()
+        .top
+    : window.innerHeight * 0.52;
+
+/*
+  결과 패널이 가리고 있는 실제 높이
+
+  휴대전화 화면 높이가 달라도
+  자동으로 계산되도록 함
+*/
+const coveredBottom =
+  Math.max(
+    120,
+    window.innerHeight -
+      panelTop +
+      22
+  );
+
+/*
+  가장 긴 코스 거리
 */
 const longestRouteKm =
   Math.max(
     ...lastRouteSummaries.map(
       route =>
-        Number(route.distanceKm || 0)
+        Number(
+          route.distanceKm || 0
+        )
     )
   );
 
-let routeMaxZoom;
-let bottomPadding;
-let verticalMove;
-
-
 /*
-  짧은 경로
+  너무 짧은 경로가 과도하게
+  확대되는 것만 제한
 */
+let routeMaxZoom = 10.5;
+
 if(longestRouteKm <= 15){
-  routeMaxZoom = 11.2;
-  bottomPadding = 260;
-  verticalMove = -18;
+  routeMaxZoom = 12;
 }
-
-
-/*
-  중·단거리
-*/
 else if(longestRouteKm <= 30){
-  routeMaxZoom = 10.3;
-  bottomPadding = 285;
-  verticalMove = -14;
-}
-
-
-/*
-  중거리
-*/
-else if(longestRouteKm <= 50){
-  routeMaxZoom = 9.7;
-  bottomPadding = 315;
-  verticalMove = -10;
-}
-
-
-/*
-  장거리
-*/
-else{
   routeMaxZoom = 11;
-  bottomPadding = 150;
-  verticalMove = -10;
+}
+else if(longestRouteKm <= 50){
+  routeMaxZoom = 10.2;
+}
+else{
+  routeMaxZoom = 9.6;
 }
 
-
+/*
+  패널에 가리지 않는 실제 지도 영역 안에
+  두 코스 전체를 맞춤
+*/
 map.fitBounds(
   routeBounds,
   {
     paddingTopLeft:[
-      28,
-      20
+      34,
+      46
     ],
 
     paddingBottomRight:[
-      28,
-      bottomPadding
+      34,
+      coveredBottom
     ],
 
     maxZoom:
-      routeMaxZoom
+      routeMaxZoom,
+
+    animate:false
   }
 );
-
-setTimeout(() => {
-
-  /*
-    50km 초과 장거리 경로는
-    제주 전체 표시보다 도로 시인성을 우선
-  */
-  if(longestRouteKm > 50){
-
-    const fittedZoom =
-      map.getZoom();
-
-    map.setZoom(
-      Math.min(
-        fittedZoom + 1.6,
-        11
-      ),
-      {
-        animate:false
-      }
-    );
-  }
-
-  map.panBy(
-    [
-      0,
-      verticalMove
-    ],
-    {
-      animate:false
-    }
-  );
-
-}, 120);
        }
   }, 250);
 }
