@@ -6682,6 +6682,434 @@ body.route-analysis-mode
   font-size:9.8px;
   font-weight:900;
 }
+  /* ==================================================
+   경로분석 최종 구성
+   브리핑 → 상세비교 → 내비 → 안전팁 → 별점
+================================================== */
+
+
+/* 결과 패널 기본 간격 */
+body.route-analysis-mode
+.route-analysis-page{
+  padding:
+    8px
+    10px
+    82px
+    !important;
+}
+
+
+/* 주소 줄 */
+body.route-analysis-mode
+.routePath{
+  margin:
+    4px
+    12px
+    10px
+    !important;
+}
+
+
+/* ==================================================
+   스마트 브리핑
+================================================== */
+
+body.route-analysis-mode
+.smart-briefing-wrap{
+  display:block !important;
+  margin:0 0 8px !important;
+}
+
+body.route-analysis-mode
+.smart-briefing-panel{
+  padding:11px !important;
+
+  border:1px solid #e3e7ec !important;
+  border-radius:18px !important;
+
+  background:#ffffff !important;
+
+  box-shadow:
+    0 5px 15px
+    rgba(15,23,42,.045)
+    !important;
+}
+
+body.route-analysis-mode
+.smart-briefing-head{
+  margin-bottom:8px !important;
+}
+
+body.route-analysis-mode
+.smart-briefing-title{
+  font-size:15px !important;
+}
+
+body.route-analysis-mode
+.smart-briefing-title img{
+  width:17px !important;
+  height:17px !important;
+}
+
+body.route-analysis-mode
+.smart-briefing-list{
+  gap:6px !important;
+}
+
+
+/* 브리핑 코스 카드 */
+body.route-analysis-mode
+.smart-briefing-course{
+  padding:
+    9px
+    10px
+    8px
+    !important;
+
+  border-radius:14px !important;
+}
+
+body.route-analysis-mode
+.smart-course-name{
+  font-size:13px !important;
+}
+
+body.route-analysis-mode
+.smart-course-time{
+  font-size:10.5px !important;
+}
+
+body.route-analysis-mode
+.smart-tag-list{
+  margin-top:5px !important;
+}
+
+body.route-analysis-mode
+.smart-tag{
+  min-height:20px !important;
+  padding:2px 6px !important;
+
+  font-size:9.5px !important;
+}
+
+body.route-analysis-mode
+.smart-course-description{
+  margin-top:5px !important;
+
+  font-size:10.5px !important;
+  line-height:1.35 !important;
+}
+
+body.route-analysis-mode
+.smart-course-roads{
+  margin-top:6px !important;
+  padding-top:6px !important;
+}
+
+
+/* ==================================================
+   상세 비교 버튼
+================================================== */
+
+.detail-compare-toggle{
+  width:100%;
+  height:42px;
+
+  margin:0 0 8px;
+  padding:0 14px;
+
+  border:1px solid #cbd6eb;
+  border-radius:13px;
+
+  background:#ffffff;
+  color:#4569b2;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+
+  box-sizing:border-box;
+
+  font-family:inherit;
+  font-size:11.5px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+.detail-compare-toggle:active{
+  transform:scale(.995);
+}
+
+.detail-compare-toggle-icon{
+  display:inline-block;
+
+  font-size:15px;
+  line-height:1;
+
+  transition:
+    transform
+    .2s
+    ease;
+}
+
+.detail-compare-toggle.open
+.detail-compare-toggle-icon{
+  transform:rotate(180deg);
+}
+
+
+/* 처음에는 상세 비교 숨김 */
+.detail-compare-wrap{
+  display:none;
+  margin:0 0 8px;
+}
+
+.detail-compare-wrap.open{
+  display:block;
+}
+
+
+/* 펼쳐진 상세 비교 카드 */
+body.route-analysis-mode
+.detail-compare-card{
+  margin:0 !important;
+  padding:9px !important;
+
+  border:1px solid #e3e7ec !important;
+  border-radius:17px !important;
+
+  background:#ffffff !important;
+
+  box-shadow:
+    0 5px 15px
+    rgba(15,23,42,.045)
+    !important;
+}
+
+body.route-analysis-mode
+.detail-compare-card
+.compare-title{
+  margin:
+    0
+    0
+    7px
+    !important;
+
+  font-size:14px !important;
+}
+
+
+/* 상세 비교 카드 간격 */
+body.route-analysis-mode
+.detail-compare-card
+.route-compare-courses{
+  gap:8px !important;
+}
+
+
+/* ==================================================
+   내비게이션
+================================================== */
+
+body.route-analysis-mode
+.navi-section{
+  margin:0 0 8px !important;
+  padding:12px !important;
+
+  border-radius:18px !important;
+}
+
+body.route-analysis-mode
+.navi-section h3{
+  margin:
+    0
+    0
+    8px
+    !important;
+
+  font-size:14.5px !important;
+}
+
+body.route-analysis-mode
+.navi-btn{
+  height:47px !important;
+}
+
+
+/* ==================================================
+   안전운전 팁
+================================================== */
+
+body.route-analysis-mode
+.info-split-col.tip{
+  margin:0 0 8px !important;
+  padding:12px !important;
+
+  border-radius:18px !important;
+}
+
+body.route-analysis-mode
+.info-split-col.tip h3{
+  margin:
+    0
+    0
+    8px
+    !important;
+
+  font-size:14.5px !important;
+}
+
+body.route-analysis-mode
+.tip-list{
+  display:grid !important;
+  grid-template-columns:
+    repeat(3,minmax(0,1fr))
+    !important;
+
+  gap:6px !important;
+}
+
+body.route-analysis-mode
+.tip-item{
+  min-width:0;
+
+  padding:
+    9px
+    8px
+    !important;
+
+  flex-direction:column;
+  align-items:flex-start;
+
+  gap:6px !important;
+
+  border:1px solid #edf0f3;
+  border-radius:13px !important;
+
+  background:#f8f9fb !important;
+}
+
+body.route-analysis-mode
+.tip-item span{
+  width:auto !important;
+}
+
+body.route-analysis-mode
+.tip-item div{
+  font-size:10.5px !important;
+  line-height:1.4 !important;
+
+  word-break:keep-all !important;
+}
+
+body.route-analysis-mode
+.tip-icon{
+  width:17px !important;
+  height:17px !important;
+}
+
+
+/* ==================================================
+   별점 카드
+================================================== */
+
+body.route-analysis-mode
+.result-feedback-card{
+  margin:0 !important;
+  padding:
+    14px
+    12px
+    !important;
+
+  border-radius:18px !important;
+}
+
+body.route-analysis-mode
+.result-feedback-card h3{
+  margin:
+    0
+    0
+    7px
+    !important;
+
+  font-size:14.5px !important;
+}
+
+body.route-analysis-mode
+.result-feedback-card p{
+  display:none !important;
+}
+
+body.route-analysis-mode
+.result-feedback-card
+.rating-stars{
+  margin-top:4px !important;
+}
+
+body.route-analysis-mode
+.result-feedback-card
+.rating-stars button{
+  font-size:31px !important;
+}
+
+body.route-analysis-mode
+.result-feedback-card
+.rating-text{
+  margin-top:6px !important;
+
+  font-size:10.5px !important;
+}
+
+
+/* ==================================================
+   작은 휴대전화
+================================================== */
+
+@media(max-width:390px){
+
+  body.route-analysis-mode
+  .route-analysis-page{
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+
+  body.route-analysis-mode
+  .tip-item{
+    padding:
+      8px
+      7px
+      !important;
+  }
+
+  body.route-analysis-mode
+  .tip-item div{
+    font-size:10px !important;
+  }
+}
+
+
+/* 세로가 짧은 휴대전화 */
+@media(max-height:750px){
+
+  body.route-analysis-mode
+  .route-analysis-page{
+    top:49vh !important;
+  }
+
+  body.route-analysis-mode
+  .smart-briefing-course{
+    padding:
+      8px
+      9px
+      7px
+      !important;
+  }
+}
 </style>
 </head>
 
@@ -10480,10 +10908,6 @@ const tips = [
   tips
 );
 
-/*
-  코스 비교 결과 화면
-  추천·대안·AI 설명·위험점수는 표시하지 않음
-*/
 lastRouteAnalysisHtml = `
   <div class="routePath">
     ${startName}
@@ -10491,126 +10915,128 @@ lastRouteAnalysisHtml = `
     ${endName}
   </div>
 
-    <div class="compare-detail-new always-open">
- <div class="compare-title">
-  <img src="chart-bar.svg" class="title-svg">
-  ${route2 ? "경로 상세 비교" : "경로 상세 정보"}
-</div>
 
-<div class="
-  route-compare-table
-  route-compare-simple-table
-  ${route2 ? "" : "single-course"}
-">
+  ${makeSmartBriefingHtml(
+    route1,
+    route2
+  )}
 
-  <div class="route-compare-courses">
 
-    ${makeRouteInfoCard(
-      route1,
-      1,
-      "recommend"
-    )}
+  ${makeDetailCompareToggleHtml(
+    route1,
+    route2
+  )}
 
-    ${route2
-      ? makeRouteInfoCard(
-          route2,
-          2,
-          "alt"
-        )
-      : ""
-    }
 
-  </div>
+  ${makeNavigationButtonsHtml()}
 
-</div>
-
-<div
-  id="routeMetricInfo"
-  class="route-metric-info"
-  aria-live="polite"
-></div>
-
-${makeSmartBriefingHtml(route1, route2)}
-  <div class="navi-section">
-    <h3>내비게이션으로 길안내</h3>
-
-    <div class="navi-grid final-navi">
-
-      <button type="button" class="navi-btn" onclick="openNaverMap()">
-        <span class="nav-icon naver">N</span>
-        <span class="nav-text">
-          <b>네이버지도</b>
-          <small>길안내</small>
-        </span>
-      </button>
-
-      <button type="button" class="navi-btn" onclick="openTmap()">
-        <span class="nav-icon tmap">T</span>
-        <span class="nav-text">
-          <b>TMAP</b>
-          <small>길안내</small>
-        </span>
-      </button>
-
-      <button type="button" class="navi-btn" onclick="openKakaoNavi()">
-        <span class="nav-icon kakao">K</span>
-        <span class="nav-text">
-          <b>카카오맵</b>
-          <small>길안내</small>
-        </span>
-      </button>
-
-    </div>
-
-    <div class="tmap-note">
-      ※ 예상시간은 참고용이며, 실제 시간은 교통상황에 따라 달라질 수 있습니다.
-    </div>
-  </div>
 
   <div class="info-split-col tip">
+
     <h3>
-      <img src="map-pin-check.svg" class="title-svg">
+      <img
+        src="map-pin-check.svg"
+        class="title-svg"
+        alt=""
+      >
+
       ${endName} 이동 시 안전운전 팁
     </h3>
 
     <div class="tip-list">
-      <div class="tip-item">
-        <span>
-          <img src="car.svg" class="tip-icon">
-        </span>
-        <div>${tips[0]}</div>
-      </div>
 
       <div class="tip-item">
         <span>
-          <img src="alert-triangle.svg" class="tip-icon">
+          <img
+            src="car.svg"
+            class="tip-icon"
+            alt=""
+          >
         </span>
-        <div>${tips[1]}</div>
+
+        <div>
+          ${tips[0]}
+        </div>
       </div>
+
 
       <div class="tip-item">
         <span>
-          <img src="eye.svg" class="tip-icon">
+          <img
+            src="alert-triangle.svg"
+            class="tip-icon"
+            alt=""
+          >
         </span>
-        <div>${tips[2]}</div>
+
+        <div>
+          ${tips[1]}
+        </div>
       </div>
-    </div>
-    <div class="feedback-card result-feedback-card">
-    <h3>이번 경로정보는 도움이 되었나요?</h3>
-    <p>별점을 선택하면 평가가 저장됩니다.</p>
 
-    <div class="rating-stars" id="ratingStars">
-      <button type="button" onclick="setRating(1)">☆</button>
-      <button type="button" onclick="setRating(2)">☆</button>
-      <button type="button" onclick="setRating(3)">☆</button>
-      <button type="button" onclick="setRating(4)">☆</button>
-      <button type="button" onclick="setRating(5)">☆</button>
+
+      <div class="tip-item">
+        <span>
+          <img
+            src="eye.svg"
+            class="tip-icon"
+            alt=""
+          >
+        </span>
+
+        <div>
+          ${tips[2]}
+        </div>
+      </div>
+
     </div>
 
-    <div id="ratingText" class="rating-text">
-      별점을 눌러주세요
-    </div>
   </div>
+
+
+  <div class="feedback-card result-feedback-card">
+
+    <h3>
+      이번 경로정보는 도움이 되었나요?
+    </h3>
+
+    <div
+      class="rating-stars"
+      id="ratingStars"
+    >
+      <button
+        type="button"
+        onclick="setRating(1)"
+      >☆</button>
+
+      <button
+        type="button"
+        onclick="setRating(2)"
+      >☆</button>
+
+      <button
+        type="button"
+        onclick="setRating(3)"
+      >☆</button>
+
+      <button
+        type="button"
+        onclick="setRating(4)"
+      >☆</button>
+
+      <button
+        type="button"
+        onclick="setRating(5)"
+      >☆</button>
+    </div>
+
+    <div
+      id="ratingText"
+      class="rating-text"
+    >
+      별점을 선택하면 평가가 저장됩니다.
+    </div>
+
   </div>
 `;
 
@@ -14183,24 +14609,9 @@ function makeSmartBriefingHtml(
   route2
 ){
   return `
-    <button
-      id="smartBriefingToggle"
-      type="button"
-      class="smart-briefing-toggle"
-      aria-expanded="false"
-      onclick="toggleSmartBriefing()"
-    >
-      <span>스마트 경로 분석 보기</span>
-
-      <span class="smart-briefing-toggle-icon">
-        ⌄
-      </span>
-    </button>
-
-
     <div
       id="smartBriefingWrap"
-      class="smart-briefing-wrap"
+      class="smart-briefing-wrap open"
     >
 
       <div class="smart-briefing-panel">
@@ -14211,24 +14622,26 @@ function makeSmartBriefingHtml(
             <img src="route.svg" alt="">
             스마트 경로 브리핑
           </div>
+
         </div>
-        
+
         <div class="smart-briefing-list">
 
-      ${makeSmartBriefingCourse(
-  route1,
-  1,
-  "recommend",
-  route2
-)}
+          ${makeSmartBriefingCourse(
+            route1,
+            1,
+            "recommend",
+            route2
+          )}
+
           ${
             route2
-? makeSmartBriefingCourse(
-    route2,
-    2,
-    "alt",
-    route1
-  )
+              ? makeSmartBriefingCourse(
+                  route2,
+                  2,
+                  "alt",
+                  route1
+                )
               : ""
           }
 
@@ -14239,8 +14652,130 @@ function makeSmartBriefingHtml(
     </div>
   `;
 }
+  function makeDetailCompareToggleHtml(
+  route1,
+  route2
+){
+  return `
+    <button
+      id="detailCompareToggle"
+      type="button"
+      class="detail-compare-toggle"
+      aria-expanded="false"
+      onclick="toggleDetailCompare()"
+    >
+      <span>
+        ${route2
+          ? "상세 비교 보기"
+          : "상세 정보 보기"
+        }
+      </span>
+
+      <span class="detail-compare-toggle-icon">
+       ⌄
+      </span>
+    </button>
+
+    <div
+      id="detailCompareWrap"
+      class="detail-compare-wrap"
+    >
+
+      <div class="compare-detail-new detail-compare-card">
+
+        <div class="compare-title">
+          <img
+            src="chart-bar.svg"
+            class="title-svg"
+            alt=""
+          >
+
+          ${route2
+            ? "경로 상세 비교"
+            : "경로 상세 정보"
+          }
+        </div>
+
+        <div class="
+          route-compare-table
+          route-compare-simple-table
+          ${route2 ? "" : "single-course"}
+        ">
+
+          <div class="route-compare-courses">
+
+            ${makeRouteInfoCard(
+              route1,
+              1,
+              "recommend"
+            )}
+
+            ${
+              route2
+                ? makeRouteInfoCard(
+                    route2,
+                    2,
+                    "alt"
+                  )
+                : ""
+            }
+
+          </div>
+
+        </div>
+
+        <div
+          id="routeMetricInfo"
+          class="route-metric-info"
+          aria-live="polite"
+        ></div>
+
+      </div>
+
+    </div>
+  `;
+}
 
 
+function toggleDetailCompare(){
+
+  const wrap =
+    document.getElementById(
+      "detailCompareWrap"
+    );
+
+  const button =
+    document.getElementById(
+      "detailCompareToggle"
+    );
+
+  if(!wrap || !button){
+    return;
+  }
+
+  const isOpen =
+    wrap.classList.toggle("open");
+
+  button.classList.toggle(
+    "open",
+    isOpen
+  );
+
+  button.setAttribute(
+    "aria-expanded",
+    String(isOpen)
+  );
+
+  const text =
+    button.querySelector("span");
+
+  if(text){
+    text.textContent =
+      isOpen
+        ? "상세 비교 닫기"
+        : "상세 비교 보기";
+  }
+}
 /*
   브리핑 펼치기·접기
 */
