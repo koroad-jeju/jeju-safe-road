@@ -7110,6 +7110,29 @@ body.route-analysis-mode
       !important;
   }
 }
+  /* 브리핑 거리·시간·위험점수 한 줄 표시 */
+body.route-analysis-mode
+.smart-course-time{
+  flex:0 0 auto !important;
+
+  color:#4d5764 !important;
+  font-size:9.8px !important;
+  font-weight:850 !important;
+  letter-spacing:-.25px !important;
+
+  white-space:nowrap !important;
+}
+
+
+/* 폭이 아주 좁은 휴대전화 */
+@media(max-width:370px){
+
+  body.route-analysis-mode
+  .smart-course-time{
+    font-size:9.2px !important;
+    letter-spacing:-.35px !important;
+  }
+}
 </style>
 </head>
 
@@ -8284,119 +8307,175 @@ async function startRouteAnalysis(){
   
 const destinationTips = {
   "1100고지": [
-    "1100고지 접근 구간은 급커브와 경사가 이어지므로 커브 진입 전에 충분히 감속하세요.",
-    "안개·비·결빙 시 가시거리가 급격히 줄 수 있으므로 전조등을 켜고 차간거리를 늘리세요."
+    "1100고지 진입 전 급커브와 경사에 대비해 감속하세요.",
+    "안개·비·결빙 시 전조등을 켜고 안전거리를 늘리세요."
   ],
 
   "성산일출봉": [
-    "성산일출봉 진입부는 관광버스와 렌터카가 많으므로 주차장 진입 전 미리 차로를 확인하세요.",
-    "관광지 입구와 횡단보도 주변에서는 보행자가 갑자기 진입할 수 있으므로 서행하세요."
+    "주차장 진입 전 미리 차로를 확인하세요.",
+    "관광지 입구와 횡단보도에서는 보행자를 주의하세요."
   ],
 
   "중문관광단지": [
-    "호텔·관광시설 진출입로가 연속되므로 목적지 진입 전 미리 차선을 확인하세요.",
-    "대형버스와 주차장 출입 차량이 많아 교차로와 횡단보도 주변에서 충분히 감속하세요."
+    "관광단지 진입 전 미리 차로를 확인하세요.",
+    "주차장과 횡단보도 주변에서는 감속하세요."
   ],
 
   "함덕해수욕장": [
-    "해수욕장 주변에는 보행자와 주정차 차량이 많으므로 해안도로와 주차장 진입부에서 서행하세요.",
-    "주차 차량 사이에서 보행자가 나올 수 있으므로 전방과 도로 가장자리를 함께 확인하세요."
+    "해안도로와 주차장 진입부에서는 서행하세요.",
+    "주정차 차량 사이의 보행자를 주의하세요."
   ],
 
   "협재해수욕장": [
-    "해수욕장 진입부는 보행자와 주정차 차량이 많으므로 주차장 접근 전 충분히 감속하세요.",
-    "해안도로에서는 경치에 시선이 분산되지 않도록 전방주시를 유지하세요."
+    "주차장 접근 전 보행자와 차량을 확인하세요.",
+    "해안도로에서는 전방주시를 유지하세요."
   ],
 
   "오설록": [
-    "오설록 주차장 진입부에서는 급감속 차량과 보행자에 주의하세요.",
-    "관광지 입구를 지나쳤더라도 급정지하거나 급하게 차선을 변경하지 마세요."
+    "주차장 진입부의 급감속 차량과 보행자를 주의하세요.",
+    "입구를 지나쳐도 급정지·급차선 변경은 피하세요."
   ],
 
   "카멜리아힐": [
-    "관광지 진입도로와 주차장 주변에서는 보행자와 출차 차량에 주의하세요.",
-    "좁은 진입 구간에서는 맞은편 차량과 충분한 간격을 확보하며 서행하세요."
+    "주차장 주변의 보행자와 출차 차량을 주의하세요.",
+    "좁은 진입로에서는 맞은편 차량을 확인하며 서행하세요."
   ],
 
   "한라산 성판악 탐방안내소": [
-    "성판악 접근 구간은 급커브와 경사가 이어지므로 커브 진입 전에 충분히 감속하세요.",
-    "안개와 기상변화에 대비해 전조등을 켜고 내리막에서는 엔진브레이크를 활용하세요."
+    "성판악 진입 전 급커브와 경사에 대비해 감속하세요.",
+    "안개 시 전조등을 켜고 내리막에서는 엔진브레이크를 사용하세요."
   ],
 
   "비자림": [
-    "비자림 접근 구간은 숲길과 곡선도로가 이어지므로 시야가 제한되는 구간에서 감속하세요.",
-    "관광지 입구와 주차장 주변에서는 보행자와 진출입 차량에 주의하세요."
+    "숲길과 곡선구간에서는 충분히 감속하세요.",
+    "관광지 입구와 주차장에서는 보행자를 주의하세요."
   ],
 
   "사려니숲길": [
-    "사려니숲길 주변에는 갓길 주정차 차량과 보행자가 많으므로 도로 가장자리를 주의하세요.",
-    "안개가 발생하면 전조등을 켜고 앞차와의 안전거리를 충분히 확보하세요."
+    "갓길 주정차 차량과 보행자를 주의하세요.",
+    "안개 시 전조등을 켜고 안전거리를 확보하세요."
   ]
 };
+
   function getRoadSafetyTip(route){
+
   const roadNames =
     Array.isArray(route?.roadNames)
-      ? route.roadNames.map(road => road.name)
+      ? route.roadNames.map(
+          road => road.name
+        )
       : [];
 
   const difficultRoads =
     getDifficultRoadNames(route);
 
-  /*
-    운전 난이도가 높은 도로를 최우선 안내
-  */
-  if(difficultRoads.includes("1100도로")){
-    return "1100도로는 급커브·급경사와 기상변화가 잦으므로 속도를 충분히 낮추고 내리막에서는 엔진브레이크를 활용하세요.";
-  }
-
-  if(difficultRoads.includes("5·16도로")){
-    return "5·16도로는 곡선과 경사구간이 많으므로 커브 진입 전 감속하고 안개 발생 시 전조등을 켜세요.";
-  }
-
-  if(difficultRoads.includes("비자림로")){
-    return "비자림로는 숲길과 곡선구간이 이어지므로 시야가 제한되는 곳에서 충분히 감속하세요.";
-  }
-
-  if(difficultRoads.includes("남조로")){
-    return "남조로는 중산간 교차로와 농로 진입구간이 많으므로 저속 차량과 진입 차량에 주의하세요.";
-  }
-
-  if(difficultRoads.includes("산록남로")){
-    return "산록남로는 곡선과 경사구간이 이어지므로 야간과 안개 발생 시 속도를 충분히 줄이세요.";
-  }
-
-  if(difficultRoads.includes("산록북로")){
-    return "산록북로는 교차로 시야가 제한되는 곡선구간이 있어 비·안개 시 충분히 감속하세요.";
-  }
 
   /*
-    주요 간선도로 특성
+    운전 난이도가 높은 도로 우선
   */
-  if(roadNames.includes("평화로")){
-    return "평화로는 차량 주행속도가 높은 구간이 많으므로 충분한 차간거리를 유지하고 분기 전 미리 차로를 확인하세요.";
+
+  if(
+    difficultRoads.includes(
+      "1100도로"
+    )
+  ){
+    return "1100도로는 급커브·안개에 주의하고 내리막에서는 엔진브레이크를 사용하세요.";
   }
 
-  if(roadNames.includes("번영로")){
-    return "번영로는 빠른 주행이 이루어지는 구간과 농로 교차로가 많으므로 교차로 접근 시 속도를 줄이세요.";
+  if(
+    difficultRoads.includes(
+      "5·16도로"
+    )
+  ){
+    return "5·16도로는 급경사·급커브가 많아 진입 전 감속하세요.";
   }
 
-  if(roadNames.includes("애조로")){
-    return "애조로는 합류와 차로변경이 잦은 간선도로이므로 진입 차량과 사각지대를 주의하세요.";
+  if(
+    difficultRoads.includes(
+      "비자림로"
+    )
+  ){
+    return "비자림로는 숲길과 곡선구간이 많아 감속하세요.";
   }
 
-  if(roadNames.includes("중산간동로")){
-    return "중산간동로는 마을과 농로 진입구간이 이어지므로 교차로와 저속 차량에 주의하세요.";
+  if(
+    difficultRoads.includes(
+      "남조로"
+    )
+  ){
+    return "남조로는 농로와 교차로 진입 차량을 주의하세요.";
   }
 
-  if(roadNames.includes("중산간서로")){
-    return "중산간서로는 곡선구간과 마을 진입부가 이어지므로 교차로 전에 충분히 감속하세요.";
+  if(
+    difficultRoads.includes(
+      "산록남로"
+    )
+  ){
+    return "산록남로는 곡선·경사구간이 많아 야간과 안개 시 감속하세요.";
   }
 
-  if(roadNames.includes("서성로")){
-    return "서성로는 마을과 농로 진입구간이 많으므로 교차로와 저속 차량을 확인하며 주행하세요.";
+  if(
+    difficultRoads.includes(
+      "산록북로"
+    )
+  ){
+    return "산록북로는 곡선구간의 시야가 제한돼 비·안개 시 감속하세요.";
   }
 
-  return "초행길에서는 목적지 진입 전에 내비게이션 안내와 차로를 미리 확인하세요.";
+
+  /*
+    주요 간선도로
+  */
+
+  if(
+    roadNames.includes(
+      "평화로"
+    )
+  ){
+    return "평화로는 주행속도가 높아 차간거리를 유지하세요.";
+  }
+
+  if(
+    roadNames.includes(
+      "번영로"
+    )
+  ){
+    return "번영로는 교차로와 농로 진입 차량을 주의하세요.";
+  }
+
+  if(
+    roadNames.includes(
+      "애조로"
+    )
+  ){
+    return "애조로는 합류와 차로변경이 잦아 사각지대를 확인하세요.";
+  }
+
+  if(
+    roadNames.includes(
+      "중산간동로"
+    )
+  ){
+    return "중산간동로는 교차로와 저속 차량을 주의하세요.";
+  }
+
+  if(
+    roadNames.includes(
+      "중산간서로"
+    )
+  ){
+    return "중산간서로는 곡선과 마을 진입부에서 감속하세요.";
+  }
+
+  if(
+    roadNames.includes(
+      "서성로"
+    )
+  ){
+    return "서성로는 농로와 마을 진입 차량을 주의하세요.";
+  }
+
+  return "목적지 진입 전 내비게이션 안내와 차로를 확인하세요.";
 }
 
   /* ===== ORS 실패 시 목적지 권역 안내 정보 ===== */
@@ -10887,8 +10966,8 @@ const destinationSpecificTips =
   matchedTipKey
     ? destinationTips[matchedTipKey]
     : [
-        "목적지 주변 교차로와 주차장 진입부에서는 보행자와 진출입 차량에 주의하세요.",
-        "목적지를 지나쳤더라도 급정지하거나 급하게 차선을 변경하지 마세요."
+        "교차로와 주차장 진입부에서는 보행자와 차량을 확인하세요.",
+        "목적지를 지나쳐도 급정지·급차선 변경은 피하세요."
       ];
 
 /*
@@ -14411,6 +14490,8 @@ const briefing =
     route,
     otherRoute
   );
+  const riskScore =
+    getRouteRiskScore(route);
 
   /*
     태그 HTML 생성
@@ -14478,10 +14559,9 @@ const briefing =
           ${courseNumber}코스
         </div>
 
-        <div class="smart-course-time">
-          ${route.distanceKm}km ·
-          약 ${route.durationMin}분
-        </div>
+<div class="smart-course-time">
+  ${route.distanceKm}km · 약 ${route.durationMin}분 · 위험점수 ${riskScore}
+</div>
 
       </div>
 
