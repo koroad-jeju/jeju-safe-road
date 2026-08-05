@@ -17554,65 +17554,59 @@ const routeBounds =
     allRouteCoords
   );
 
-const longestRouteKm =
-  Math.max(
-    ...lastRouteSummaries.map(
-      route =>
-        Number(
-          route.distanceKm || 0
-        )
-    )
+const analysisPanel =
+  document.getElementById(
+    "routeAnalysisPage"
   );
 
-let bottomPadding = 185;
-let extraZoom = 0;
+/*
+  실제 화면에서 결과 패널이 시작되는 위치
+*/
+const panelTop =
+  analysisPanel
+    ? analysisPanel.getBoundingClientRect().top
+    : window.innerHeight * 0.5;
 
-if(longestRouteKm <= 15){
-  bottomPadding = 210;
-  extraZoom = 0;
-}
-else if(longestRouteKm <= 30){
-  bottomPadding = 195;
-  extraZoom = 0.15;
-}
-else if(longestRouteKm <= 50){
-  bottomPadding = 180;
-  extraZoom = 0.3;
-}
-else{
-  bottomPadding = 150;
-  extraZoom = 0.55;
-}
+/*
+  지도에서 실제로 보이는 윗부분의 높이
+*/
+const visibleMapHeight =
+  Math.max(
+    240,
+    panelTop
+  );
+
+/*
+  경로가 패널 바로 위까지 꽉 차지 않도록
+  위·아래에 일정한 여유를 둠
+*/
+const verticalPadding =
+  Math.max(
+    28,
+    Math.round(
+      visibleMapHeight * 0.08
+    )
+  );
 
 map.fitBounds(
   routeBounds,
   {
     paddingTopLeft:[
-      28,
-      35
+      24,
+      verticalPadding
     ],
 
     paddingBottomRight:[
-      28,
-      bottomPadding
+      24,
+      window.innerHeight -
+      panelTop +
+      verticalPadding
     ],
 
+    maxZoom:13,
     animate:false
   }
 );
-
-if(extraZoom > 0){
-
-  const fittedZoom =
-    map.getZoom();
-
-  map.setZoom(
-    fittedZoom + extraZoom,
-    {
-      animate:false
-    }
-  );
-}
        }
   }, 250);
 }
