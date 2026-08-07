@@ -7617,8 +7617,8 @@ body.route-analysis-mode
  <img src="bell.svg">
 </div>
         <div class="side-menu-text">
-          <b>공지사항</b>
-          <span>업데이트 내역</span>
+          <b>서비스 소개</b>
+<span>주요 기능과 이용 안내</span>
         </div>
       </div>
      <div class="side-arrow">
@@ -18420,16 +18420,28 @@ if(type === "roadGuide"){
 }
 
   if(type === "notice"){
-    title.innerText = "공지사항";
+    title.innerText = "서비스 소개";
 
-    content.innerHTML = `
-      <div class="risk-info-card">
-        <h3>업데이트 내역</h3>
-        <p>✔ 사고이력 및 위험점수 비교 제공</p>
-        <p>✔ 제주 렌터카 운전 유의사항 안내</p>
-        <p>✔ 관광소식 및 주요도로 정보 제공</p>
-      </div>
-    `;
+content.innerHTML = `
+  <div class="risk-info-card">
+    <h3>Jeju Safe Map</h3>
+
+    <p>
+      제주 초행 운전자와 렌터카 이용자를 위해
+      경로별 주요도로와 운전 유의사항을 안내하는 서비스입니다.
+    </p>
+
+    <p>✔ 경로별 주요 통과도로 및 도로 특성 안내</p>
+    <p>✔ 사고이력과 위험점수 비교 제공</p>
+    <p>✔ 산간도로·주의도로 운전 유의사항 안내</p>
+    <p>✔ 제주 관광소식과 안전운전 정보 제공</p>
+
+    <p>
+      ※ 실제 길안내 경로는 교통상황과
+      내비게이션 설정에 따라 달라질 수 있습니다.
+    </p>
+  </div>
+`;
 
     popup.classList.add("active");
   }
