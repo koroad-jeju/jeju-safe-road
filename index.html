@@ -14215,7 +14215,10 @@ function getRouteRoundaboutAreas(route){
   return matchedAreas;
 }
   
-function getCompactCourseFeature(route){
+function getCompactCourseFeature(
+  route,
+  courseNumber = 1
+){
 
   const difficultRoads =
     getDifficultRoadNames(route);
@@ -14227,14 +14230,21 @@ function getCompactCourseFeature(route){
           .filter(Boolean)
       : [];
 
-  const passedAreas = [];
-  
   const accident =
     route?.accidentAnalysis || {};
 
+  /*
+    1코스와 2코스가 같은 유형일 때
+    같은 문장이 반복되지 않도록 구분
+  */
+  const isSecondCourse =
+    Number(courseNumber) === 2;
+
 
   /*
+    ==================================================
     1순위: 산간도로
+    ==================================================
   */
   if(
     difficultRoads.includes("1100도로") ||
@@ -14242,21 +14252,33 @@ function getCompactCourseFeature(route){
     difficultRoads.includes("산록남로") ||
     difficultRoads.includes("산록북로")
   ){
+
+    if(isSecondCourse){
+
+      return {
+        icon:"🌲",
+        title:"산간도로 중심",
+        caution:"안개·내리막 주의",
+        description:
+          "산간 구간을 통과하는 경로입니다. 안개와 기상변화에 대비하고 내리막에서는 충분한 안전거리를 유지하세요."
+      };
+
+    }
+
     return {
       icon:"🌲",
       title:"산간도로 중심",
       caution:"급커브·급경사 주의",
       description:
-        "산간도로를 중심으로 이동하는 경로입니다. 급커브와 경사구간이 이어질 수 있어 충분히 감속하세요."
+        "산간도로를 중심으로 이동하는 경로입니다. 급커브와 급경사 구간에서는 속도를 충분히 줄이세요."
     };
   }
 
 
   /*
+    ==================================================
     2순위: 중산간도로
-
-    비자림로와 서성로도
-    중산간 성격의 도로로 함께 분류
+    ==================================================
   */
   if(
     difficultRoads.includes("중산간서로") ||
@@ -14271,18 +14293,33 @@ function getCompactCourseFeature(route){
     roadNames.includes("비자림로") ||
     roadNames.includes("서성로")
   ){
+
+    if(isSecondCourse){
+
+      return {
+        icon:"🌲",
+        title:"중산간도로 중심",
+        caution:"농로·진입 차량 주의",
+        description:
+          "중산간 지역 도로를 이용하는 경로입니다. 농로와 마을 진입부에서 나오는 차량을 확인하며 주행하세요."
+      };
+
+    }
+
     return {
       icon:"🌲",
       title:"중산간도로 중심",
       caution:"곡선구간·마을 진입부 주의",
       description:
-        "중산간도로를 중심으로 이동하는 경로입니다. 곡선구간과 마을·농로 진입부에서는 주변 차량을 확인하며 감속하세요."
+        "중산간도로를 중심으로 이동하는 경로입니다. 곡선구간과 마을 진입부에서는 충분히 감속하세요."
     };
   }
 
 
   /*
+    ==================================================
     3순위: 간선도로
+    ==================================================
   */
   if(
     roadNames.includes("평화로") ||
@@ -14293,60 +14330,86 @@ function getCompactCourseFeature(route){
     roadNames.includes("일주동로") ||
     roadNames.includes("일주서로")
   ){
+
+    if(isSecondCourse){
+
+      return {
+        icon:"🚙",
+        title:"간선도로 중심",
+        caution:"분기·진출입 구간 주의",
+        description:
+          "주요 간선도로를 이용하는 경로입니다. 분기점과 진출입 구간에서는 미리 차로를 확인하세요."
+      };
+
+    }
+
     return {
       icon:"🚙",
       title:"간선도로 중심",
       caution:"합류·차로변경 주의",
       description:
-        "간선도로를 중심으로 이동하는 경로입니다. 차량 흐름이 빠를 수 있어 합류와 차로변경 시 주변 차량을 충분히 확인하세요."
+        "간선도로를 중심으로 이동하는 경로입니다. 차량 흐름이 빠를 수 있어 합류와 차로변경 시 주변 차량을 확인하세요."
     };
   }
 
 
   /*
-    4순위: 도심·관광지 도로
+    ==================================================
+    4순위: 도심도로
 
-    현재 코드에는 실제 시내 주행 비율이 없기 때문에
-    우선 기존 보행자 사고 정보와
-    도심·관광지 통과정보를 함께 활용
+    현재 코드에서는 실제 시내 비율이 아니라
+    보행자 사고 건수를 보조 기준으로 사용
+    ==================================================
   */
-  const urbanAreaNames = [
-    "공항권",
-    "제주시도심권",
-    "서귀포도심권",
-    "중문권"
-  ];
-
-  const passesUrbanArea =
-    Array.isArray(passedAreas) &&
-    passedAreas.some(
-      area =>
-        urbanAreaNames.includes(area)
-    );
-
   if(
-    passesUrbanArea ||
     (accident.pedestrianCount || 0) >= 3
   ){
+
+    if(isSecondCourse){
+
+      return {
+        icon:"🚗",
+        title:"도심도로 중심",
+        caution:"차로변경·진출입 주의",
+        description:
+          "도심 구간을 따라 이동하는 경로입니다. 차로변경과 건물·주차장 진출입 차량에 주의하세요."
+      };
+
+    }
+
     return {
       icon:"🚗",
-      title:"도심·관광지 중심",
+      title:"도심도로 중심",
       caution:"보행자·교차로 주의",
       description:
-        "도심과 관광지 주변 도로를 중심으로 이동하는 경로입니다. 신호 교차로와 횡단보도에서 보행자와 진입 차량을 확인하세요."
+        "도심 도로를 중심으로 이동하는 경로입니다. 신호 교차로와 횡단보도에서 보행자와 진입 차량을 확인하세요."
     };
   }
 
 
   /*
+    ==================================================
     5순위: 일반도로
+    ==================================================
   */
+  if(isSecondCourse){
+
+    return {
+      icon:"🚗",
+      title:"일반도로 중심",
+      caution:"목적지 진입구간 주의",
+      description:
+        "일반도로를 주로 이용하는 경로입니다. 목적지 주변에서는 보행자와 진출입 차량을 함께 확인하세요."
+    };
+
+  }
+
   return {
     icon:"🚗",
     title:"일반도로 중심",
     caution:"교차로·진출입 차량 주의",
     description:
-      "일반도로를 중심으로 이동하는 경로입니다. 교차로와 목적지 진입구간에서 주변 차량의 움직임을 확인하세요."
+      "일반도로를 중심으로 이동하는 경로입니다. 교차로 접근 시 속도를 줄이고 주변 차량을 확인하세요."
   };
 }
 /* ==================================================
@@ -14496,7 +14559,8 @@ function getSmartRoadCautionText(
 }
 function getSmartRouteBriefing(
   route,
-  otherRoute = null
+  otherRoute = null,
+  courseNumber = 1
 ){
 
   if(!route){
@@ -14682,8 +14746,11 @@ roadFeatureTags.forEach(
 
   else{
 
-    const courseFeature =
-      getCompactCourseFeature(route);
+const courseFeature =
+  getCompactCourseFeature(
+    route,
+    courseNumber
+  );
 
 
     /*
@@ -14742,8 +14809,10 @@ function makeSmartBriefingCourse(
 const briefing =
   getSmartRouteBriefing(
     route,
-    otherRoute
+    otherRoute,
+    courseNumber
   );
+  
   const riskScore =
     getRouteRiskScore(route);
 
