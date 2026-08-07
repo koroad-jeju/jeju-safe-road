@@ -15384,12 +15384,11 @@ text.textContent =
   }
 
   if(type === "risk"){
-    title = "위험점수";
+  title = "위험점수";
 
-    description =
-      "사고 심각도와 교통량을 반영한 상대적 참고지표이며, 점수가 높을수록 주의가 필요한 경로입니다.";
-  }
-
+  description =
+    "최근 3년간 사고이력, 사고 심각도, 교통량 등을 종합한 상대적 참고지표입니다.";
+}
   box.dataset.type = type;
 
   box.innerHTML = `
@@ -15483,8 +15482,8 @@ text.textContent =
     ">
 
       <p class="road-info-guide">
-        위험점수는 사고 심각도와 교통량을
-        반영한 경로 비교용 참고 점수입니다.
+       최근 3년간 사고이력, 사고 심각도, 교통량 등을 종합한
+상대적 참고지표입니다.
       </p>
 
       <div class="road-info-feature-list">
@@ -15493,8 +15492,8 @@ text.textContent =
           <span>•</span>
 
           <p>
-            점수가 낮을수록 사고이력 측면의
-            점수가 낮습니다.
+    점수가 높을수록 주의가 필요한 경로를 의미하며,
+절대적인 안전도를 나타내는 값은 아닙니다.
           </p>
         </div>
 
