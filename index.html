@@ -7552,6 +7552,74 @@ body.route-analysis-mode
 
   word-break:keep-all;
 }
+  /* ==================================================
+   경로분석 패널 드래그
+================================================== */
+
+body.route-analysis-mode
+.route-analysis-page{
+  /* JS가 top을 직접 조절할 수 있도록 함 */
+  transition:none;
+
+  /* 손잡이 공간 확보 */
+  padding-top:30px !important;
+
+  /* iPhone에서 스크롤 부드럽게 */
+  -webkit-overflow-scrolling:touch;
+}
+
+
+/* 위아래로 끄는 손잡이 */
+.route-sheet-handle{
+  position:absolute;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:28px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  cursor:grab;
+
+  touch-action:none;
+
+  z-index:20;
+}
+
+
+/* 실제 보이는 회색 막대 */
+.route-sheet-handle span{
+  display:block;
+
+  width:42px;
+  height:5px;
+
+  border-radius:999px;
+
+  background:#c7ccd3;
+}
+
+
+/* 드래그 중 */
+.route-sheet-handle.dragging{
+  cursor:grabbing;
+}
+
+
+/* 드래그 중에는 패널 안쪽 스크롤 방지 */
+.route-analysis-page.sheet-dragging{
+  overflow-y:hidden !important;
+}
+
+
+/* 실패 화면에서는 드래그 손잡이 숨김 */
+body.route-fallback-mode
+.route-sheet-handle{
+  display:none !important;
+}
 </style>
 </head>
 
@@ -8216,7 +8284,16 @@ body.route-analysis-mode
   </div>
 </div>
 <div id="routeAnalysisPage" class="route-analysis-page">
+
+  <div
+    id="routeSheetHandle"
+    class="route-sheet-handle"
+    aria-label="경로 설명창 높이 조절">
+    <span></span>
+  </div>
+
   <div id="routeAnalysisContent"></div>
+
 </div>
   <div id="adminStatsPage" class="admin-stats-page">
   <div class="admin-head">
@@ -18491,6 +18568,300 @@ function closeMenuPopup(){
     }
   });
 }
+  /* ==================================================
+   경로분석 패널 손가락 드래그
+================================================== */
+
+(function initRouteAnalysisSheet(){
+
+  const sheet =
+    document.getElementById(
+      "routeAnalysisPage"
+    );
+
+  const handle =
+    document.getElementById(
+      "routeSheetHandle"
+    );
+
+  if(!sheet || !handle){
+    return;
+  }
+
+
+  let dragging = false;
+  let startY = 0;
+  let startTop = 0;
+
+
+  /*
+    패널을 올릴 수 있는 가장 높은 위치
+    화면 상단에서 약 14%
+  */
+  function getMinTop(){
+    return Math.round(
+      window.innerHeight * 0.14
+    );
+  }
+
+
+  /*
+    패널을 내릴 수 있는 가장 낮은 위치
+    지도는 넓게 보이되 패널 손잡이는 남겨둠
+  */
+  function getMaxTop(){
+    return Math.round(
+      window.innerHeight * 0.72
+    );
+  }
+
+
+  /*
+    기본 시작 위치
+    현재 사용 중인 52vh와 동일
+  */
+  function getDefaultTop(){
+
+    if(window.innerHeight <= 750){
+      return Math.round(
+        window.innerHeight * 0.49
+      );
+    }
+
+    return Math.round(
+      window.innerHeight * 0.52
+    );
+  }
+
+
+  function clampTop(value){
+
+    return Math.max(
+      getMinTop(),
+      Math.min(
+        value,
+        getMaxTop()
+      )
+    );
+  }
+
+
+  function startDrag(event){
+
+    /*
+      경로분석 화면일 때만 작동
+    */
+    if(
+      !document.body.classList.contains(
+        "route-analysis-mode"
+      )
+    ){
+      return;
+    }
+
+    /*
+      비상 안내 화면에서는 사용하지 않음
+    */
+    if(
+      document.body.classList.contains(
+        "route-fallback-mode"
+      )
+    ){
+      return;
+    }
+
+
+    dragging = true;
+
+    startY =
+      event.clientY;
+
+    startTop =
+      sheet.getBoundingClientRect().top;
+
+
+    sheet.classList.add(
+      "sheet-dragging"
+    );
+
+    handle.classList.add(
+      "dragging"
+    );
+
+
+    try{
+      handle.setPointerCapture(
+        event.pointerId
+      );
+    }catch(error){}
+
+
+    event.preventDefault();
+  }
+
+
+  function moveDrag(event){
+
+    if(!dragging){
+      return;
+    }
+
+
+    const moveY =
+      event.clientY - startY;
+
+
+    const newTop =
+      clampTop(
+        startTop + moveY
+      );
+
+
+    /*
+      CSS의 !important보다 우선하도록
+      JS에서도 important로 설정
+    */
+    sheet.style.setProperty(
+      "top",
+      newTop + "px",
+      "important"
+    );
+
+
+    /*
+      지도 크기 다시 계산
+    */
+    if(
+      typeof map !== "undefined"
+    ){
+
+      requestAnimationFrame(
+        () => {
+          map.invalidateSize({
+            pan:false
+          });
+        }
+      );
+
+    }
+
+
+    event.preventDefault();
+  }
+
+
+  function endDrag(event){
+
+    if(!dragging){
+      return;
+    }
+
+
+    dragging = false;
+
+
+    sheet.classList.remove(
+      "sheet-dragging"
+    );
+
+    handle.classList.remove(
+      "dragging"
+    );
+
+
+    try{
+      handle.releasePointerCapture(
+        event.pointerId
+      );
+    }catch(error){}
+
+
+    /*
+      손을 놓은 위치에 그대로 유지
+    */
+  }
+
+
+  handle.addEventListener(
+    "pointerdown",
+    startDrag
+  );
+
+  handle.addEventListener(
+    "pointermove",
+    moveDrag
+  );
+
+  handle.addEventListener(
+    "pointerup",
+    endDrag
+  );
+
+  handle.addEventListener(
+    "pointercancel",
+    endDrag
+  );
+
+
+  /*
+    화면 회전이나 크기 변경 시
+    패널이 화면 밖으로 나가지 않도록 보정
+  */
+  window.addEventListener(
+    "resize",
+    () => {
+
+      if(
+        !document.body.classList.contains(
+          "route-analysis-mode"
+        )
+      ){
+        return;
+      }
+
+
+      const currentTop =
+        parseFloat(
+          getComputedStyle(sheet).top
+        );
+
+
+      if(
+        !Number.isFinite(currentTop)
+      ){
+        return;
+      }
+
+
+      const fixedTop =
+        clampTop(currentTop);
+
+
+      sheet.style.setProperty(
+        "top",
+        fixedTop + "px",
+        "important"
+      );
+
+    }
+  );
+
+
+  /*
+    필요할 때 기본 위치로 되돌리기 위한 함수
+  */
+  window.resetRouteSheetPosition =
+    function(){
+
+      sheet.style.setProperty(
+        "top",
+        getDefaultTop() + "px",
+        "important"
+      );
+
+    };
+
+})();
 </script>
 </body>
 </html>
