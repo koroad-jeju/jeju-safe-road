@@ -7620,6 +7620,33 @@ body.route-fallback-mode
 .route-sheet-handle{
   display:none !important;
 }
+  /* ===== 홈 하단 공단 로고 ===== */
+
+.koroad-logo-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  margin:9px 0 2px;
+  height:28px;
+}
+
+.koroad-logo-wrap img{
+  display:block;
+  width:auto;
+  height:25px;
+  max-width:72%;
+  object-fit:contain;
+}
+
+/* 경로분석 화면에서는 숨김 */
+body.route-active .koroad-logo-wrap,
+body.route-analysis-mode .koroad-logo-wrap,
+body.risk-map-mode .koroad-logo-wrap,
+body.safety-guide-mode .koroad-logo-wrap,
+body.tourism-news-mode .koroad-logo-wrap{
+  display:none !important;
+}
 </style>
 </head>
 
@@ -7879,7 +7906,9 @@ body.route-fallback-mode
     출발 전 운전경로 확인
   </div>
 </button>
-
+<div class="koroad-logo-wrap">
+  <img src="koroad-logo.png" alt="한국도로교통공단 제주지부">
+</div>
 <div id="info"></div>
 
 <div class="small home-guide-note">
