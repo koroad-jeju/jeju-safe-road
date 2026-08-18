@@ -3,7 +3,10 @@
 <head>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css">
   <meta name="naver-site-verification" content="afe3ab51dd179a0550b0a4eec63b7eaa9600fd0a" />
 
@@ -7766,12 +7769,22 @@ body:not(.route-active):not(.route-analysis-mode) .analyze-main{
 .bottom-item b{
   font-size:10px !important;
 }
-  /* 모바일 입력창 터치 시 자동 확대 방지 */
-@media (max-width: 768px){
-  input,
-  textarea,
-  select{
+/* ===== 모바일 입력창 자동 확대 완전 방지 ===== */
+@media (max-width:768px){
+
+  #startInput,
+  #endInput{
     font-size:16px !important;
+    line-height:42px !important;
+    transform:none !important;
+    zoom:1 !important;
+    -webkit-text-size-adjust:100% !important;
+  }
+
+  html,
+  body{
+    -webkit-text-size-adjust:100% !important;
+    text-size-adjust:100% !important;
   }
 }
 </style>
