@@ -7766,6 +7766,14 @@ body:not(.route-active):not(.route-analysis-mode) .analyze-main{
 .bottom-item b{
   font-size:10px !important;
 }
+  /* 모바일 입력창 터치 시 자동 확대 방지 */
+@media (max-width: 768px){
+  input,
+  textarea,
+  select{
+    font-size:16px !important;
+  }
+}
 </style>
 </head>
 
