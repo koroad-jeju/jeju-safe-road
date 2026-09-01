@@ -8572,12 +8572,11 @@ function resetHomeMap(){
 
 resetHomeMap();
 L.tileLayer(
-'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-{
- attribution:'© OpenStreetMap © CARTO',
- subdomains:'abcd',
- maxZoom:20
-}
+  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    attribution:'© OpenStreetMap contributors',
+    maxZoom:19
+  }
 ).addTo(map);
   
 const regionRisk = {
