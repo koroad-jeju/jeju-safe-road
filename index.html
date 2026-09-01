@@ -18092,10 +18092,9 @@ riskMiniMap.fitBounds(jejuBounds, {
 });
 
 L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
   {
-    subdomains:"abcd",
-    maxZoom:20
+    maxZoom:19
   }
 ).addTo(riskMiniMap);
 
@@ -18160,12 +18159,11 @@ function initRiskMiniMapPopup(mapElement){
   });
 
   L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    {
-      subdomains:"abcd",
-      maxZoom:20
-    }
-  ).addTo(riskMiniMapPopup);
+  "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom:19
+  }
+).addTo(riskMiniMapPopup);
 
   riskMiniLayerPopup =
     L.layerGroup().addTo(riskMiniMapPopup);
