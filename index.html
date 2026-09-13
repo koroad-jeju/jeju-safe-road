@@ -10703,6 +10703,170 @@ async function requestKakaoBackupRoute(
 
   return converted;
 }
+
+  /* ==================================================
+   경로 실패 시 주변 좌표 자동 보정
+================================================== */
+
+function makeNearbyRoutePoints(point){
+
+  const offsets = [
+    0.0008,   // 약 80~90m
+    -0.0008,
+    0.0016,   // 약 160~180m
+    -0.0016,
+    0.0025,   // 약 250m 안팎
+    -0.0025
+  ];
+
+  const points = [];
+
+  offsets.forEach(offset => {
+
+    // 남북
+    points.push({
+      lat: point.lat + offset,
+      lng: point.lng
+    });
+
+    // 동서
+    points.push({
+      lat: point.lat,
+      lng: point.lng + offset
+    });
+
+  });
+
+  return points;
+}
+
+
+async function requestKakaoRouteWithCorrection(
+  startLng,
+  startLat,
+  endLng,
+  endLat
+){
+
+  /*
+    1. 원래 좌표
+  */
+  try{
+
+    const data =
+      await requestKakaoBackupRoute(
+        startLng,
+        startLat,
+        endLng,
+        endLat
+      );
+
+    return {
+      data,
+      startLng,
+      startLat,
+      endLng,
+      endLat,
+      corrected:false
+    };
+
+  }catch(originalError){
+
+    console.warn(
+      "[원 좌표 경로 실패] 주변 좌표를 확인합니다.",
+      originalError
+    );
+  }
+
+
+  const startCandidates =
+    makeNearbyRoutePoints({
+      lat:startLat,
+      lng:startLng
+    });
+
+  const endCandidates =
+    makeNearbyRoutePoints({
+      lat:endLat,
+      lng:endLng
+    });
+
+
+  /*
+    2. 목적지부터 보정
+  */
+  for(const point of endCandidates){
+
+    try{
+
+      const data =
+        await requestKakaoBackupRoute(
+          startLng,
+          startLat,
+          point.lng,
+          point.lat
+        );
+
+      console.log(
+        "[목적지 자동 보정 성공]",
+        point
+      );
+
+      return {
+        data,
+        startLng,
+        startLat,
+        endLng:point.lng,
+        endLat:point.lat,
+        corrected:true
+      };
+
+    }catch(error){
+      // 다음 후보 계속 시도
+    }
+  }
+
+
+  /*
+    3. 출발지 보정
+  */
+  for(const point of startCandidates){
+
+    try{
+
+      const data =
+        await requestKakaoBackupRoute(
+          point.lng,
+          point.lat,
+          endLng,
+          endLat
+        );
+
+      console.log(
+        "[출발지 자동 보정 성공]",
+        point
+      );
+
+      return {
+        data,
+        startLng:point.lng,
+        startLat:point.lat,
+        endLng,
+        endLat,
+        corrected:true
+      };
+
+    }catch(error){
+      // 다음 후보 계속 시도
+    }
+  }
+
+
+  throw new Error(
+    "원 좌표와 주변 좌표 모두에서 경로를 찾지 못했습니다."
+  );
+}
+  
   function scheduleBackgroundRouteRetry(
   requestToken,
   attempt = 1
@@ -10855,16 +11019,53 @@ const routeProvider = "kakao";
 
 try{
 
-  data =
-    await requestKakaoBackupRoute(
+  const routeResult =
+    await requestKakaoRouteWithCorrection(
       startLng,
       startLat,
       endLng,
       endLat
     );
 
+  data =
+    routeResult.data;
+
+  /*
+    자동 보정된 좌표가 있으면
+    이후 지도·내비게이션에서도 사용
+  */
+  startLng =
+    routeResult.startLng;
+
+  startLat =
+    routeResult.startLat;
+
+  endLng =
+    routeResult.endLng;
+
+  endLat =
+    routeResult.endLat;
+
+  /*
+    내비게이션 버튼에서도
+    최종 보정 좌표 사용
+  */
+  lastStart = {
+    lng:startLng,
+    lat:startLat,
+    name:startName
+  };
+
+  lastEnd = {
+    lng:endLng,
+    lat:endLat,
+    name:endName
+  };
+
   console.log(
-    "[실시간 경로 제공자] 카카오 메인"
+    routeResult.corrected
+      ? "[실시간 경로 제공자] 카카오 · 좌표 자동보정"
+      : "[실시간 경로 제공자] 카카오 메인"
   );
 
 }catch(kakaoError){
